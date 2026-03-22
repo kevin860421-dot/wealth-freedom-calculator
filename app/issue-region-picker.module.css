@@ -1,0 +1,68 @@
+/* 問題回報 · 點選頁面區塊（覆蓋層不攔截滑鼠，僅 HUD 可點） */
+
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 10005;
+  pointer-events: none;
+}
+
+.highlight {
+  position: fixed;
+  pointer-events: none;
+  border: 2px solid rgba(34, 211, 238, 0.95);
+  border-radius: 6px;
+  background: rgba(59, 130, 246, 0.12);
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.6),
+    0 0 24px rgba(34, 211, 238, 0.25);
+  transition: top 0.05s ease, left 0.05s ease, width 0.05s ease, height 0.05s ease;
+  z-index: 1;
+}
+
+.hud {
+  position: fixed;
+  left: 50%;
+  bottom: 1.25rem;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  max-width: min(96vw, 520px);
+  padding: 0.65rem 1rem;
+  pointer-events: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(11, 17, 32, 0.94);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.hudText {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #cbd5e1;
+  text-align: center;
+}
+
+.hudBtn {
+  padding: 0.4rem 0.85rem;
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.hudBtn:hover {
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.1);
+}
