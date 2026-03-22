@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { getPublicStatsSnapshot } from "@/lib/stats-store";
@@ -35,6 +36,7 @@ export default async function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`} style={{ position: "relative" }}>
         <VisitStatsSeoSnippet stats={initialStats} />
         <StatsProvider initialStats={initialStats}>{children}</StatsProvider>
+        <Analytics />
       </body>
     </html>
   );
