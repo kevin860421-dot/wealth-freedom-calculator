@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { FooterStatsStrip } from "./footer-stats-strip";
+import { FreedomCelebrationModal } from "./freedom-celebration-modal";
 import {
   TICKER_PRESETS,
   buildTickerDividendMonthsMap,
@@ -466,6 +468,9 @@ export default function Home() {
   useEffect(() => {
     setClientMounted(true);
   }, []);
+  /** 達成財富自由目標時顯示祝賀彈窗（關閉後需先「未達成」再達成才會再出現） */
+  const [freedomCelebrationOpen, setFreedomCelebrationOpen] = useState(false);
+  const prevFreedomAchievedRef = useRef(false);
   const lastScrollYRef = useRef(0);
   const goalSettingCardRef = useRef<HTMLDivElement | null>(null);
   const wasPastHeroRef = useRef(false);
@@ -1578,6 +1583,19 @@ export default function Home() {
         )
       : 0;
 
+  const freedomAchievedBySim =
+    simulation.yearsToUserTarget === 0 &&
+    simulation.monthsToUserTarget != null &&
+    simulation.monthsToUserTarget <= 12;
+  const freedomAchieved = achievementPercent >= 100 || freedomAchievedBySim;
+
+  useEffect(() => {
+    if (freedomAchieved && !prevFreedomAchievedRef.current) {
+      setFreedomCelebrationOpen(true);
+    }
+    prevFreedomAchievedRef.current = freedomAchieved;
+  }, [freedomAchieved]);
+
   const renderCountdown = (
     title: string,
     years: number | null,
@@ -1982,6 +2000,16 @@ export default function Home() {
             </h1>
             <p style={{ fontSize: 13, color: "#9ca3af", marginTop: 8, marginBottom: 0 }}>
               月領 {targetQuarterIncomeNum.toLocaleString("zh-TW")}，不是夢，是複利紀律。
+            </p>
+            <p style={{ marginTop: 10, marginBottom: 0 }}>
+              <Link
+                href="/blog/2026-dividend-tax-guide"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: 12, color: "#6ee7b7", textDecoration: "underline", textUnderlineOffset: 3 }}
+              >
+                部落格：2026 存股節稅與股利實拿 →
+              </Link>
             </p>
           </div>
           <div style={{ padding: "10px 0", background: "transparent", fontSize: 12, color: "#6b7280", lineHeight: 1.85 }}>
@@ -3391,6 +3419,22 @@ export default function Home() {
 
         {/* 9️⃣ 法律聲明 / FOOTER */}
         <footer style={{ padding: "20px 0 24px", borderTop: "1px solid rgba(255,255,255,0.12)" }}>
+          <div style={{ textAlign: "center", marginBottom: 18 }}>
+            <Link href="/blog" target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#9ca3af" }}>
+              部落格
+            </Link>
+            <span style={{ color: "#4b5563", margin: "0 10px" }} aria-hidden>
+              ·
+            </span>
+            <Link
+              href="/blog/2026-dividend-tax-guide"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontSize: 13, color: "#6ee7b7" }}
+            >
+              2026 存股節稅指南
+            </Link>
+          </div>
           <FooterStatsStrip />
           {/* 廣告預留區（僅佔位，日後可替換為廣告元件） */}
           <div
@@ -3564,6 +3608,12 @@ export default function Home() {
           </div>
         </footer>
       </div>
+      {clientMounted ? (
+        <FreedomCelebrationModal
+          open={freedomCelebrationOpen}
+          onClose={() => setFreedomCelebrationOpen(false)}
+        />
+      ) : null}
     </main>
   );
 }

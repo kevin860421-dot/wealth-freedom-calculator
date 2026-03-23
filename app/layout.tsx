@@ -18,7 +18,15 @@ const geistMono = Geist_Mono({
 
 export const dynamic = "force-dynamic";
 
+function getSiteOrigin(): string {
+  return (
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+  );
+}
+
 export const metadata: Metadata = {
+  metadataBase: new URL(getSiteOrigin()),
   title: "財富自由計算機",
   description:
     "財富自由計算機：台股 ETF、定期定額、股利再投入、稅負與二代健保試算，結果僅供參考。",

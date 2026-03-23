@@ -1,0 +1,12 @@
+---
+description: 深色莫蘭迪配色與可讀性（全站與部落格）
+globs: **/*.{css,tsx,ts}
+alwaysApply: true
+---
+
+# 深色莫蘭迪（Morandi）設計偏好
+
+- **預設為深色、莫蘭迪色系**：灰藍／灰紫底、低飽和，避免刺眼霓虹。
+- **對比優先**：主標題用 `--morandi-text`（偏暖米白 `#f0ebe5`）；內文用 `--morandi-text-body`（`#ddd4ca`）；次要說明用 `--morandi-text-soft` / `--morandi-text-muted`，**禁止**在淺／白底上使用淺灰字。
+- **點綴色**：灰褐 `--morandi-accent`、灰綠 `--morandi-highlight`，少用高飽和螢光綠當大面積文字色。
+- **變數集中**：新樣式優先使用 `app/globals.css` 的 `--morandi-*` CSS 變數，與部落格 `blog.module.css` 一致。

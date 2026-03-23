@@ -1,0 +1,218 @@
+/* 部落格：深色莫蘭迪；字級／行距參考常見長文閱讀（約 17px 內文、1.8 行高） */
+.wrap {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 2rem clamp(1rem, 4vw, 1.5rem) 4rem;
+  line-height: 1.8;
+  color: var(--morandi-text-body, #ddd4ca);
+}
+
+/* 文章頂：左返回、右系列標籤 */
+.postMetaRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.65rem 1rem;
+  margin-bottom: 1.35rem;
+}
+
+.postMetaRow .back {
+  margin-bottom: 0;
+}
+
+.postMetaRow .seriesPill {
+  margin-bottom: 0;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--morandi-highlight, #a8b5a0);
+}
+
+.back:hover {
+  text-decoration: underline;
+  color: var(--morandi-text, #f0ebe5);
+}
+
+.title {
+  font-size: clamp(1.625rem, 4.2vw, 2rem);
+  font-weight: 700;
+  color: var(--morandi-text, #f0ebe5);
+  margin: 0 0 0.875rem;
+  line-height: 1.28;
+  letter-spacing: 0.02em;
+}
+
+.subtitle {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--morandi-text-soft, #b8aea4);
+  margin-bottom: 2.25rem;
+}
+
+/* 系列標示（專欄、專題等），常置於頂列右側 */
+.seriesPill {
+  display: inline-block;
+  margin-bottom: 0.65rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--morandi-highlight, #a8b5a0);
+  border: 1px solid rgba(168, 181, 160, 0.35);
+  border-radius: 6px;
+  background: rgba(168, 181, 160, 0.08);
+}
+
+/* 段落節奏：段距約 1.5rem；段首不縮排（網頁長文通用），若以紙本兩字縮排可改 text-indent */
+.article {
+  max-width: 38rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.article h2 {
+  font-size: 1.3125rem;
+  font-weight: 700;
+  color: var(--morandi-text, #f0ebe5);
+  margin: 2.75rem 0 1rem;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+}
+
+.article h2:first-of-type {
+  margin-top: 2.25rem;
+}
+
+.article h3 {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--morandi-text-body, #ddd4ca);
+  margin: 1.75rem 0 0.625rem;
+  line-height: 1.4;
+}
+
+.article p {
+  margin: 0 0 1.5rem;
+  color: var(--morandi-text-body, #ddd4ca);
+  font-size: 1.0625rem;
+  line-height: 1.85;
+}
+
+.article strong {
+  color: var(--morandi-text, #f0ebe5);
+  font-weight: 600;
+}
+
+.article ul,
+.article ol {
+  margin: 0 0 1.5rem 1.35rem;
+  color: var(--morandi-text-body, #ddd4ca);
+  font-size: 1.0625rem;
+  line-height: 1.8;
+}
+
+.article li {
+  margin-bottom: 0.5rem;
+}
+
+.quiz {
+  border: 1px solid var(--morandi-border, rgba(230, 220, 210, 0.12));
+  border-radius: 12px;
+  padding: 1.15rem 1.35rem;
+  margin: 1.5rem 0;
+  background: var(--morandi-surface, #242830);
+}
+
+.quiz p {
+  margin-bottom: 0.55rem;
+  color: var(--morandi-text-body, #ddd4ca);
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+
+.quiz label {
+  display: block;
+  margin: 0.35rem 0;
+  cursor: default;
+  font-size: 1.0625rem;
+}
+
+.callout {
+  border-left: 3px solid var(--morandi-highlight, #a8b5a0);
+  padding: 0.85rem 1.1rem;
+  margin: 1.5rem 0;
+  background: rgba(168, 181, 160, 0.08);
+  border-radius: 0 8px 8px 0;
+}
+
+.callout p {
+  margin: 0;
+  color: var(--morandi-text-body, #ddd4ca);
+  font-size: 1.0625rem;
+  line-height: 1.8;
+}
+
+.toolLine {
+  font-size: 1.125rem;
+  color: var(--morandi-text, #f0ebe5);
+  margin: 1.25rem 0 !important;
+  line-height: 1.75;
+}
+
+.disclaimer {
+  margin-top: 3rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--morandi-border, rgba(230, 220, 210, 0.1));
+  font-size: 0.875rem;
+  color: var(--morandi-text-muted, #8f857b);
+  line-height: 1.7;
+}
+
+.disclaimer p {
+  margin: 0 0 0.5rem;
+  color: var(--morandi-text-muted, #8f857b);
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background: rgba(196, 181, 163, 0.12);
+  border: 1px solid rgba(196, 181, 163, 0.35);
+  color: var(--morandi-accent, #c4b5a3) !important;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.cta:hover {
+  background: rgba(196, 181, 163, 0.2);
+  color: var(--morandi-text, #f0ebe5) !important;
+}
+
+.listIndex {
+  margin: 1rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.listIndex li {
+  margin-bottom: 0.75rem;
+  padding-left: 0;
+}
+
+.num {
+  color: var(--morandi-highlight, #a8b5a0);
+  font-weight: 700;
+  margin-right: 0.35rem;
+}

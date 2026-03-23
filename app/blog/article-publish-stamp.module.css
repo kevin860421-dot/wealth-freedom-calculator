@@ -1,0 +1,30 @@
+.stamp {
+  position: fixed;
+  z-index: 50;
+  bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  right: max(1rem, env(safe-area-inset-right, 0px));
+  max-width: min(18rem, calc(100vw - 2rem));
+  padding: 0.45rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  color: var(--morandi-text-muted, #8f857b);
+  background: rgba(22, 24, 32, 0.92);
+  border: 1px solid rgba(230, 220, 210, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.stamp time {
+  color: var(--morandi-text-soft, #b8aea4);
+  font-weight: 500;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stamp {
+    backdrop-filter: none;
+  }
+}

@@ -1,0 +1,101 @@
+.wrap {
+  margin: 2rem 0;
+}
+
+.card {
+  border-radius: 16px;
+  border: 1px solid rgba(120, 140, 200, 0.12);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(2, 6, 23, 0.98) 100%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  padding: 1.25rem 1.25rem 1.35rem;
+  overflow: hidden;
+}
+
+.grid3 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 720px) {
+  .grid3 {
+    grid-template-columns: 1fr 1fr auto;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+}
+
+.badge {
+  font-size: 0.65rem;
+  color: #a8b5a0;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--morandi-text, #f0ebe5);
+  margin: 0 0 0.35rem;
+  line-height: 1.2;
+}
+
+.tagline {
+  font-size: 0.8125rem;
+  color: var(--morandi-text-soft, #b8aea4);
+  margin: 0;
+  line-height: 1.55;
+}
+
+.colMid {
+  font-size: 0.78rem;
+  color: #9ca3af;
+  line-height: 1.65;
+  padding: 0.25rem 0;
+}
+
+.bullet {
+  margin: 0 0 0.35rem;
+}
+
+.colEta {
+  text-align: right;
+  min-width: 140px;
+}
+
+.etaLabel {
+  font-size: 0.65rem;
+  color: #9ca3af;
+  margin-bottom: 0.25rem;
+}
+
+.etaValue {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #a8b5a0;
+  margin-bottom: 0.5rem;
+}
+
+.bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  max-width: 160px;
+  margin-left: auto;
+}
+
+.barFill {
+  width: 42%;
+  height: 100%;
+  background: linear-gradient(90deg, #8f9d8e, #c4b5a3);
+  border-radius: 3px;
+}
+
+.caption {
+  margin-top: 0.65rem;
+  font-size: 0.75rem;
+  color: var(--morandi-text-muted, #8f857b);
+  line-height: 1.45;
+}

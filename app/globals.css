@@ -1,24 +1,49 @@
+/* 全站預設：深色莫蘭迪（Muted / Morandi）— 高對比可讀性 */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+
+  --morandi-void: #101218;
+  --morandi-bg: #16181f;
+  --morandi-bg-mid: #1c1f28;
+  --morandi-surface: #242830;
+  --morandi-border: rgba(230, 220, 210, 0.1);
+
+  /* 主文：偏暖米白，避免灰白糊在淺底上 */
+  --morandi-text: #f0ebe5;
+  --morandi-text-body: #ddd4ca;
+  --morandi-text-soft: #b8aea4;
+  --morandi-text-muted: #8f857b;
+
+  /* 點綴：灰褐、灰綠，低飽和 */
+  --morandi-accent: #c4b5a3;
+  --morandi-accent-dim: #9e8f7e;
+  --morandi-highlight: #a8b5a0;
+
+  --background: var(--morandi-bg);
+  --foreground: var(--morandi-text-body);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* 不再依系統切換淺色，避免「白底 + 淺字」 */
 html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
 }
 
+html {
+  background: var(--morandi-void);
+}
+
 body {
   color: var(--foreground);
-  background: var(--background);
+  background: linear-gradient(
+    180deg,
+    var(--morandi-void) 0%,
+    var(--morandi-bg-mid) 42%,
+    var(--morandi-bg) 100%
+  );
+  background-color: var(--morandi-bg);
+  background-attachment: fixed;
   font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -33,12 +58,6 @@ body {
 a {
   color: inherit;
   text-decoration: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
 }
 
 /* 問題回報 · 點選頁面區塊模式 */
