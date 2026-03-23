@@ -6,6 +6,7 @@ import { BlogScrollMilestoneModal } from "../blog-scroll-milestone-modal";
 import { CalculatorHeroPreview } from "../calculator-hero-preview";
 import { DividendTaxInteractive } from "../dividend-tax-interactive";
 import { TaxBracketCompareChart } from "../tax-bracket-compare-chart";
+import type { BlogPostRegistryEntry } from "../posts/registry";
 import { blogPostPath, getBlogPostBySlug, isBlogPostPublished } from "../posts/registry";
 import styles from "../blog.module.css";
 
@@ -13,10 +14,12 @@ export const dynamic = "force-dynamic";
 
 /** 與資料夾名、registry.slug 一致 */
 const SLUG = "2026-dividend-tax-guide" as const;
-const entry = getBlogPostBySlug(SLUG);
-if (!entry) {
+const _registryEntry = getBlogPostBySlug(SLUG);
+if (!_registryEntry) {
   throw new Error(`[blog] registry 缺少 slug：${SLUG}（請編輯 app/blog/posts/registry.ts）`);
 }
+/** 供本頁與 generateMetadata 使用（避免巢狀函式內 TS 推斷為 undefined） */
+const entry: BlogPostRegistryEntry = _registryEntry;
 
 const SCROLL_MILESTONE_SESSION_KEY = "wf-blog-scroll-milestone-2026-dividend-v1";
 
