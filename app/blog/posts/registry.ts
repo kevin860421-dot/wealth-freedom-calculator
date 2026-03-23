@@ -37,7 +37,7 @@ export type BlogPostRegistryEntry = {
 export const BLOG_POST_REGISTRY: BlogPostRegistryEntry[] = [
   {
     slug: "2026-dividend-tax-guide",
-    publishAtIso: "2026-03-23T08:30:00+08:00",
+    publishAtIso: "2026-03-24T08:30:00+08:00",
     listTitle: "存股節稅（1）｜2026 股利抵減 8.5% 與實拿",
     listDescription: "股利課稅、合併課稅與分離課稅、二代健保與實拿試算觀念。",
     featureHomeHero: true,
