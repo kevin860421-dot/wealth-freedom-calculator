@@ -1,19 +1,29 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArticlePublishStamp } from "../article-publish-stamp";
+import { BlogScheduledPlaceholder } from "../blog-scheduled-placeholder";
 import { BlogScrollMilestoneModal } from "../blog-scroll-milestone-modal";
 import { CalculatorHeroPreview } from "../calculator-hero-preview";
 import { DividendTaxInteractive } from "../dividend-tax-interactive";
 import { TaxBracketCompareChart } from "../tax-bracket-compare-chart";
-import { PUBLISH_AT_ISO } from "../posts/2026-dividend-tax-guide.config";
+import { blogPostPath, getBlogPostBySlug, isBlogPostPublished } from "../posts/registry";
 import styles from "../blog.module.css";
+
+export const dynamic = "force-dynamic";
+
+/** 與資料夾名、registry.slug 一致 */
+const SLUG = "2026-dividend-tax-guide" as const;
+const entry = getBlogPostBySlug(SLUG);
+if (!entry) {
+  throw new Error(`[blog] registry 缺少 slug：${SLUG}（請編輯 app/blog/posts/registry.ts）`);
+}
 
 const SCROLL_MILESTONE_SESSION_KEY = "wf-blog-scroll-milestone-2026-dividend-v1";
 
-const ARTICLE_PATH = "/blog/2026-dividend-tax-guide";
+const ARTICLE_PATH = blogPostPath(SLUG);
 const ARTICLE_HEADLINE = "2026 存股節稅：股利抵減 8.5% 與實拿";
 
-export const metadata: Metadata = {
+const publishedArticleMetadata: Metadata = {
   title: "存股節稅（1）｜股利抵減 8.5%、合併分離課稅｜財富自由計算機",
   description:
     "存股、ETF 稅、股利課稅怎麼算？合併課稅與分離課稅、二代健保 2.11%、股利抵減 8.5% 觀念整理，並用財富自由計算機試算目標與實拿。僅供參考。",
@@ -37,7 +47,7 @@ export const metadata: Metadata = {
     url: ARTICLE_PATH,
     locale: "zh_TW",
     siteName: "財富自由計算機",
-    publishedTime: PUBLISH_AT_ISO,
+    publishedTime: entry.publishAtIso,
   },
   twitter: {
     card: "summary_large_image",
@@ -51,6 +61,17 @@ export const metadata: Metadata = {
   },
 };
 
+export function generateMetadata(): Metadata {
+  if (!isBlogPostPublished(entry.publishAtIso)) {
+    return {
+      title: "文章準備中｜財富自由計算機",
+      description: "本篇將於指定時間公開，敬請期待。",
+      robots: { index: false, follow: false },
+    };
+  }
+  return publishedArticleMetadata;
+}
+
 function articleJsonLd() {
   const origin =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
@@ -60,8 +81,8 @@ function articleJsonLd() {
     "@type": "Article",
     headline: ARTICLE_HEADLINE,
     inLanguage: "zh-TW",
-    datePublished: PUBLISH_AT_ISO,
-    dateModified: PUBLISH_AT_ISO,
+    datePublished: entry.publishAtIso,
+    dateModified: entry.publishAtIso,
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": `${origin}${ARTICLE_PATH}`,
@@ -84,7 +105,7 @@ function articleJsonLd() {
   );
 }
 
-export default function BlogPost2026DividendTaxGuide() {
+function BlogPost2026DividendTaxGuidePublished() {
   return (
     <article className={styles.wrap}>
       {articleJsonLd()}
@@ -263,7 +284,14 @@ export default function BlogPost2026DividendTaxGuide() {
       </div>
 
       <BlogScrollMilestoneModal sessionKey={SCROLL_MILESTONE_SESSION_KEY} />
-      <ArticlePublishStamp publishAtIso={PUBLISH_AT_ISO} />
+      <ArticlePublishStamp publishAtIso={entry.publishAtIso} />
     </article>
   );
+}
+
+export default function BlogPost2026DividendTaxGuide() {
+  if (!isBlogPostPublished(entry.publishAtIso)) {
+    return <BlogScheduledPlaceholder publishAtIso={entry.publishAtIso} />;
+  }
+  return <BlogPost2026DividendTaxGuidePublished />;
 }

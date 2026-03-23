@@ -8,6 +8,7 @@ import {
   buildTickerDividendMonthsMap,
   buildDefault54cRatioMap,
 } from "./ticker-presets";
+import { blogPostPath, getHomeFooterBlogPosts, getHomeHeroBlogPosts } from "./blog/posts/registry";
 
 /** 各標的除息月份（與 ticker-presets 同步） */
 const ETF_DIVIDEND_MONTHS = buildTickerDividendMonthsMap();
@@ -17,6 +18,9 @@ import * as XLSX from "xlsx";
 
 /** 頁尾「版權說明」版本號（請與 package.json 的 version 對齊） */
 const APP_VERSION = "0.1.0";
+
+const homeHeroBlogPosts = getHomeHeroBlogPosts();
+const homeFooterBlogPosts = getHomeFooterBlogPosts();
 
 const MONTHS = 40 * 12; // 模擬 40 年
 const TARGET_Q1 = 30000; // 每季 3 萬
@@ -2001,16 +2005,18 @@ export default function Home() {
             <p style={{ fontSize: 13, color: "#9ca3af", marginTop: 8, marginBottom: 0 }}>
               月領 {targetQuarterIncomeNum.toLocaleString("zh-TW")}，不是夢，是複利紀律。
             </p>
-            <p style={{ marginTop: 10, marginBottom: 0 }}>
-              <Link
-                href="/blog/2026-dividend-tax-guide"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ fontSize: 12, color: "#6ee7b7", textDecoration: "underline", textUnderlineOffset: 3 }}
-              >
-                部落格：2026 存股節稅與股利實拿 →
-              </Link>
-            </p>
+            {homeHeroBlogPosts.map((post) => (
+              <p key={post.slug} style={{ marginTop: 10, marginBottom: 0 }}>
+                <Link
+                  href={blogPostPath(post.slug)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: 12, color: "#6ee7b7", textDecoration: "underline", textUnderlineOffset: 3 }}
+                >
+                  {post.homeHeroLabel ?? post.listTitle}
+                </Link>
+              </p>
+            ))}
           </div>
           <div style={{ padding: "10px 0", background: "transparent", fontSize: 12, color: "#6b7280", lineHeight: 1.85 }}>
             <p style={{ margin: "0 0 6px 0" }}>◆ 月領 50,000 不是夢。年化 7%～10% 情境下，最快約 15 年可達成。</p>
@@ -3423,17 +3429,21 @@ export default function Home() {
             <Link href="/blog" target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#9ca3af" }}>
               部落格
             </Link>
-            <span style={{ color: "#4b5563", margin: "0 10px" }} aria-hidden>
-              ·
-            </span>
-            <Link
-              href="/blog/2026-dividend-tax-guide"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ fontSize: 13, color: "#6ee7b7" }}
-            >
-              2026 存股節稅指南
-            </Link>
+            {homeFooterBlogPosts.map((post) => (
+              <span key={post.slug}>
+                <span style={{ color: "#4b5563", margin: "0 10px" }} aria-hidden>
+                  ·
+                </span>
+                <Link
+                  href={blogPostPath(post.slug)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: 13, color: "#6ee7b7" }}
+                >
+                  {post.homeFooterLabel ?? post.listTitle}
+                </Link>
+              </span>
+            ))}
           </div>
           <FooterStatsStrip />
           {/* 廣告預留區（僅佔位，日後可替換為廣告元件） */}
