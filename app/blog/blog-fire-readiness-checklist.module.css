@@ -1,0 +1,94 @@
+.wrap {
+  margin: 1.75rem 0;
+  padding: 1.2rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid rgba(168, 181, 160, 0.28);
+  background: rgba(168, 181, 160, 0.05);
+}
+
+.title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--morandi-text, #f0ebe5);
+  margin: 0 0 0.25rem;
+}
+
+.sub {
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--morandi-text-muted, #8f857b);
+  margin: 0 0 1rem;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--morandi-text-body, #ddd4ca);
+}
+
+.item:last-child {
+  margin-bottom: 0;
+}
+
+.checkbox {
+  margin-top: 0.2rem;
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: var(--morandi-highlight, #a8b5a0);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.label {
+  cursor: pointer;
+  flex: 1;
+}
+
+.meter {
+  margin-top: 1.1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.meterTop {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--morandi-text-soft, #b8aea4);
+  margin-bottom: 0.4rem;
+}
+
+.meterBar {
+  height: 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+
+.meterFill {
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #5a7a52, #8faa7e);
+  transition: width 0.35s ease;
+}
+
+.verdict {
+  margin-top: 0.85rem;
+  font-size: 0.84rem;
+  line-height: 1.65;
+  color: var(--morandi-text-soft, #b8aea4);
+}
+
+.verdict strong {
+  color: var(--morandi-text, #f0ebe5);
+}

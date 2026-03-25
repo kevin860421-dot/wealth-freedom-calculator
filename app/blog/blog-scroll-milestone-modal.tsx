@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { scrollToBlogCalculatorCta } from "./blog-calculator-cta";
 import styles from "../freedom-celebration-modal.module.css";
 
 type Props = {
@@ -121,9 +121,16 @@ export function BlogScrollMilestoneModal({ sessionKey }: Props) {
                   讀完這篇，你已經比多數人更在意「實拿」與長期路徑。下一步用計算機把數字跑一遍。
                 </p>
                 <div className={styles.actions}>
-                  <Link href="/" target="_blank" rel="noopener noreferrer" className={styles.cta}>
-                    前往財富自由計算機（另開分頁）
-                  </Link>
+                  <button
+                    type="button"
+                    className={styles.cta}
+                    onClick={() => {
+                      close();
+                      requestAnimationFrame(() => scrollToBlogCalculatorCta());
+                    }}
+                  >
+                    前往文末開啟計算機
+                  </button>
                   <button type="button" className={styles.ghost} onClick={close}>
                     關閉
                   </button>

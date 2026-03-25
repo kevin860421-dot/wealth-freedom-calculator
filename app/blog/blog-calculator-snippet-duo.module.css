@@ -1,0 +1,241 @@
+/* 仿首頁計算機深色表格／卡片，與第一篇 hero 三欄預覽區隔；非真實截圖檔，數字為教學示意 */
+.duo {
+  display: grid;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+@media (min-width: 700px) {
+  .duo {
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+  }
+}
+
+.figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.chrome {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: 10px 10px 0 0;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: none;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  opacity: 0.85;
+}
+
+.d1 {
+  background: #ff5f57;
+}
+.d2 {
+  background: #febc2e;
+}
+.d3 {
+  background: #28c840;
+}
+
+.chromeTitle {
+  margin-left: 0.35rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  color: var(--morandi-text-muted, #8f857b);
+  text-transform: uppercase;
+}
+
+.card {
+  flex: 1;
+  border-radius: 0 0 10px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--morandi-surface, #242830);
+  padding: 0.75rem 0.65rem 0.85rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.shotTitle {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #9ca3af;
+  margin-bottom: 0.55rem;
+  letter-spacing: 0.02em;
+}
+
+/* 表格摘錄 */
+.table {
+  width: 100%;
+  font-size: 0.65rem;
+  border-collapse: collapse;
+  color: #d1d5db;
+}
+
+.table th,
+.table td {
+  padding: 0.35rem 0.3rem;
+  text-align: right;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+}
+
+.table th:first-child,
+.table td:first-child {
+  text-align: left;
+}
+
+.table th {
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, monospace;
+}
+
+.accent {
+  color: #f5c451;
+}
+
+.danger {
+  color: #f87171;
+}
+
+/* 組成條 */
+.etfRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.5rem;
+  font-size: 0.72rem;
+  color: var(--morandi-text-soft, #b8aea4);
+}
+
+.etfId {
+  font-weight: 700;
+  color: var(--morandi-text, #f0ebe5);
+  letter-spacing: 0.06em;
+}
+
+.barTrack {
+  height: 22px;
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  margin-bottom: 0.4rem;
+}
+
+.bar54c {
+  background: linear-gradient(90deg, #6b8f5e, #8faa7e);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #f0fdf4;
+}
+.barRest {
+  background: rgba(100, 116, 139, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  color: #e2e8f0;
+}
+
+.legend {
+  font-size: 0.62rem;
+  line-height: 1.45;
+  color: #6b7280;
+}
+
+/* 第五篇：整戶拼圖 */
+.puzzle {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.puzzleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0.45rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 0.72rem;
+  color: #d1d5db;
+}
+
+.puzzleLabel {
+  color: #9ca3af;
+}
+
+.bracket {
+  margin-top: 0.35rem;
+  padding: 0.45rem;
+  border-radius: 6px;
+  border-left: 3px solid #a8b5a0;
+  background: rgba(168, 181, 160, 0.08);
+  font-size: 0.68rem;
+  color: var(--morandi-text-soft, #b8aea4);
+  line-height: 1.45;
+}
+
+/* 合併 vs 分離 */
+.compare {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.compareRow {
+  padding: 0.5rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.compareLabel {
+  font-size: 0.65rem;
+  color: #9ca3af;
+  margin-bottom: 0.25rem;
+}
+
+.compareAmt {
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, monospace;
+  color: #e5e7eb;
+}
+
+.compareHint {
+  font-size: 0.62rem;
+  color: #6b7280;
+  margin-top: 0.2rem;
+}
+
+.caption {
+  margin-top: 0.45rem;
+  font-size: 0.68rem;
+  color: var(--morandi-text-muted, #8f857b);
+  line-height: 1.45;
+}
+
+.duoCaption {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--morandi-text-muted, #8f857b);
+  line-height: 1.5;
+}

@@ -1,0 +1,133 @@
+.wrap {
+  margin: 1.75rem 0;
+  padding: 1.15rem 1.2rem;
+  border-radius: 12px;
+  border: 1px solid rgba(150, 175, 195, 0.3);
+  background: rgba(80, 95, 115, 0.12);
+}
+
+.title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--morandi-text, #f0ebe5);
+  margin: 0 0 0.35rem;
+}
+
+.lead {
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--morandi-text-muted, #8f857b);
+  margin: 0 0 1rem;
+}
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.preset {
+  font-size: 0.72rem;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--morandi-text-soft, #b8aea4);
+  cursor: pointer;
+}
+
+.preset:hover {
+  border-color: rgba(196, 181, 163, 0.45);
+  color: var(--morandi-text, #f0ebe5);
+}
+
+.row {
+  margin-bottom: 0.85rem;
+}
+
+.rowTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--morandi-text-soft, #b8aea4);
+  margin-bottom: 0.35rem;
+}
+
+.value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--morandi-accent, #c4b5a3);
+  flex-shrink: 0;
+}
+
+.range {
+  width: 100%;
+  accent-color: var(--morandi-accent, #c4b5a3);
+  cursor: pointer;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 480px) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.box {
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--morandi-text-soft, #b8aea4);
+}
+
+.box strong {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--morandi-text-muted, #8f857b);
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.box .amt {
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--morandi-text, #f0ebe5);
+}
+
+.nhiLine {
+  margin-top: 0.85rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  border: 1px solid rgba(198, 162, 90, 0.28);
+  background: rgba(198, 162, 90, 0.1);
+  color: var(--morandi-text-soft, #b8aea4);
+}
+
+.nhiLine strong {
+  color: #e8c97a;
+  font-variant-numeric: tabular-nums;
+}
+
+.note {
+  margin: 0.85rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.65;
+  color: var(--morandi-text-muted, #8f857b);
+}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { WF_BLOG_CALCULATOR_CTA_ID } from "../blog-calculator-cta";
 import { ArticlePublishStamp } from "../article-publish-stamp";
 import { BlogScheduledPlaceholder } from "../blog-scheduled-placeholder";
 import { BlogScrollMilestoneModal } from "../blog-scroll-milestone-modal";
@@ -213,9 +214,6 @@ function BlogPost2026DividendTaxGuidePublished() {
         <p>
           把它當成「順手驗證」：你改一個假設，看曲線怎麼動；你會更清楚——<strong>財富自由 計算機</strong>這種工具，價值不在預言未來，而在讓你少猜、少賭氣。
         </p>
-        <Link href="/" className={styles.cta} target="_blank" rel="noopener noreferrer">
-          開啟財富自由計算機（另開分頁）→
-        </Link>
 
         {/* 5 合併 vs 分離 */}
         <h2>合併課稅 vs 分離課稅：先懂差異，再談選擇</h2>
@@ -264,7 +262,13 @@ function BlogPost2026DividendTaxGuidePublished() {
         <p>
           👉 用<strong>財富自由計算機</strong>自己算一遍，你會更知道：你現在看到的被動收入，距離你想守住的自由，還差哪幾個假設。
         </p>
-        <Link href="/" className={styles.cta} target="_blank" rel="noopener noreferrer">
+        <Link
+          id={WF_BLOG_CALCULATOR_CTA_ID}
+          href="/"
+          className={styles.cta}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           前往財富自由計算機（另開分頁）→
         </Link>
 

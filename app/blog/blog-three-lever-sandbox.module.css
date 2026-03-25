@@ -1,0 +1,88 @@
+.wrap {
+  margin: 1.75rem 0;
+  padding: 1.2rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid rgba(140, 165, 190, 0.32);
+  background: linear-gradient(165deg, rgba(52, 58, 72, 0.45) 0%, rgba(36, 40, 48, 0.65) 100%);
+}
+
+.title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--morandi-text, #f0ebe5);
+  margin: 0 0 0.35rem;
+  letter-spacing: 0.02em;
+}
+
+.lead {
+  font-size: 0.8rem;
+  line-height: 1.65;
+  color: var(--morandi-text-muted, #8f857b);
+  margin: 0 0 1rem;
+}
+
+.row {
+  margin-bottom: 0.9rem;
+}
+
+.rowTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--morandi-text-soft, #b8aea4);
+  margin-bottom: 0.35rem;
+}
+
+.value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--morandi-accent, #c4b5a3);
+  flex-shrink: 0;
+}
+
+.range {
+  width: 100%;
+  accent-color: var(--morandi-accent, #c4b5a3);
+  cursor: pointer;
+}
+
+.result {
+  margin-top: 1.1rem;
+  padding: 0.85rem 0.95rem;
+  border-radius: 10px;
+  background: rgba(168, 181, 160, 0.07);
+  border: 1px solid rgba(168, 181, 160, 0.22);
+}
+
+.resultLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--morandi-text-muted, #8f857b);
+  margin-bottom: 0.35rem;
+}
+
+.resultMain {
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--morandi-text, #f0ebe5);
+  line-height: 1.35;
+}
+
+.resultSub {
+  margin-top: 0.45rem;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--morandi-text-soft, #b8aea4);
+}
+
+.note {
+  margin: 0.85rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.65;
+  color: var(--morandi-text-muted, #8f857b);
+}

@@ -1,0 +1,93 @@
+.wrap {
+  margin: 1.75rem 0;
+  padding: 1.25rem 1.35rem;
+  border-radius: 14px;
+  border: 1px solid rgba(230, 220, 210, 0.12);
+  background: linear-gradient(160deg, rgba(36, 40, 48, 0.95) 0%, rgba(28, 30, 36, 0.98) 100%);
+}
+
+.prompt {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--morandi-text, #f0ebe5);
+  margin: 0 0 1rem;
+  line-height: 1.55;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.optionBtn {
+  text-align: left;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid rgba(196, 181, 163, 0.25);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--morandi-text-body, #ddd4ca);
+  font-size: 0.98rem;
+  line-height: 1.5;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background 0.2s,
+    transform 0.15s;
+}
+
+.optionBtn:hover:not(:disabled) {
+  border-color: rgba(196, 181, 163, 0.45);
+  background: rgba(196, 181, 163, 0.08);
+}
+
+.optionBtn:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.optionBtn:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.optionBtn.selected {
+  border-color: rgba(168, 181, 160, 0.55);
+  background: rgba(168, 181, 160, 0.12);
+}
+
+.reveal {
+  margin-top: 1.1rem;
+  padding: 1rem 1.05rem;
+  border-radius: 10px;
+  border-left: 3px solid #c9a227;
+  background: rgba(201, 162, 39, 0.1);
+  animation: revealIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.reveal p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: var(--morandi-text-body, #ddd4ca);
+}
+
+.reveal strong {
+  color: var(--morandi-text, #f0ebe5);
+}
+
+@keyframes revealIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hint {
+  margin: 0.65rem 0 0;
+  font-size: 0.8rem;
+  color: var(--morandi-text-muted, #8f857b);
+}

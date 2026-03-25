@@ -4,6 +4,11 @@ import Link from "next/link";
 import { FooterStatsStrip } from "./footer-stats-strip";
 import { FreedomCelebrationModal } from "./freedom-celebration-modal";
 import {
+  buildSnapshotFromInputs,
+  getDefaultCalculatorRepository,
+  type PayoutFrequencyPersist,
+} from "../lib/calculator-persistence";
+import {
   TICKER_PRESETS,
   buildTickerDividendMonthsMap,
   buildDefault54cRatioMap,
@@ -483,12 +488,18 @@ export default function Home() {
   const [applyNhi2InTable, setApplyNhi2InTable] = useState(true);
   const [annualIncome, setAnnualIncome] = useState("");
   const [mergeTaxOpen, setMergeTaxOpen] = useState(false);
+  /** 從 localStorage 還原快照時略過一次「依年薪重算級距」，避免覆寫已存稅率 */
+  const skipTaxSyncFromIncomeRef = useRef(false);
   const annualIncomeWan = useMemo(() => {
     const n = parseFloat(annualIncome.replace(/,/g, ""));
     return Number.isFinite(n) ? n : NaN;
   }, [annualIncome]);
   const annualIncomeYuan = useMemo(() => (Number.isFinite(annualIncomeWan) ? Math.round(annualIncomeWan * 10000) : null), [annualIncomeWan]);
   useEffect(() => {
+    if (skipTaxSyncFromIncomeRef.current) {
+      skipTaxSyncFromIncomeRef.current = false;
+      return;
+    }
     if (Number.isFinite(annualIncomeWan) && annualIncomeWan >= 0) {
       setTaxBracketRate(getTaxBracketByIncomeWan(annualIncomeWan));
     }
@@ -642,6 +653,9 @@ export default function Home() {
       : "季";
 
   const [etfCodeFilter, setEtfCodeFilter] = useState("");
+  /** 完成 localStorage 讀取（或確認無存檔）後才允許防抖寫入，避免以預設值覆蓋舊資料 */
+  const [storageReady, setStorageReady] = useState(false);
+
   const filteredEtfs = useMemo(() => {
     const code = etfCodeFilter.replace(/\s/g, "").slice(0, 5);
     if (!code) return TICKER_PRESETS;
@@ -649,6 +663,111 @@ export default function Home() {
       (p) => p.id.includes(code) || p.id.startsWith(code) || p.label.includes(code),
     );
   }, [etfCodeFilter]);
+
+  useEffect(() => {
+    if (!clientMounted) return;
+    const repo = getDefaultCalculatorRepository();
+    const s = repo.load();
+    if (s) {
+      skipTaxSyncFromIncomeRef.current = true;
+      setInitialPrincipal(s.initialPrincipal);
+      setMonthlyContribution(s.monthlyContribution);
+      setMonthlyExtra(s.monthlyExtra);
+      setAnnualReturnRate(s.annualReturnRate);
+      setDividendYieldPct(s.dividendYieldPct === null ? "" : s.dividendYieldPct);
+      setStockDividendPct(s.stockDividendPct === null ? "" : s.stockDividendPct);
+      setRateSource(s.rateSource);
+      setTargetQuarterIncome(s.targetQuarterIncome);
+      setReinvestRatio(s.reinvestRatio);
+      setPayoutFrequency(s.payoutFrequency as PayoutFrequency);
+      setSelectedEtf(s.selectedEtf);
+      setDefaultYearStr(s.defaultYearStr);
+      setDefaultMonthStr(s.defaultMonthStr);
+      setInitialYearStr(s.initialYearStr);
+      setInitialMonthStr(s.initialMonthStr);
+      const clampedNth = Math.max(1, Math.min(maxNthPeriod, Math.floor(s.nthPeriod) || 1));
+      setNthPeriod(clampedNth);
+      setTargetYearsToAchieve(s.targetYearsToAchieve);
+      setTaxBracketRate(s.taxBracketRate);
+      setApplyTaxInTable(s.applyTaxInTable);
+      setApplyNhi2InTable(s.applyNhi2InTable);
+      setAnnualIncome(s.annualIncome);
+      setSeparateTaxOpen(s.separateTaxOpen);
+      setManualOverrides(s.manualOverrides && typeof s.manualOverrides === "object" ? s.manualOverrides : {});
+      setEtfRatioEstimates(
+        s.etfRatioEstimates && typeof s.etfRatioEstimates === "object" ? s.etfRatioEstimates : buildDefault54cRatioMap(),
+      );
+      setEtfCodeFilter(typeof s.etfCodeFilter === "string" ? s.etfCodeFilter : "");
+    }
+    setStorageReady(true);
+  }, [clientMounted, maxNthPeriod]);
+
+  const persistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!clientMounted || !storageReady) return;
+    const snap = buildSnapshotFromInputs({
+      initialPrincipal,
+      monthlyContribution,
+      monthlyExtra,
+      annualReturnRate,
+      dividendYieldPct,
+      stockDividendPct,
+      rateSource,
+      targetQuarterIncome,
+      reinvestRatio,
+      payoutFrequency: payoutFrequency as PayoutFrequencyPersist,
+      selectedEtf,
+      defaultYearStr,
+      defaultMonthStr,
+      initialYearStr,
+      initialMonthStr,
+      nthPeriod,
+      targetYearsToAchieve,
+      taxBracketRate,
+      applyTaxInTable,
+      applyNhi2InTable,
+      annualIncome,
+      separateTaxOpen,
+      manualOverrides,
+      etfRatioEstimates,
+      etfCodeFilter,
+    });
+    if (persistTimerRef.current) clearTimeout(persistTimerRef.current);
+    persistTimerRef.current = setTimeout(() => {
+      getDefaultCalculatorRepository().save(snap);
+    }, 600);
+    return () => {
+      if (persistTimerRef.current) clearTimeout(persistTimerRef.current);
+    };
+  }, [
+    clientMounted,
+    storageReady,
+    initialPrincipal,
+    monthlyContribution,
+    monthlyExtra,
+    annualReturnRate,
+    dividendYieldPct,
+    stockDividendPct,
+    rateSource,
+    targetQuarterIncome,
+    reinvestRatio,
+    payoutFrequency,
+    selectedEtf,
+    defaultYearStr,
+    defaultMonthStr,
+    initialYearStr,
+    initialMonthStr,
+    nthPeriod,
+    targetYearsToAchieve,
+    taxBracketRate,
+    applyTaxInTable,
+    applyNhi2InTable,
+    annualIncome,
+    separateTaxOpen,
+    manualOverrides,
+    etfRatioEstimates,
+    etfCodeFilter,
+  ]);
 
   /** 輸入接近時自動選到 ETF：完全符合或篩選後僅一檔則自動選取 */
   const handleEtfCodeChange = useCallback((raw: string) => {
