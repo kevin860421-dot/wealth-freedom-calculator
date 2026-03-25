@@ -2124,6 +2124,27 @@ export default function Home() {
             <p style={{ fontSize: 13, color: "#9ca3af", marginTop: 8, marginBottom: 0 }}>
               月領 {targetQuarterIncomeNum.toLocaleString("zh-TW")}，不是夢，是複利紀律。
             </p>
+            <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  goalSettingCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  padding: "10px 18px",
+                  borderRadius: 10,
+                  border: "1px solid rgba(57,255,20,0.55)",
+                  background: "rgba(57,255,20,0.15)",
+                  color: "#39ff14",
+                  cursor: "pointer",
+                  boxShadow: "0 4px 14px rgba(57,255,20,0.12)",
+                }}
+              >
+                開始試算
+              </button>
+            </div>
             {homeHeroBlogPosts.map((post) => (
               <p key={post.slug} style={{ marginTop: 10, marginBottom: 0 }}>
                 <Link
@@ -2216,7 +2237,7 @@ export default function Home() {
         </div>
 
         {/* 3️⃣ GOAL SETTING CARD - 滾超過此區才顯示懸停橫幅（建議每月投入／達成所需資產／目標月領拉桿） */}
-        <div ref={(el) => { goalSettingCardRef.current = el; }} style={{ ...cardStyle }}>
+        <div id="goal-setting" ref={(el) => { goalSettingCardRef.current = el; }} style={{ ...cardStyle }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <h2 style={{ fontSize: 24, fontWeight: 600, color: "#e5e7eb", margin: 0 }}>目標設定</h2>
 
