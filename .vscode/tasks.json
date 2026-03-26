@@ -10,9 +10,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-File",
-        "${workspaceFolder}/scripts/push-to-github.ps1",
-        "-Message",
-        "${input:gitCommitMessage}"
+        "${workspaceFolder}/scripts/push-to-github.ps1"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
@@ -38,9 +36,7 @@
         "Bypass",
         "-File",
         "${workspaceFolder}/scripts/push-to-github.ps1",
-        "-Pull",
-        "-Message",
-        "${input:gitCommitMessage}"
+        "-Pull"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
@@ -51,14 +47,6 @@
         "panel": "shared",
         "focus": true
       }
-    }
-  ],
-  "inputs": [
-    {
-      "id": "gitCommitMessage",
-      "type": "promptString",
-      "description": "Commit 訊息（可直接 Enter 使用預設時間戳）",
-      "default": ""
     }
   ]
 }

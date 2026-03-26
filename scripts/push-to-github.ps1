@@ -1,5 +1,6 @@
 #Requires -Version 5.1
-# Git: add all, commit if needed, push origin main. Run from repo root or via scripts/ path.
+# Git: add all, commit if needed, push origin main. No prompts.
+# Commit message: use -Message "..." only if needed; default is "chore: sync yyyy-MM-dd HH:mm".
 param(
   [string]$Message = "",
   [switch]$Pull
