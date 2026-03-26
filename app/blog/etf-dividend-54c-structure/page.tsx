@@ -4,6 +4,7 @@ import { WF_BLOG_CALCULATOR_CTA_ID } from "../blog-calculator-cta";
 import { ArticlePublishStamp } from "../article-publish-stamp";
 import { BlogCalculatorSnippetDuo } from "../blog-calculator-snippet-duo";
 import { BlogEtf54cComposition } from "../blog-etf-54c-composition";
+import { CalculatorHeroPreview } from "../calculator-hero-preview";
 import { BlogScheduledPlaceholder } from "../blog-scheduled-placeholder";
 import { BlogScrollMilestoneModal } from "../blog-scroll-milestone-modal";
 import { BlogPublishedLink } from "../blog-published-link";
@@ -107,49 +108,63 @@ function ArticleBody() {
       </div>
       <h1 className={styles.title}>ETF 配息與 54C</h1>
       <p className={styles.subtitle}>
-        配息入帳總額 ≠ 全部計入 54C。<strong>平準金、現金股利占比</strong>會改變二代健保與所得稅的計入底座——下面兩張摘錄對齊首頁試算表欄位邏輯。
+        入帳總額 ≠ 全部進 54C。<strong>平準金、現金股利占比</strong>一改，二代健保與所得稅的「底座」就跟著變。
       </p>
+
+      <CalculatorHeroPreview />
 
       <BlogCalculatorSnippetDuo variant="post4" />
 
       <div className={styles.article}>
-        <p>
-          若你已讀過
-          <BlogPublishedLink slug="2026-dividend-tax-guide">存股節稅（1）</BlogPublishedLink>與
-          <BlogPublishedLink slug="tax-overpay-blind-spot">存股節稅（2）</BlogPublishedLink>，應已熟悉<strong>合併課稅 分離課稅</strong>與<strong>二代健保 股利</strong>補充保費的門檻敘述。第四篇要把焦點放在
-          <strong>ETF 與高股息商品常見的「配息組成」</strong>：為何站內試算要請你填<strong>54C 股利占現金股利占比</strong>。
+        <p className={styles.grafTight}>
+          <BlogPublishedLink slug="2026-dividend-tax-guide">存股節稅（1）</BlogPublishedLink>
+          、
+          <BlogPublishedLink slug="tax-overpay-blind-spot">存股節稅（2）</BlogPublishedLink>
+          已講過<strong>合併／分離課稅</strong>、<strong>二代健保 股利</strong>門檻。
         </p>
+        <p className={styles.grafTight}>
+          第四篇只盯一件事：<strong>ETF／高股息那包配息，成分到底是什麼</strong>——所以站內試算才要你填<strong>54C 占現金股利占比</strong>。
+        </p>
+        <p className={styles.innerVoice}>「同一筆錢入帳，為什麼跟鄰居算的不一樣？」</p>
 
-        <h2>1｜名詞先對齊：現金股利 ≠ 全部都要進 54C</h2>
-        <p>
-          實務上，投資人收到的「現金股利」或配息，可能包含不同會計／稅務性質的科目。常見討論包括<strong>盈餘分配之股利</strong>與<strong>收益平準金</strong>等（實際分類依基金／ETF 契約與公告為準）。其中，與綜合所得稅<strong>股利所得（常見對應 54C）</strong>相關、並進而影響<strong>補充保費計入想像</strong>者，通常只是整包現金流的一部分。
+        <h2>現金股利 ≠ 整包都進 54C</h2>
+        <p className={styles.grafTight}>
+          你看到的「現金股利」或配息，底下可能混了不同科目——<strong>盈餘分配股利</strong>、<strong>收益平準金</strong>等（以基金／ETF 公告為準）。
+        </p>
+        <p className={styles.grafTight}>
+          跟綜所稅<strong>股利所得（常見對應 54C）</strong>、進而牽動<strong>補充保費怎麼計入</strong>的，通常只是整包現金流的一截。
         </p>
         <div className={styles.callout}>
-          <p>
-            <strong>專業重點：</strong>若誤把「入帳總額」直接當成 54C 基礎，容易<strong>高估</strong>二代健保補充保費或稅負想像；若反向<strong>低估</strong> 54C 占比，則可能以為自己離門檻很遠，實則不然。
+          <p className={styles.grafTight}>
+            <strong>說白了：</strong>把「入帳總額」當 54C 基底，容易<strong>高估</strong>補充保費或稅負想像；反過來<strong>低估</strong> 54C，又會以為離門檻還很遠——兩種都痛。
           </p>
         </div>
 
-        <h2>2｜互動：用沙盒看「占比」如何改變計入</h2>
-        <p>
-          下列沙盒與<strong>財富自由計算機</strong>採同一邏輯：以<strong>54C 應稅股利計入金額</strong>判斷是否達補充保費門檻，並對該計入金額試算 2.11%（法規若有調整以最新為準）。
+        <h2>沙盒：占比一動，計入就跟著動</h2>
+        <p className={styles.grafTight}>
+          下面跟<strong>財富自由計算機</strong>同一套邏輯：用<strong>54C 應稅股利計入</strong>看有沒有跨補充保費門檻，再對該金額試算 2.11%（法規以最新為準）。
         </p>
         <BlogEtf54cComposition />
 
-        <h2>3｜與試算工具如何銜接</h2>
-        <p>
-          在首頁表格中，你會看到<strong>54C 股利佔比</strong>欄位：它不是在刁難使用者，而是提醒——<strong>高股息 ETF 與個股、不同年度配息結構</strong>可能差很大。若你完全不知道占比，可先採基金公司年報區間或保守假設，再在計算機裡做敏感性測試。
+        <h2>跟試算表怎麼接</h2>
+        <p className={styles.grafTight}>
+          首頁表格有<strong>54C 股利佔比</strong>——不是刁難你填表，是提醒：<strong>高股息 ETF 跟個股、不同年度</strong>，結構可以差很遠。
+        </p>
+        <p className={styles.grafTight}>
+          完全沒概念？先用年報區間或保守假設，進計算機做敏感度，比瞎猜強。
         </p>
 
-        <h2>4｜系列銜接與下一步</h2>
-        <p>
+        <h2>系列往哪接</h2>
+        <p className={styles.grafTight}>
           <BlogPublishedLink slug="passive-income-fire-blueprint">存股節稅（3）</BlogPublishedLink>
-          談的是 FIRE 與稅後現金流架構；本篇補上「配息從哪裡來」的細節，讓你的<strong>稅後口徑</strong>更站得住腳。第五篇將進一步處理
-          <strong>家庭合併申報</strong>與<strong>每戶抵減上限</strong>的決策視角。
+          談 FIRE、稅後現金流骨架；這篇補「錢從哪個科目來」，你的<strong>稅後口徑</strong>才站得住。
+        </p>
+        <p className={styles.grafTight}>
+          第五篇再談<strong>家庭合併申報</strong>、<strong>每戶抵減上限</strong>——整戶圖像。
         </p>
 
         <p className={styles.toolLine}>
-          建議直接開啟計算機：用你關心的標的與占比，對照本文沙盒，跑一次完整表格。
+          開計算機：用你關心的標的與占比，對照沙盒，跑一輪完整表。
         </p>
         <Link
           id={WF_BLOG_CALCULATOR_CTA_ID}
@@ -160,6 +175,17 @@ function ArticleBody() {
         >
           前往財富自由計算機（另開分頁）→
         </Link>
+
+        <h2>今晚就做這兩件事</h2>
+        <ul>
+          <li>查你持有標的最近一次配息公告：<strong>54C／平準金</strong>大概長什麼樣。</li>
+          <li>把占比填進計算機，動一下滑桿，看<strong>門檻與實拿</strong>差多少。</li>
+        </ul>
+
+        <h2>靈魂拷問</h2>
+        <p className={styles.punchLine}>
+          <strong>你算的稅，是配息簡訊上的故事，還是 54C 底座上的故事？</strong>
+        </p>
 
         <div className={styles.disclaimer}>
           <p>

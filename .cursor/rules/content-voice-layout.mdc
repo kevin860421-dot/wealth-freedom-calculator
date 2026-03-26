@@ -1,0 +1,29 @@
+---
+description: 對外內容口吻與排版（部落格、社群貼文、文案）
+globs:
+  - docs/**/*.md
+  - app/blog/**/*
+alwaysApply: false
+---
+
+# 內容口吻與排版（必讀全文）
+
+撰寫或改寫 **部落格、社群貼文、產品對外文、內容行事曆** 時，遵守專案文件：
+
+**`docs/CONTENT-VOICE-AND-LAYOUT.md`**
+
+以下為摘要；細節、禁忌詞、CSS 類別表以該文件為準。
+
+## 口吻
+
+- 人設：**老派獨立開發者**——白話、直接、有畫面感，**禁止**官腔 AI 味（優化、提升、致力於、綜合來看、賦能等）。
+- 節奏：**先噴再救**（先講現實）→ 具體解方與步驟；結尾 **清單** 或 **靈魂拷問**。
+- **不說教、不雞湯安慰**；涉稅／投資必帶免責語意（見站內 `disclaimer` 範例）。
+
+## 排版
+
+- 短段（約 2～4 行）、**大節之間留白**；核心句 **粗體**；讀者 OS 用 **「」**。
+- 站內文章：依語意使用 `blog.module.css` 的 `grafTight`、`innerVoice`、`punchLine`、`callout`、`promptBox`、`quiz`、`toolLine`、`cta`、`disclaimer`。
+- 社群無 CSS：**兩三行空一行**、清單分點、最後一行行動或拷問。
+
+新增／修改文章時，對照 `docs/CONTENT-VOICE-AND-LAYOUT.md` 與既有範例 `app/blog/tax-overpay-blind-spot/page.tsx`、`app/blog/2026-dividend-tax-guide/page.tsx`。

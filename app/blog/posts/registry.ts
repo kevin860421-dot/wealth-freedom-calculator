@@ -47,9 +47,8 @@ export const BLOG_POST_REGISTRY: BlogPostRegistryEntry[] = [
     slug: "household-dividend-tax-checklist",
     /** 清明連假 4/3–4/6 後首個上班日（週二）；與（4）隔 5 日（中間為連假） */
     publishAtIso: "2026-04-07T09:30:00+08:00",
-    listTitle: "存股節稅（5）｜夫妻合併申報、股利抵減上限與整戶試算",
-    listDescription:
-      "合併申報、股利抵減 8.5%、每戶上限與級距：雙薪與股利並存時的決策視角，附互動情境與檢核。",
+    listTitle: "存股節稅（5）｜合併申報與股利抵減",
+    listDescription: "雙薪＋股利：整戶級距、每戶抵減上限，別只算個人科目。",
     featureHomeHero: false,
     featureHomeFooter: true,
     homeFooterLabel: "家庭申報／股利（5）",
@@ -59,8 +58,7 @@ export const BLOG_POST_REGISTRY: BlogPostRegistryEntry[] = [
     /** 連假前最後上班日（週四）；與（3）隔 2 日 */
     publishAtIso: "2026-04-02T09:00:00+08:00",
     listTitle: "存股節稅（4）｜ETF 配息與 54C",
-    listDescription:
-      "現金股利與 54C 應稅股利、收益平準金示意；對齊二代健保計入與財富自由計算機占比欄位。",
+    listDescription: "入帳總額≠全進 54C：平準金、占比，對齊補充保費與試算表。",
     featureHomeHero: false,
     featureHomeFooter: true,
     homeFooterLabel: "ETF 配息／54C（4）",
@@ -69,32 +67,31 @@ export const BLOG_POST_REGISTRY: BlogPostRegistryEntry[] = [
     slug: "passive-income-fire-blueprint",
     /** 與（2）隔 5 日；連假前最後一篇週間檔 */
     publishAtIso: "2026-03-31T09:30:00+08:00",
-    listTitle: "存股節稅（3）｜被動收入與 FIRE：稅後現金流專業架構",
-    listDescription:
-      "FIRE 試算、被動收入規劃、財富自由現金流：三槓桿沙盒與專業自檢，銜接股利稅與財富自由計算機。",
+    listTitle: "存股節稅（3）｜FIRE 與稅後現金流",
+    listDescription: "目標用稅後、回顧別只看稅前：三槓桿沙盒＋五項自檢。",
     featureHomeHero: false,
     featureHomeFooter: true,
-    homeFooterLabel: "被動收入／FIRE（3）",
+    homeFooterLabel: "FIRE／稅後（3）",
   },
   {
     slug: "tax-overpay-blind-spot",
     /** 延後檔期（原 3/26）；仍早於（3）3/31 */
     publishAtIso: "2026-03-30T09:00:00+08:00",
-    listTitle: "存股節稅（2）｜八成存股族忽略的稅後真相",
-    listDescription: "你複利的是稅前還是稅後？股利課稅、分離與合併、抵減與二代健保，把實拿算回來。",
+    listTitle: "存股節稅（2）｜稅後真相",
+    listDescription: "複利的是稅前還稅後？課稅、抵減、二代健保，實拿先算清。",
     featureHomeHero: false,
     featureHomeFooter: true,
-    homeFooterLabel: "存股課稅盲點（2）",
+    homeFooterLabel: "稅後真相（2）",
   },
   {
     slug: "2026-dividend-tax-guide",
     publishAtIso: "2026-03-24T08:30:00+08:00",
-    listTitle: "存股節稅（1）｜2026 股利抵減 8.5% 與實拿",
-    listDescription: "股利課稅、合併課稅與分離課稅、二代健保與實拿試算觀念。",
-    homeHeroLabel: "部落格：2026 存股節稅指南（1）→",
+    listTitle: "存股節稅（1）｜抵減 8.5% 與實拿",
+    listDescription: "合併／分離、二代健保、抵減上限：實拿別只靠殖利率。",
+    homeHeroLabel: "部落格：存股節稅（1）→",
     featureHomeHero: false,
     featureHomeFooter: true,
-    homeFooterLabel: "2026 存股節稅指南",
+    homeFooterLabel: "存股節稅（1）",
   },
   // 下一篇範例（複製後改 slug、時間、文案即可）：
   // {

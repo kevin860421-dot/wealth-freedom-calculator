@@ -28,7 +28,7 @@ const ARTICLE_PATH = blogPostPath(SLUG);
 const ARTICLE_HEADLINE = "為什麼存股的人，八成都在多繳一截稅？";
 
 const publishedArticleMetadata: Metadata = {
-  title: "存股節稅（2）｜八成存股族忽略的事：股利課稅與實拿｜財富自由計算機",
+  title: "存股節稅（2）｜稅後真相｜財富自由計算機",
   description:
     "存股 稅、股利課稅、合併課稅 分離課稅、股利抵減 8.5%、二代健保 股利、ETF 稅——你複利的是稅前還是稅後？用財富自由計算機對齊實拿與 FIRE 進度。僅供參考。",
   keywords: [
@@ -121,26 +121,29 @@ function TaxOverpayArticleBody() {
       </div>
       <h1 className={styles.title}>為什麼存股的人，八成都在「多繳一截稅」？</h1>
       <p className={styles.subtitle}>
-        你不是不會選股。你是還沒把<strong>股利課稅</strong>算進人生複利裡。
+        選股再準，沒把<strong>股利課稅</strong>算進去，複利像在深海撒網——網很大，拉上來才發現洞在漏水。
       </p>
 
       <CalculatorHeroPreview />
 
       <div className={styles.article}>
-        <h2>先問兩個很直白的問題</h2>
-        <p>
-          你有在<strong>存股</strong>嗎？或買<strong>ETF</strong>、長期領配息那種？
+        <h2>兩題，答完再滑</h2>
+        <p className={styles.grafTight}>
+          你有在<strong>存股</strong>、買<strong>ETF</strong>、長期領配息嗎？
         </p>
-        <p>
-          好，第二題更刺一點——<strong>你確定你沒有多繳一截稅？</strong>
+        <p className={styles.grafTight}>
+          第二題刺一點：<strong>你確定沒有多繳一截稅？</strong>
         </p>
-        <p>
-          不是說你一定報錯、也不是說政府多收你錢。而是：很多人把「配息」當成終點，卻從來沒把<strong>合併課稅 分離課稅</strong>、<strong>股利抵減 8.5%</strong>、<strong>二代健保 股利</strong>這幾個字，跟自己的<strong>實拿金額</strong>對起來。
+        <p className={styles.innerVoice}>「我又沒報錯，政府怎麼可能多收？」</p>
+        <p className={styles.grafTight}>
+          老實說，多半不是「報錯」。是很多人把<strong>配息簡訊</strong>當終點，卻從沒把<strong>合併／分離課稅</strong>、<strong>股利抵減 8.5%</strong>、<strong>二代健保 股利</strong>，跟<strong>實拿</strong>對在同一條線上。
         </p>
-        <p>結果就是——心裡的複利曲線很帥，口袋進度卻慢半拍。</p>
+        <p className={styles.grafTight}>
+          結果腦中的複利曲線很帥，口袋進度像被抽一成——<strong>你以為在存錢，其實在存一個稅前故事。</strong>
+        </p>
 
-        <h2>打破迷思：你複利的，是稅前還是稅後？</h2>
-        <p>多數人只看兩件事：</p>
+        <h2>殖利率很香？那是海面上的油花</h2>
+        <p className={styles.grafTight}>多數人盯兩件事：</p>
         <ul>
           <li>
             <strong>殖利率</strong>（看起來很香）
@@ -149,93 +152,103 @@ function TaxOverpayArticleBody() {
             <strong>配息</strong>（入帳很療癒）
           </li>
         </ul>
-        <p>但現實還有第三件事，而且超級務實：</p>
+        <p className={styles.grafTight}>水面下還有第三件事，硬得像石頭：</p>
         <div className={styles.callout}>
-          <p>
-            <strong>稅。</strong>更精準地說：你留下來可以再放回去複利的，是<strong>稅後</strong>那一包，不是配息簡訊上的數字。
+          <p className={styles.grafTight}>
+            <strong>稅。</strong>能丟回去複利的那一包，是<strong>稅後</strong>，不是簡訊上的數字。
           </p>
         </div>
-        <p>
-          所以我想把這句話放在這裡，讓你停三秒：<strong>你複利的，是稅前還是稅後？</strong>
+        <p className={styles.punchLine}>
+          <strong>你複利的，是稅前還是稅後？</strong>
         </p>
-        <p>答不出來沒關係。答不出來，通常代表你值得用工具把假設補齊。</p>
+        <p className={styles.grafTight}>
+          答不出來？別糗，代表你該把假設丟進試算，讓畫面出來。
+        </p>
 
         <BlogTaxLeakMeter />
 
-        <h2>四個「超常見」的忽略點（中一個就很痛）</h2>
+        <h2>四個坑，踩一個就痛</h2>
         <p>
           <span className={styles.num}>1</span>
-          <strong>搞不清合併課稅 vs 分離課稅</strong>：不是選「感覺省事」那個，而是選「在你這張所得拼圖下，哪個比較不虧」。
+          <strong>合併 vs 分離</strong>搞不清：不是選省事，是選「在你這張所得拼圖上，哪個比較不虧」。
         </p>
         <p>
           <span className={styles.num}>2</span>
-          <strong>不知道股利抵減 8.5% 在什麼情境真的有用</strong>：它不是口號，是會影響你可留下多少現金的制度設計（還有每戶上限要留意）。
+          <strong>股利抵減 8.5%</strong>什麼時候真的有用：有上限，不是口號，會直接影響你口袋剩多少。
         </p>
         <p>
           <span className={styles.num}>3</span>
-          <strong>低估二代健保 2.11% 的「單筆門檻感」</strong>：股利一筆一筆來時，常聽到的那條線，會讓你的現金流長得不一樣。
+          <strong>二代健保 2.11%</strong>的門檻感：股利一筆一筆來，那條線會把你的現金流長成另一種形狀。
         </p>
         <p>
           <span className={styles.num}>4</span>
-          <strong>從來沒認真算過實拿</strong>：你以為自己在做被動收入，其實曲線可能還停在「稅前故事版」。
+          <strong>從沒認真算實拿</strong>：以為在做被動收入，曲線可能還停在稅前劇本。
         </p>
 
-        <h2>互動一下：十萬股利，你覺得實拿多少？</h2>
-        <p>別查資料，先憑直覺。這題的目的只有一個：讓你發現「感覺」跟「制度粗估」可能差很多。</p>
+        <h2>十萬股利，你覺得實拿多少？</h2>
+        <p className={styles.grafTight}>先別查，憑直覺。</p>
+        <p className={styles.innerVoice}>「感覺扣一點吧……應該還行？」</p>
+        <p className={styles.grafTight}>這題就是要讓「感覺」跟「制度粗估」撞一下。</p>
         <BlogOverpayQuiz />
 
-        <h2>用同一個數字，把「差距」畫出來</h2>
-        <p>
-          我們用 <strong>100,000</strong> 元當教學用假設（不是幫你報稅）。很多人第一次看到<strong>分離課稅 28%</strong>的粗估稅額，會愣一下：「原來這一刀這麼厚。」
+        <h2>同一個數字，把差距畫出來</h2>
+        <p className={styles.grafTight}>
+          用 <strong>100,000</strong> 元當教學假設（不是幫你報稅）。很多人第一次看到<strong>分離 28%</strong>粗估，會愣住：
         </p>
+        <p className={styles.innerVoice}>「靠，這一刀這麼厚？」</p>
         <BlogCaseGapBars />
 
-        <h3>互動：跨過門檻後，二代健保會再拿走一小包</h3>
-        <p>
-          上一段長條圖刻意<strong>還沒算</strong>補充保費。下面這個試算把<strong>有／沒有</strong>扣到 2.11% 的差額拉出來——記得：門檻看的是<strong>54C 計入</strong>，不是只看配息簡訊上的總額。
+        <h3>跨過門檻，二代健保再抽一小包</h3>
+        <p className={styles.grafTight}>
+          上面長條圖<strong>刻意還沒算</strong>補充保費。下面試算把<strong>有／沒有</strong> 2.11% 的差額拉出來。
+        </p>
+        <p className={styles.grafTight}>
+          門檻看的是<strong>54C 計入</strong>，別只看配息簡訊總額就自我感覺良好。
         </p>
         <BlogNhi2Compare />
 
-        <p>
-          把這包跟前面的<strong>分離課稅 28%</strong>、以及合併課稅下的<strong>股利抵減 8.5%</strong>一起想，你會更清楚：為什麼「存股 稅」三個字，值得跟<strong>ETF 稅</strong>一起被正視。
+        <p className={styles.grafTight}>
+          把這包跟<strong>分離 28%</strong>、合併下的<strong>抵減 8.5%</strong>一起想，就懂為什麼「存股 稅」要跟<strong>ETF 稅</strong>一起被正視。
         </p>
 
-        <h2>把情緒拉到滿：你不是在存被動收入，你是在存一個誤會</h2>
+        <h2>說白了：你在存被動收入，還是在存誤會？</h2>
         <div className={styles.callout}>
-          <p>
-            很多人以為自己在做<strong>被動收入</strong>，其實是在用「稅前配息」說服自己很努力。
+          <p className={styles.grafTight}>
+            很多人以為自己在做<strong>被動收入</strong>，其實是用<strong>稅前配息</strong>說服自己很努力。
           </p>
-          <p style={{ marginTop: "0.75rem", marginBottom: 0 }}>
-            我不是要恐嚇你，我是要你變難騙：<strong>把稅算進去，你才會知道自己到底留下多少錢可以繼續往前。</strong>
+          <p className={styles.grafTight} style={{ marginTop: "0.75rem", marginBottom: 0 }}>
+            <strong>把稅算進去，你才會知道能留下多少錢繼續往前。</strong>這不是嚇你，是讓你難騙一點。
           </p>
         </div>
 
-        <h2>我們用財富自由計算機幫你「驗證一次」</h2>
-        <p>這裡不像廣告，比較像健檢：你把假設丟進去，工具幫你對齊。</p>
-        <p className={styles.toolLine}>
-          我們用這個<strong>財富自由計算機</strong>幫你算一次——同時看<strong>財富自由</strong>進度、<strong>股利</strong>、<strong>稅金</strong>與<strong>實拿</strong>想像，把「感覺」變成「區間」。
+        <h2>計算機：當健檢，不當廣告</h2>
+        <p className={styles.grafTight}>假設丟進去，數字對齊，比在心裡開股東會誠實。</p>
+        <p className={`${styles.toolLine} ${styles.grafTight}`}>
+          <strong>財富自由計算機</strong>一次看<strong>進度、股利、稅、實拿</strong>，把「大概」收成「區間」。
         </p>
         <div className={styles.callout}>
-          <p>
-            你可以把它當成年度自省：今年配息變多，是真的變有錢？還是只是稅前變好看？<strong>財富自由 計算機</strong>的價值，是把這些變數拉回同一張圖上。
+          <p className={styles.grafTight}>
+            今年配息變多，是真的變有錢，還是稅前變好看？<strong>同一張圖上見真章。</strong>
           </p>
         </div>
 
-        <h2>節稅不是投機，是留下更多子彈</h2>
-        <p>把<strong>存股 稅</strong>搞懂，不是要你鑽漏洞，是要你把自由的路走實。</p>
+        <h2>節稅不是投機，是留子彈</h2>
+        <p className={styles.grafTight}>
+          把<strong>存股 稅</strong>搞懂，不是叫你鑽漏洞，是叫你把路走實。
+        </p>
         <div className={styles.callout}>
-          <p>
-            <strong>不是賺更多，而是留下更多。</strong>
+          <p className={styles.grafTight}>
+            <strong>重點不是賺更多，是留下更多。</strong>
           </p>
         </div>
-        <p>留下的錢，才會真的進到你的複利裡。</p>
+        <p className={styles.grafTight}>留下的錢，才會真的進複利。</p>
 
-        <h2>兩個問題，問完就去按計算機</h2>
+        <h2>今晚就做這三件事</h2>
         <ul>
-          <li>你今年大概領多少<strong>股利</strong>（現金／配息）？</li>
-          <li>你<strong>真的</strong>算過稅與補充保費後，實拿大概多少嗎？</li>
+          <li>寫下今年大概領多少<strong>股利</strong>（現金／配息）。</li>
+          <li>用紙筆粗算：稅＋補充保費後，<strong>實拿區間</strong>在哪。</li>
+          <li>打開計算機，把同一組數字丟進去，看<strong>差距</strong>在哪裡冒出來。</li>
         </ul>
-        <p>第二題答不出來？很好，代表你接下來十分鐘會很有產出。</p>
         <Link
           id={WF_BLOG_CALCULATOR_CTA_ID}
           href="/"
@@ -246,11 +259,11 @@ function TaxOverpayArticleBody() {
           前往財富自由計算機（另開分頁）→
         </Link>
 
-        <h2>一句話，算清再談自由</h2>
-        <p style={{ fontSize: "1.05rem", color: "var(--morandi-text, #f0ebe5)", fontWeight: 600 }}>
-          你不是投資錯，你是算錯。
+        <h2>靈魂拷問</h2>
+        <p className={styles.punchLine}>
+          <strong>你不是投資錯，你是算錯。</strong>
         </p>
-        <p>把稅後算進去，你的自由才比較像真的。</p>
+        <p className={styles.grafTight}>稅後算進去，自由才比較像真的。</p>
 
         <div className={styles.disclaimer}>
           <p>

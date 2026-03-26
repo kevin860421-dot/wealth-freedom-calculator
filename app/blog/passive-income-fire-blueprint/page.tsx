@@ -27,12 +27,12 @@ const SLUG_TAX_1 = "2026-dividend-tax-guide" as const;
 const SLUG_TAX_2 = "tax-overpay-blind-spot" as const;
 
 const ARTICLE_PATH = blogPostPath(SLUG);
-const ARTICLE_HEADLINE = "被動收入規劃的專業架構：稅後現金流與 FIRE 試算";
+const ARTICLE_HEADLINE = "FIRE 與稅後現金流";
 
 const publishedArticleMetadata: Metadata = {
-  title: "存股節稅（3）｜被動收入與 FIRE 試算：稅後現金流專業筆記｜財富自由計算機",
+  title: "存股節稅（3）｜FIRE 與稅後現金流｜財富自由計算機",
   description:
-    "被動收入 規劃、FIRE 試算、財富自由 現金流：以稅後口徑對齊股利再投入與財務獨立路徑。銜接股利課稅、二代健保與合併分離課稅，導向財富自由計算機交叉驗證。僅供參考。",
+    "被動收入 規劃、FIRE 試算、財富自由 現金流：稅後口徑對齊股利再投入與財務獨立。銜接股利課稅、二代健保與合併分離課稅，導向財富自由計算機交叉驗證。僅供參考。",
   keywords: [
     "被動收入 規劃",
     "FIRE 試算",
@@ -48,9 +48,9 @@ const publishedArticleMetadata: Metadata = {
     canonical: ARTICLE_PATH,
   },
   openGraph: {
-    title: "存股節稅（3）｜被動收入與 FIRE：專業試算架構",
+    title: "存股節稅（3）｜FIRE 與稅後現金流",
     description:
-      "用稅後現金流語言描述 FIRE：三槓桿沙盒＋五項專業自檢，並與財富自由計算機對齊假設。",
+      "稅後現金流當錨點：三槓桿沙盒＋五項自檢，假設與財富自由計算機對齊再談自由。",
     type: "article",
     url: ARTICLE_PATH,
     locale: "zh_TW",
@@ -59,9 +59,9 @@ const publishedArticleMetadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "存股節稅（3）｜被動收入與 FIRE：專業試算架構",
+    title: "存股節稅（3）｜FIRE 與稅後現金流",
     description:
-      "用稅後現金流語言描述 FIRE：三槓桿沙盒＋五項專業自檢，並與財富自由計算機對齊假設。",
+      "稅後現金流當錨點：三槓桿沙盒＋五項自檢，假設與財富自由計算機對齊再談自由。",
   },
   robots: {
     index: true,
@@ -96,7 +96,7 @@ function articleJsonLd() {
       "@id": `${origin}${ARTICLE_PATH}`,
     },
     description:
-      "被動收入與 FIRE 試算的專業架構：稅後現金流、再投入與風險檢核，銜接股利課稅觀念。僅供一般資訊。",
+      "FIRE 與稅後現金流：再投入與風險檢核，銜接股利課稅觀念。僅供一般資訊。",
     isAccessibleForFree: true,
     publisher: {
       "@type": "Organization",
@@ -123,65 +123,79 @@ function PassiveIncomeArticleBody() {
         </Link>
         <span className={styles.seriesPill}>部落格｜稅務專欄 · 3</span>
       </div>
-      <h1 className={styles.title}>被動收入如何「落地」：FIRE 試算的專業架構（稅後現金流）</h1>
+      <h1 className={styles.title}>FIRE 與稅後現金流</h1>
       <p className={styles.subtitle}>
-        本篇目標讀者：已理解配息，準備把<strong>財富自由</strong>與<strong>被動收入</strong>從口號改成可驗證假設者。
+        配息你懂了就差一步：把<strong>財富自由</strong>、<strong>被動收入</strong>從口號變成<strong>同一套稅後假設</strong>。
       </p>
 
       <CalculatorHeroPreview />
 
       <div className={styles.article}>
-        <p>
-          若你關心的是長期<strong>財務獨立</strong>或<strong>FIRE 試算</strong>，最危險的不是樂觀，而是<strong>口徑不一致</strong>：目標用稅後、回顧卻看稅前配息、模型又忽略再投入與手續費。專業做法是先對齊語言，再談報酬。
+        <p className={styles.grafTight}>
+          談<strong>財務獨立</strong>、<strong>FIRE 試算</strong>，最危險的不是樂觀，是<strong>口徑打架</strong>。
+        </p>
+        <p className={styles.grafTight}>
+          目標用稅後、回顧卻看稅前配息、模型又忽略再投入——像在鬧區擺攤，帳本記的是毛額，口袋卻對不上。
+        </p>
+        <p className={styles.innerVoice}>「我明明有配息，怎麼自由還遠？」</p>
+        <p className={styles.grafTight}>
+          老實說：先對齊語言，再談報酬。
         </p>
 
-        <h2>1｜為何需要「稅後現金流」作為唯一錨點</h2>
-        <p>
-          <strong>被動收入 規劃</strong>若不以可花用現金為核心，常見後果是：年度現金流看起來達標，但可支配餘額與心理帳對不起來。我們在
+        <h2>稅後現金流當唯一錨點</h2>
+        <p className={styles.grafTight}>
+          <strong>被動收入 規劃</strong>若不以能花掉的現金為核心，常見後果是——年度數字看起來達標，心裡帳卻對不起來。
+        </p>
+        <p className={styles.grafTight}>
           <BlogPublishedLink slug={SLUG_TAX_1}>存股節稅（1）</BlogPublishedLink>
-          與
+          、
           <BlogPublishedLink slug={SLUG_TAX_2}>存股節稅（2）</BlogPublishedLink>
-          已分別整理<strong>合併課稅 分離課稅</strong>、<strong>股利抵減 8.5%</strong>與<strong>二代健保 股利</strong>對實拿的影響；第三篇要把這些收斂成<strong>模型輸入</strong>，才能與
-          <strong>財富自由 計算機</strong>這類工具對話。
+          已拆過<strong>合併／分離課稅</strong>、<strong>股利抵減 8.5%</strong>、<strong>二代健保 股利</strong>。
+        </p>
+        <p className={styles.grafTight}>
+          第三篇要把這些收成<strong>模型輸入</strong>，才能跟<strong>財富自由 計算機</strong>講話。
         </p>
         <div className={styles.callout}>
-          <p>
-            <strong>專業共識（簡化版）：</strong>任何「我需要多少資產才自由」的倒推，都應先定義<strong>稅後月現金流目標</strong>，再回頭檢驗配息、課稅選項與再投入假設是否支援該目標。
+          <p className={styles.grafTight}>
+            <strong>說穿了：</strong>「要多少資產才自由」這句，先定<strong>稅後月現金流目標</strong>，再回頭檢驗配息、課稅選項、再投入——有沒有撐得住。
           </p>
         </div>
 
-        <h2>2｜與計算機對齊的三個槓桿（教學沙盒）</h2>
-        <p>
-          下列互動將<strong>目標月流</strong>、<strong>稅後現金流回報假設</strong>與<strong>再投入比例</strong>放在同一畫面。數字僅協助建立直覺與數量級；個案請以站內試算表的稅務與手續費欄位為準。
+        <h2>三個槓桿：跟計算機對齊的沙盒</h2>
+        <p className={styles.grafTight}>
+          下面把<strong>目標月流</strong>、<strong>稅後回報假設</strong>、<strong>再投入比例</strong>塞同一畫面。
+        </p>
+        <p className={styles.grafTight}>
+          數字是教學用數量級；個案請以站內試算表的稅務、手續費欄位為準。
         </p>
         <BlogThreeLeverSandbox />
 
-        <h2>3｜五項專業自檢：你的假設是否「可拿去開會」</h2>
-        <p>
-          若你要把試算結果用於年度檢討或家庭財務溝通，建議至少通過下列結構檢核。這不是法律或稅務簽核，而是<strong>降低模型偏誤</strong>的最低限度。
+        <h2>五項自檢：假設能不能拿去對帳</h2>
+        <p className={styles.grafTight}>
+          要給自己或家人看年度檢討，至少通過下面這組——不是法律簽核，是<strong>別讓模型一開始就歪</strong>。
         </p>
         <BlogFireReadinessChecklist />
 
-        <h2>4｜長文與試算分工：為何要把觀念與計算機放在一起</h2>
-        <p>
-          關心「<strong>財富自由 現金流</strong>」「<strong>股利 再投入</strong>」的讀者，真正需要的往往不是口號，而是<strong>可調參數的試算框架</strong>。長文負責釐清口徑與制度邊界，計算機負責把假設壓在同一張表上——兩者分工，才接近常見的專業工作流程。
+        <h2>長文跟計算機：誰幹嘛</h2>
+        <p className={styles.grafTight}>
+          關心<strong>財富自由 現金流</strong>、<strong>股利 再投入</strong>，缺的不是雞湯，是<strong>能調參數的試算框架</strong>。
         </p>
         <ul>
           <li>
-            <strong>觀念層</strong>：先問對問題（稅後口徑、課稅選項、再投入），避免模型一開始就偏航。
+            <strong>觀念層</strong>：先問對問題（稅後口徑、課稅選項、再投入），模型一開始別偏航。
           </li>
           <li>
-            <strong>試算層</strong>：把同名變數輸入同一工具，才能做敏感性分析與年度對帳。
+            <strong>試算層</strong>：同名變數丟進同一工具，才能做敏感度、年度對帳。
           </li>
         </ul>
 
-        <h2>5｜建議的下一步（同一套假設，交叉驗證）</h2>
+        <h2>下一步：同一套假設，交叉驗證</h2>
         <p className={styles.toolLine}>
-          請開啟<strong>財富自由計算機</strong>：將你在沙盒中假設的<strong>月目標</strong>、<strong>再投入比例</strong>，與前兩篇提到的<strong>課稅與健保假設</strong>一併輸入，觀察曲線對參數的敏感度。
+          開<strong>財富自由計算機</strong>：沙盒裡的<strong>月目標</strong>、<strong>再投入</strong>，加上前兩篇的<strong>課稅與健保假設</strong>，看曲線對參數有多敏感。
         </p>
         <div className={styles.callout}>
-          <p>
-            專業流程上，這一步稱為<strong>敏感性分析</strong>的初階版本：先確定輸入一致，再討論結論；而不是先堅持結論，再挑有利的假設。
+          <p className={styles.grafTight}>
+            先確定<strong>輸入一致</strong>再談結論；別先堅持結論，再挑對自己有利的假設。
           </p>
         </div>
         <Link
@@ -194,11 +208,18 @@ function PassiveIncomeArticleBody() {
           前往財富自由計算機（另開分頁）→
         </Link>
 
-        <h2>6｜一句話收斂</h2>
-        <p style={{ fontSize: "1.05rem", color: "var(--morandi-text, #f0ebe5)", fontWeight: 600 }}>
-          FIRE 不是信仰，是同一套稅後口徑下的試算紀律。
+        <h2>今晚就做這三件事</h2>
+        <ul>
+          <li>寫下你的<strong>稅後月現金流目標</strong>（一個數字就好）。</li>
+          <li>對照（1）（2）：課稅、健保假設有沒有寫進同一張紙。</li>
+          <li>打開計算機，把沙盒與表格的欄位<strong>填同一組</strong>，看哪個參數一動就翻車。</li>
+        </ul>
+
+        <h2>靈魂拷問</h2>
+        <p className={styles.punchLine}>
+          <strong>FIRE 不是信仰，是稅後口徑下的試算紀律。</strong>
         </p>
-        <p>當名詞對齊、輸入對齊，你與顧問（若需要）的對話成本會顯著下降。</p>
+        <p className={styles.grafTight}>名詞對齊、輸入對齊，你跟顧問（若需要）才省得吵。</p>
 
         <div className={styles.disclaimer}>
           <p>

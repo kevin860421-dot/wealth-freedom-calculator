@@ -121,147 +121,137 @@ function BlogPost2026DividendTaxGuidePublished() {
         <span className={styles.seriesPill}>部落格｜稅務專欄 · 1</span>
       </div>
       <h1 className={styles.title}>2026 存股節稅：股利抵減 8.5% 與實拿</h1>
-      <p className={styles.subtitle}>搞懂合併／分離課稅、二代健保，再談被動收入與財富自由。</p>
+      <p className={styles.subtitle}>
+        合併／分離、二代健保先講清楚，再談被動收入——不然<strong>財富自由</strong>像在霧裡開車，儀表板很亮，路其實看不清。
+      </p>
 
       <CalculatorHeroPreview />
 
       <div className={styles.article}>
-        {/* 1 開頭 */}
-        <p>
-          你每年領股利，有算過「真正進口袋」是多少嗎？還是你只看殖利率、配息金額，覺得「有配就好」？
+        <p className={styles.grafTight}>
+          每年領股利，有算過<strong>真正進口袋</strong>多少嗎？
         </p>
-        <p>
-          很多人存股、買{" "}
-          <strong>ETF</strong>，第一個迷思是：報酬只看票面。其實在台灣，<strong>股利課稅</strong>、
-          <strong>合併課稅 分離課稅</strong>怎麼選，再加上<strong>二代健保 股利</strong>補充保費，會直接決定你是「看得到」還是「拿得到」。
+        <p className={styles.innerVoice}>「有配就好啦，殖利率看起來不錯啊。」</p>
+        <p className={styles.grafTight}>
+          存股、買<strong>ETF</strong>，很多人只看票面。<strong>股利課稅</strong>、<strong>合併／分離</strong>怎麼選，再加<strong>二代健保 股利</strong>，決定你是「看得到」還是「拿得到」。
         </p>
-        <p>
-          這篇文章想聊的核心很簡單：<strong>稅，才是很多存股族忽略的那條線。</strong>
-          搞懂<strong>股利抵減 8.5%</strong>在什麼情境有用，你才有機會把被動收入留久一點、離<strong>財富自由</strong>近一點。
+        <p className={styles.punchLine}>
+          <strong>稅，才是很多存股族忽略的那條線。</strong>
+        </p>
+        <p className={styles.grafTight}>
+          搞懂<strong>股利抵減 8.5%</strong>什麼時候有用，被動收入才比較留得住。
         </p>
 
-        <h2>邊際 5% 與 12%：同一筆股利，實拿差一截</h2>
-        <p>
-          在<strong>合併課稅</strong>下，若你已適用較低的綜所稅邊際（例如 <strong>5%</strong>），股利抵減 8.5% 往往能幫你「多留一點」；若邊際落在{" "}
-          <strong>12%</strong> 等較高級距，同筆股利在試算上<strong>被扣的所得稅</strong>會明顯不同。下面用與本站計算機相同的假設畫成折線：先看趨勢，再往下讀細節。
+        <h2>邊際 5% 跟 12%：同一筆股利，實拿差一截</h2>
+        <p className={styles.grafTight}>
+          <strong>合併課稅</strong>下，邊際在 <strong>5%</strong>，抵減 8.5% 常能幫你多留一點；邊際到 <strong>12%</strong>，同筆股利被扣的所得稅又是另一個故事。
         </p>
+        <p className={styles.grafTight}>下面折線跟本站計算機同一套假設——先看趨勢，再啃細節。</p>
         <TaxBracketCompareChart />
 
-        {/* 2 互動 */}
-        <h2>先別滑走：你心裡的答案是多少？</h2>
-        <p>假設今年現金股利入帳 <strong>30,000</strong> 元（單筆、已入戶），你覺得「扣完該扣的」之後，實拿比較接近哪一個？</p>
+        <h2>先別滑：心裡先選一個</h2>
+        <p className={styles.grafTight}>
+          假設現金股利入帳 <strong>30,000</strong>（單筆、已入戶），扣完該扣的，實拿比較像哪一個？
+        </p>
         <div className={styles.quiz} role="group" aria-label="互動題組">
           <p>
-            <strong>A.</strong> 大概 28,000～30,000 元（覺得差不多全拿）
+            <strong>A.</strong> 大概 28,000～30,000（差不多全拿）
           </p>
           <p>
-            <strong>B.</strong> 大概 20,000～23,000 元（知道會被扣一些）
+            <strong>B.</strong> 大概 20,000～23,000（知道會被啃一口）
           </p>
           <p>
-            <strong>C.</strong> 大概 15,000 元以下（覺得會扣很凶）
+            <strong>C.</strong> 大概 15,000 以下（覺得會扣很凶）
           </p>
         </div>
-        <p>
-          先選一個你直覺的答案。下面我們用「合理、可對帳的算法」拆給你看——你會發現：<strong>選對課稅方式</strong>，比糾結 0.1% 殖利率更重要。
+        <p className={styles.grafTight}>先憑直覺。下面用可對帳的粗算法拆給你看。</p>
+        <p className={styles.punchLine}>
+          <strong>選對課稅方式，比糾結 0.1% 殖利率重要。</strong>
         </p>
 
-        {/* 3 案例 */}
-        <h2>兩個很常見的金額：30,000 與 100,000</h2>
-        <p>
-          以下數字是<strong>教學用試算</strong>，用來理解制度怎麼「咬」你的現金流；每個人適用所得級距、可抵減金額上限、申報細節都不同，實際以報稅與法規為準。
+        <h2>兩個常見金額：30,000 與 100,000</h2>
+        <p className={styles.grafTight}>
+          以下全是<strong>教學試算</strong>，看制度怎麼咬現金流。每人級距、上限、申報細節不同，以實際報稅與法規為準。
         </p>
 
-        <h3>（1）單筆 30,000 元：二代健保先登場</h3>
-        <p>
-          在台灣，股利等單筆給付若<strong>超過 2 萬元門檻</strong>，通常會涉及<strong>二代健保</strong>補充保費（常聽到的比例是<strong>2.11%</strong>，依給付全額計算）。所以 30,000 元這一筆，先記得：它不是「免費入袋」。
+        <h3>（1）單筆 30,000：二代健保先上場</h3>
+        <p className={styles.grafTight}>
+          單筆給付<strong>超過 2 萬</strong>，通常繞不開<strong>二代健保</strong>補充保費（常聽到 <strong>2.11%</strong>，依給付全額算）。這筆不是免費入袋。
         </p>
         <ul>
           <li>
-            二代健保補充保費（試算）：30,000 × 2.11% = <strong>633</strong> 元（級距與實務扣繳依單位與年度規定）
+            補充保費（試算）：30,000 × 2.11% = <strong>633</strong>（實務依單位與年度規定）
           </li>
         </ul>
-        <p>
-          接著才是<strong>股利課稅</strong>的主戲：你可以選<strong>合併課稅</strong>（把股利併入綜合所得稅，並有機會用到<strong>股利抵減 8.5%</strong>的可抵減稅額，且每戶有上限）或選<strong>分離課稅</strong>（單一稅率 <strong>28%</strong>，常聽到的「分開算」那條路）。
+        <p className={styles.grafTight}>
+          接著才是<strong>股利課稅</strong>主戲：<strong>合併</strong>（併入綜所，有機會用<strong>股利抵減 8.5%</strong>，每戶有上限）或<strong>分離</strong>（單一 <strong>28%</strong>，分開算那條路）。
         </p>
-        <p>
-          若用<strong>分離課稅 28%</strong>做「粗估」：30,000 × 28% = <strong>8,400</strong> 元。再把前面提到的補充保費一起納入想像，你會發現：實拿往往落在「兩萬多」這個區間——也就是互動題裡的 <strong>B</strong> 比較接近現實（但仍因個案而不同）。
+        <p className={styles.grafTight}>
+          用<strong>分離 28%</strong>粗估：30,000 × 28% = <strong>8,400</strong>。再把補充保費一起算，實拿常落在「兩萬多」——互動題裡 <strong>B</strong> 比較像現實（個案仍不同）。
         </p>
 
-        <h3>（2）單筆 100,000 元：差距會被放大</h3>
-        <p>
-          同樣邏輯，100,000 元的補充保費試算：100,000 × 2.11% = <strong>2,110</strong> 元。
-          若走<strong>分離課稅 28%</strong>，稅額試算：100,000 × 28% = <strong>28,000</strong> 元。
+        <h3>（2）單筆 100,000：差距會被放大</h3>
+        <p className={styles.grafTight}>
+          補充保費試算：100,000 × 2.11% = <strong>2,110</strong>。走<strong>分離 28%</strong>：稅額試算 <strong>28,000</strong>。
         </p>
-        <p>
-          但如果你是那種「綜合所得稅邊際稅率不高」的人，<strong>合併課稅</strong>有時會讓你透過<strong>股利抵減 8.5%</strong>，把可抵減稅額拉回一大截（每戶還有上限要留意）。換句話說：<strong>存股 稅</strong>這件事，不是單一公式，而是「你的整張所得拼圖」決定的。
+        <p className={styles.grafTight}>
+          邊際不高的族群，<strong>合併</strong>有時靠<strong>抵減 8.5%</strong>把淨稅負拉回一大截（上限要盯）。<strong>存股 稅</strong>不是單一公式，是<strong>整張所得拼圖</strong>決定的。
         </p>
 
         <DividendTaxInteractive />
 
-        {/* 4 工具導入 */}
-        <h2>用數字把「焦慮」變成「可控」</h2>
-        <p>
-          講到這裡，你可能會想：「所以我到底少拿多少？離我的財富自由目標又差多少？」
-        </p>
-        <p className={styles.toolLine}>
-          我們用這個<strong>財富自由計算機</strong>幫你算一次——不是要你更焦慮，而是把「稅、健保、再投入、目標」放在同一張圖上。
+        <h2>數字攤開，心裡才踩得到地</h2>
+        <p className={styles.innerVoice}>「所以我到底少拿多少？離目標還差幾步？」</p>
+        <p className={`${styles.toolLine} ${styles.grafTight}`}>
+          <strong>財富自由計算機</strong>把<strong>稅、健保、再投入、目標</strong>塞同一張圖——不是讓你更慌，是讓你少瞎猜。
         </p>
         <div className={styles.callout}>
-          <p>
-            你可以同時試著看：<strong>財富自由目標</strong>、<strong>股利</strong>、<strong>稅金與補充保費想像</strong>、以及<strong>實拿金額</strong>對路徑的影響。它不是算命，是把你本來散落在腦袋裡的數字，拉回同一套假設裡。
+          <p className={styles.grafTight}>
+            同時看<strong>目標、股利、稅與補充保費、實拿</strong>。不是算命，是把腦中散落的數字拉回同一套假設。
           </p>
         </div>
-        <p>
-          把它當成「順手驗證」：你改一個假設，看曲線怎麼動；你會更清楚——<strong>財富自由 計算機</strong>這種工具，價值不在預言未來，而在讓你少猜、少賭氣。
+        <p className={styles.grafTight}>
+          改一個假設，看曲線怎麼動。<strong>財富自由 計算機</strong>的用處在這裡：少賭氣，多看區間。
         </p>
 
-        {/* 5 合併 vs 分離 */}
-        <h2>合併課稅 vs 分離課稅：先懂差異，再談選擇</h2>
-        <p>
-          <strong>合併課稅</strong>：股利併入綜所稅一起算，並可適用<strong>股利抵減 8.5%</strong>的可抵減稅額（每戶有上限）。適合與否，取決於你的邊際稅率、其他所得、扣除額與家庭狀況。
+        <h2>合併 vs 分離：先懂差異，再談選</h2>
+        <p className={styles.grafTight}>
+          <strong>合併</strong>：股利併進綜所，可試<strong>股利抵減 8.5%</strong>（每戶上限）。吃不吃香，看邊際、其他所得、扣除、家庭狀況。
         </p>
-        <p>
-          <strong>分離課稅</strong>：股利用單一稅率 <strong>28%</strong> 分開算，不和其它所得混在一起用累進。聽起來很「直覺」，但對不少人來說——<strong>其實不一定划算</strong>。
+        <p className={styles.grafTight}>
+          <strong>分離</strong>：股利單打 <strong>28%</strong>，不跟別的所得擠累進。聽起來直覺，對不少人<strong>其實不一定划算</strong>。
         </p>
-        <p>
-          我想講得很直白：<strong>大部分人其實選錯</strong>，不是因為笨，而是因為每年報稅都像在趕作業，沒把「股利＋薪資＋其他」放進同一個情境裡比較。
+        <p className={styles.punchLine}>
+          <strong>很多人選錯，不是笨，是每年報稅像趕作業</strong>——股利、薪資、其他所得沒放同一個情境比。
         </p>
 
-        {/* 6 放大差距 */}
         <h2>金額一拉開，你會很有感</h2>
-        <p>
-          延續前面的「教學用」方向：同樣 100,000 元股利，<strong>分離課稅 28%</strong>的稅負想像（28,000）與某些<strong>合併課稅</strong>情境下，透過<strong>股利抵減 8.5%</strong>後的淨稅負差距，常見可以拉到「一兩萬、甚至更高」的級距——這不是恐嚇，是制度下可能出現的<strong>結構性落差</strong>。
+        <p className={styles.grafTight}>
+          同樣 100,000 股利，<strong>分離 28%</strong>那刀（28,000）跟某些<strong>合併＋抵減 8.5%</strong>後的淨稅負，差距拉到一兩萬以上不稀奇——<strong>這是制度下的結構落差</strong>，不是嚇你。
         </p>
-        <p>
-          你可以把它換算成心理帳：這等於你多領<strong>一到兩個月的「被動收入子彈」</strong>，結果在報稅選項上被擦掉。對正在累積資產的人來說，這種落差會直接影響你能不能再投入、能不能更快接近你想要的現金流。
+        <p className={styles.grafTight}>
+          換成心理帳：等於多領<strong>一兩個月被動收入子彈</strong>，在報稅選項上被擦掉。要再投入、要拉現金流，這一刀很實在。
         </p>
 
-        {/* 7 拉回財富自由 */}
-        <h2>節稅不是投機，是「把留下來的錢變大」</h2>
-        <p>
-          很多人談<strong>財富自由</strong>，都在找「更高殖利率、更飆的標的」。但對長期存股族來說，更重要的一句可能是：
+        <h2>節稅不是投機，是留子彈</h2>
+        <p className={styles.grafTight}>
+          談<strong>財富自由</strong>都在找更高殖利率、更飆的標的。長期存股族有句話更刺耳：
         </p>
         <div className={styles.callout}>
-          <p>
-            <strong>不是賺更多，而是「留下更多」。</strong>
+          <p className={styles.grafTight}>
+            <strong>不是賺更多，是留下更多。</strong>
           </p>
         </div>
-        <p>
-          你把<strong>存股 稅</strong>、<strong>ETF 稅</strong>相關成本搞懂，不是為了走後門，而是讓你的被動收入曲線更貼近現實。當你「留下的錢」變多，複利才比較像複利，而不是被稅負默默打折。
+        <p className={styles.grafTight}>
+          <strong>存股 稅</strong>、<strong>ETF 稅</strong>搞懂，不是走後門，是讓曲線貼近現實。留下的錢變多，複利才像複利，而不是被稅默默打折。
         </p>
 
-        {/* 8 再次互動 */}
-        <h2>最後問你兩個問題</h2>
+        <h2>今晚就做這三件事</h2>
         <ul>
-          <li>你去年實際領了多少<strong>股利</strong>（現金股利／配息）？</li>
-          <li>你<strong>真的</strong>算過稅與補充保費後，實拿大概多少嗎？</li>
+          <li>寫下去年的<strong>股利</strong>總額（現金／配息）。</li>
+          <li>粗算稅＋補充保費後，<strong>實拿區間</strong>在哪。</li>
+          <li>同一組數字丟進<strong>財富自由計算機</strong>，看曲線差在哪幾個假設。</li>
         </ul>
-        <p>
-          如果第二題你答不太出來，那很正常——但今年你可以換個做法：回到同一個頁面，把數字丟進去試算，讓工具幫你把「感覺」變成「區間」。
-        </p>
-        <p>
-          👉 用<strong>財富自由計算機</strong>自己算一遍，你會更知道：你現在看到的被動收入，距離你想守住的自由，還差哪幾個假設。
-        </p>
         <Link
           id={WF_BLOG_CALCULATOR_CTA_ID}
           href="/"
@@ -272,10 +262,9 @@ function BlogPost2026DividendTaxGuidePublished() {
           前往財富自由計算機（另開分頁）→
         </Link>
 
-        {/* 9 結尾強句 */}
-        <h2>一句話記住就好</h2>
-        <p style={{ fontSize: "1.05rem", color: "var(--morandi-text, #f0ebe5)", fontWeight: 600 }}>
-          你現在領到的錢，不一定是你「最後能留下」的錢；把稅與健保算進去，你的財富自由才會更接近真實。
+        <h2>靈魂拷問</h2>
+        <p className={styles.punchLine}>
+          <strong>你現在領到的，不一定是你最後能留下的；稅與健保算進去，自由才比較像真的。</strong>
         </p>
 
         {/* 10 免責 */}

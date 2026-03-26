@@ -1,5 +1,7 @@
 # 部落格文章與排程公開
 
+**口吻與排版規範**（部落格、社群貼文、文案共用）：[CONTENT-VOICE-AND-LAYOUT.md](./CONTENT-VOICE-AND-LAYOUT.md)。
+
 完整可複用藍圖（目錄樹、檢查清單、互動版型、單一主 CTA）：[blog-architecture/README.md](./blog-architecture/README.md)。
 
 - **登錄表**：`app/blog/posts/registry.ts`  

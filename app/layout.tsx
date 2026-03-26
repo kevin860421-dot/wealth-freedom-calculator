@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Noto_Sans_TC } from "next/font/google";
 import "./globals.css";
 import { getPublicStatsSnapshot } from "@/lib/stats-store";
 import { StatsProvider } from "./stats-provider";
@@ -14,6 +14,15 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+/** 全站中文正文：螢幕閱讀用黑體，fallback 用系統常見繁中字族 */
+const notoSansTc = Noto_Sans_TC({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-noto-sans-tc",
+  adjustFontFallback: true,
 });
 
 export const dynamic = "force-dynamic";
@@ -41,7 +50,10 @@ export default async function RootLayout({
 
   return (
     <html lang="zh-TW">
-      <body className={`${geistSans.variable} ${geistMono.variable}`} style={{ position: "relative" }}>
+      <body
+        className={`${notoSansTc.variable} ${geistSans.variable} ${geistMono.variable}`}
+        style={{ position: "relative" }}
+      >
         <VisitStatsSeoSnippet stats={initialStats} />
         <StatsProvider initialStats={initialStats}>{children}</StatsProvider>
         <Analytics />

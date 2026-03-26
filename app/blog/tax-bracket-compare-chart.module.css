@@ -45,22 +45,23 @@
   stroke: #c9a227;
 }
 
+/* 與全站 Noto / 系統繁中一致，SVG 文字需明寫字族（避免繼承失效） */
 .axisText {
   fill: var(--morandi-text-muted, #8f857b);
   font-size: 10px;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-noto-sans-tc), "PingFang TC", "Microsoft JhengHei", sans-serif;
 }
 
 .axisLabel {
   fill: var(--morandi-text-soft, #b8aea4);
   font-size: 10px;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-noto-sans-tc), "PingFang TC", "Microsoft JhengHei", sans-serif;
 }
 
 .axisLabelVert {
   fill: var(--morandi-text-soft, #b8aea4);
   font-size: 10px;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-noto-sans-tc), "PingFang TC", "Microsoft JhengHei", sans-serif;
 }
 
 .legend {

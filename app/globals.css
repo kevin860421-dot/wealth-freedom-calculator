@@ -44,9 +44,13 @@ body {
   );
   background-color: var(--morandi-bg);
   background-attachment: fixed;
-  font-family: Arial, Helvetica, sans-serif;
+  /* Noto Sans TC（layout 注入 --font-noto-sans-tc）+ 系統繁中，正文不額外拉字距 */
+  font-family: var(--font-noto-sans-tc), "PingFang TC", "Microsoft JhengHei", "微軟正黑體", "Noto Sans TC",
+    ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 * {

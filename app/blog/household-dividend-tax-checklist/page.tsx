@@ -4,6 +4,7 @@ import { WF_BLOG_CALCULATOR_CTA_ID } from "../blog-calculator-cta";
 import { ArticlePublishStamp } from "../article-publish-stamp";
 import { BlogCalculatorSnippetDuo } from "../blog-calculator-snippet-duo";
 import { BlogHouseholdDividendPanel } from "../blog-household-dividend-panel";
+import { CalculatorHeroPreview } from "../calculator-hero-preview";
 import { BlogScheduledPlaceholder } from "../blog-scheduled-placeholder";
 import { BlogScrollMilestoneModal } from "../blog-scroll-milestone-modal";
 import { BlogPublishedLink } from "../blog-published-link";
@@ -23,10 +24,10 @@ const entry: BlogPostRegistryEntry = _registryEntry;
 const SCROLL_MILESTONE_SESSION_KEY = "wf-blog-scroll-milestone-household-div-v1";
 
 const ARTICLE_PATH = blogPostPath(SLUG);
-const ARTICLE_HEADLINE = "家庭合併申報與股利：每戶抵減上限與級距的決策視角";
+const ARTICLE_HEADLINE = "合併申報與股利抵減";
 
 const publishedArticleMetadata: Metadata = {
-  title: "存股節稅（5）｜夫妻合併申報、股利抵減上限與試算｜財富自由計算機",
+  title: "存股節稅（5）｜合併申報與股利抵減｜財富自由計算機",
   description:
     "合併申報、股利抵減 8.5%、每戶可抵減稅額上限、綜所稅級距：雙薪與股利並存時如何思考？互動情境與檢核表，導向財富自由計算機整戶試算。僅供參考。",
   keywords: [
@@ -41,7 +42,7 @@ const publishedArticleMetadata: Metadata = {
   ],
   alternates: { canonical: ARTICLE_PATH },
   openGraph: {
-    title: "存股節稅（5）｜家庭申報與股利抵減",
+    title: "存股節稅（5）｜合併申報與股利抵減",
     description: "情境式導讀合併申報、每戶上限與級距；務必以試算與稽徵實務為準。",
     type: "article",
     url: ARTICLE_PATH,
@@ -51,7 +52,7 @@ const publishedArticleMetadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "存股節稅（5）｜家庭申報與股利抵減",
+    title: "存股節稅（5）｜合併申報與股利抵減",
     description: "合併申報下股利怎麼放進整戶圖像？檢核表＋計算機試算。",
   },
   robots: { index: true, follow: true },
@@ -81,7 +82,7 @@ function articleJsonLd() {
     dateModified: entry.publishAtIso,
     mainEntityOfPage: { "@type": "WebPage", "@id": `${origin}${ARTICLE_PATH}` },
     description:
-      "夫妻合併申報、股利抵減與每戶上限之教育性說明，輔以情境導航。僅供一般資訊。",
+      "合併申報、股利抵減與每戶上限之教育性說明，輔以情境導航。僅供一般資訊。",
     isAccessibleForFree: true,
     publisher: { "@type": "Organization", name: "財富自由計算機", url: origin },
   };
@@ -104,50 +105,63 @@ function ArticleBody() {
         </Link>
         <span className={styles.seriesPill}>部落格｜稅務專欄 · 5</span>
       </div>
-      <h1 className={styles.title}>家庭合併申報與股利：每戶抵減上限、級距，該怎麼一起想？</h1>
+      <h1 className={styles.title}>合併申報與股利抵減</h1>
       <p className={styles.subtitle}>
-        給<strong>雙薪＋配息</strong>與<strong>夫妻合併申報</strong>的讀者：把股利放回「整戶」圖像。以下兩張為計算機語彙下的<strong>所得拼圖</strong>與<strong>合併／分離粗估</strong>示意，與第一篇 hero 預覽版型不同。
+        <strong>雙薪＋配息</strong>、<strong>夫妻合併申報</strong>：股利不是獨立科目，是塞進<strong>整戶</strong>那張圖裡。下面兩張摘錄對齊計算機語彙。
       </p>
+
+      <CalculatorHeroPreview />
 
       <BlogCalculatorSnippetDuo variant="post5" />
 
       <div className={styles.article}>
-        <p>
-          前序文章已從
+        <p className={styles.grafTight}>
           <BlogPublishedLink slug="2026-dividend-tax-guide">股利課稅選項</BlogPublishedLink>、
           <BlogPublishedLink slug="tax-overpay-blind-spot">稅後實拿</BlogPublishedLink>、
-          <BlogPublishedLink slug="passive-income-fire-blueprint">FIRE 架構</BlogPublishedLink>，以及
-          <BlogPublishedLink slug="etf-dividend-54c-structure">ETF 配息與 54C</BlogPublishedLink>
-          逐步堆疊。第五篇處理最常見、也最容易被忽略的結構：<strong>合併申報</strong>下，股利如何與薪資、其他所得共享同一套級距與抵減空間。
+          <BlogPublishedLink slug="passive-income-fire-blueprint">FIRE 架構</BlogPublishedLink>、
+          <BlogPublishedLink slug="etf-dividend-54c-structure">ETF 與 54C</BlogPublishedLink>
+          都談過了。
         </p>
+        <p className={styles.grafTight}>
+          第五篇只談一個常被忽略的結構：<strong>合併申報</strong>下，股利跟薪資、其他所得<strong>擠同一套級距與抵減空間</strong>。
+        </p>
+        <p className={styles.innerVoice}>「我股利不少，為什麼抵減像沒吃到？」</p>
 
-        <h2>1｜「每戶」是關鍵字：抵減上限與申報單位</h2>
-        <p>
-          在合併課稅路線下，<strong>股利抵減 8.5%</strong>涉及可抵減稅額的計算，且制度上存在<strong>每戶可抵減稅額上限</strong>（常聽見與「8
-          萬元」上限相連的討論，實際適用以當年度法令與申報試算為準）。這代表：即使股利金額可觀，<strong>整戶</strong>能否「用滿」抵減空間，仍取決於其他所得與扣除額結構。
+        <h2>「每戶」兩個字：抵減上限跟誰綁在一起</h2>
+        <p className={styles.grafTight}>
+          走<strong>合併課稅</strong>，<strong>股利抵減 8.5%</strong>會碰到<strong>每戶可抵減稅額上限</strong>（常跟「8 萬」一起被提起——實際以當年度法令與試算為準）。
+        </p>
+        <p className={styles.grafTight}>
+          股利再好看，<strong>整戶</strong>能不能用滿空間，還看其他所得、扣除額怎麼長。
         </p>
         <div className={styles.callout}>
-          <p>
-            <strong>專業提醒：</strong>不要只問「我的股利能不能抵」；要問「在<strong>我這一戶</strong>的綜合所得淨額與稅額計算裡，合併或分離哪條路淨稅負較低」。
+          <p className={styles.grafTight}>
+            <strong>別只問「我的股利能不能抵」。</strong>要問：在<strong>我這一戶</strong>的綜合所得淨額裡，<strong>合併跟分離哪條路淨稅負比較低</strong>。
           </p>
         </div>
 
-        <h2>2｜互動：先選情境，再對照檢核項</h2>
-        <p>以下為教學導航，請依最接近的家庭所得結構選取；並勾選你準備採取的盡職步驟。</p>
+        <h2>先選情境，再勾檢核</h2>
+        <p className={styles.grafTight}>教學導航：挑最接近你家所得結構，順手勾你願意做的盡職步驟。</p>
         <BlogHouseholdDividendPanel />
 
-        <h2>3｜為什麼需要「整戶試算」工具</h2>
-        <p>
-          口頭比較「分離課稅 28%」與「合併＋抵減」往往失真，因為<strong>薪資已推高的邊際稅率</strong>會改變股利的邊際效果。<strong>財富自由計算機</strong>的價值在於：把再投入、手續費與稅務欄位放在同一長度時間軸上，讓你至少先對<strong>現金流與稅後假設</strong>達成內部一致。
+        <h2>為什麼要整戶試算</h2>
+        <p className={styles.grafTight}>
+          嘴砲比較「分離 28%」跟「合併＋抵減」很容易失真——<strong>薪資把邊際稅率推上去</strong>，股利的邊際效果就跟著變。
+        </p>
+        <p className={styles.grafTight}>
+          <strong>財富自由計算機</strong>把再投入、手續費、稅務欄位塞同一條時間軸，至少讓<strong>現金流跟稅後假設</strong>先自洽。
         </p>
 
-        <h2>4｜與國稅局試算的關係</h2>
-        <p>
-          本站工具聚焦於<strong>長期財務規劃與教育</strong>，不能替代綜合所得稅申報軟體或稽徵機關認定。當你接近報稅季，仍請以官方試算、扣繳憑單與申報書為準；若所得結構複雜（海外所得、執行業務、分開計稅要件等），請諮詢稅務專業人士。
+        <h2>跟國稅局試算的界線</h2>
+        <p className={styles.grafTight}>
+          本站是<strong>長期規劃與教育</strong>，不能取代報稅軟體或稽徵認定。
+        </p>
+        <p className={styles.grafTight}>
+          報稅季請以官方試算、扣繳憑單、申報書為準；結構複雜就找稅務專業。
         </p>
 
         <p className={styles.toolLine}>
-          接下來請開啟計算機：把你與配偶的薪資假設、股利與再投入比例放進同一模型，對照本篇情境提示。
+          開計算機：把兩人薪資假設、股利、再投入塞同一模型，對照上面情境。
         </p>
         <Link
           id={WF_BLOG_CALCULATOR_CTA_ID}
@@ -158,6 +172,18 @@ function ArticleBody() {
         >
           前往財富自由計算機（另開分頁）→
         </Link>
+
+        <h2>今晚就做這三件事</h2>
+        <ul>
+          <li>寫下這一戶：<strong>薪資、股利、其他所得</strong>大概各多少（粗估即可）。</li>
+          <li>問一句：<strong>合併跟分離</strong>哪條路淨稅負較低（先猜再丟試算）。</li>
+          <li>打開計算機，看<strong>邊際稅率一動</strong>，股利故事怎麼改寫。</li>
+        </ul>
+
+        <h2>靈魂拷問</h2>
+        <p className={styles.punchLine}>
+          <strong>你算的是「個人的股利」，還是「整戶的稅」？</strong>
+        </p>
 
         <div className={styles.disclaimer}>
           <p>

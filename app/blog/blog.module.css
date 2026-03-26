@@ -1,9 +1,14 @@
-/* 部落格：深色莫蘭迪；字級／行距參考常見長文閱讀（約 17px 內文、1.8 行高） */
+/* 部落格：深色莫蘭迪；排版參考 Google AI 回覆——區塊前後分明、圓角卡片、短段留白 */
 .wrap {
+  --blog-rhythm: 1.65rem;
+  --blog-card-radius: 16px;
+  --blog-surface-chat: rgba(255, 255, 255, 0.04);
+  --blog-border-chat: rgba(230, 220, 210, 0.12);
+
   max-width: 42rem;
   margin: 0 auto;
-  padding: 2rem clamp(1rem, 4vw, 1.5rem) 4rem;
-  line-height: 1.8;
+  padding: 2.25rem clamp(1rem, 4vw, 1.5rem) 4rem;
+  line-height: 1.72;
   color: var(--morandi-text-body, #ddd4ca);
 }
 
@@ -44,16 +49,17 @@
   font-size: clamp(1.625rem, 4.2vw, 2rem);
   font-weight: 700;
   color: var(--morandi-text, #f0ebe5);
-  margin: 0 0 0.875rem;
-  line-height: 1.28;
-  letter-spacing: 0.02em;
+  margin: 0 0 1rem;
+  line-height: 1.32;
+  letter-spacing: 0.01em;
 }
 
 .subtitle {
   font-size: 1rem;
-  line-height: 1.65;
+  line-height: 1.68;
   color: var(--morandi-text-soft, #b8aea4);
-  margin-bottom: 2.25rem;
+  margin-bottom: 2.5rem;
+  max-width: 36rem;
 }
 
 /* 系列標示（專欄、專題等），常置於頂列右側 */
@@ -78,37 +84,96 @@
   margin-right: auto;
 }
 
+/* 大節：像聊天區塊標題，前後留白大、層次清楚 */
 .article h2 {
-  font-size: 1.3125rem;
+  font-size: 1.375rem;
   font-weight: 700;
   color: var(--morandi-text, #f0ebe5);
-  margin: 2.75rem 0 1rem;
-  line-height: 1.35;
-  letter-spacing: 0.02em;
+  margin: 3.25rem 0 1.125rem;
+  line-height: 1.38;
+  letter-spacing: 0.01em;
+  scroll-margin-top: 1.25rem;
 }
 
 .article h2:first-of-type {
   margin-top: 2.25rem;
 }
 
+/* 小節：銜接在大節底下，不搶戲 */
 .article h3 {
   font-size: 1.0625rem;
   font-weight: 600;
   color: var(--morandi-text-body, #ddd4ca);
-  margin: 1.75rem 0 0.625rem;
-  line-height: 1.4;
+  margin: 2rem 0 0.75rem;
+  line-height: 1.45;
 }
 
 .article p {
-  margin: 0 0 1.5rem;
+  margin: 0 0 var(--blog-rhythm, 1.65rem);
   color: var(--morandi-text-body, #ddd4ca);
   font-size: 1.0625rem;
-  line-height: 1.85;
+  line-height: 1.72;
+  letter-spacing: normal;
+}
+
+/* 標題後第一段：與標題距離略收，讀起來像「一塊」 */
+.article h2 + p,
+.article h3 + p {
+  margin-top: 0;
 }
 
 .article strong {
   color: var(--morandi-text, #f0ebe5);
   font-weight: 600;
+}
+
+/* 口語長文：一段一事、節奏較快（段落可多加 class） */
+.article .grafTight {
+  margin-bottom: 1rem;
+}
+
+/* 「心裡小劇場」— 圓角淺底，類 Google AI 引號區塊 */
+.innerVoice {
+  margin: 1.25rem 0 1.35rem;
+  padding: 0.95rem 1.15rem;
+  border-radius: var(--blog-card-radius, 16px);
+  border: 1px solid rgba(168, 181, 160, 0.22);
+  background: rgba(168, 181, 160, 0.07);
+  color: var(--morandi-text-soft, #b8aea4);
+  font-size: 0.98rem;
+  line-height: 1.68;
+}
+
+.punchLine {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--morandi-text, #f0ebe5);
+  margin: 1.5rem 0 1.15rem;
+  line-height: 1.58;
+}
+
+/* 可複製給 AI 的「指令框」— 全圓角、類淺灰底（深色版） */
+.promptBox {
+  margin: 1.5rem 0;
+  padding: 1.2rem 1.35rem;
+  border-radius: var(--blog-card-radius, 16px);
+  border: 1px solid var(--blog-border-chat, rgba(230, 220, 210, 0.12));
+  background: var(--blog-surface-chat, rgba(255, 255, 255, 0.04));
+  color: var(--morandi-text-body, #ddd4ca);
+  font-size: 1.0625rem;
+  line-height: 1.72;
+}
+
+.promptBox p {
+  margin: 0;
+}
+
+.promptBoxCenter {
+  text-align: center;
+}
+
+.promptBox strong {
+  color: var(--morandi-text, #f0ebe5);
 }
 
 /* 系列文內互相引用：已發布＝可點；未到時間＝與內文同色、不可點 */
@@ -133,7 +198,7 @@
   margin: 0 0 1.5rem 1.35rem;
   color: var(--morandi-text-body, #ddd4ca);
   font-size: 1.0625rem;
-  line-height: 1.8;
+  line-height: 1.72;
 }
 
 .article li {
@@ -152,7 +217,7 @@
   margin-bottom: 0.55rem;
   color: var(--morandi-text-body, #ddd4ca);
   font-size: 1.0625rem;
-  line-height: 1.75;
+  line-height: 1.68;
 }
 
 .quiz label {
@@ -174,14 +239,14 @@
   margin: 0;
   color: var(--morandi-text-body, #ddd4ca);
   font-size: 1.0625rem;
-  line-height: 1.8;
+  line-height: 1.72;
 }
 
 .toolLine {
   font-size: 1.125rem;
   color: var(--morandi-text, #f0ebe5);
   margin: 1.25rem 0 !important;
-  line-height: 1.75;
+  line-height: 1.65;
 }
 
 .disclaimer {
@@ -190,7 +255,7 @@
   border-top: 1px solid var(--morandi-border, rgba(230, 220, 210, 0.1));
   font-size: 0.875rem;
   color: var(--morandi-text-muted, #8f857b);
-  line-height: 1.7;
+  line-height: 1.68;
 }
 
 .disclaimer p {
