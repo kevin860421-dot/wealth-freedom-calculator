@@ -1,6 +1,6 @@
 @echo off
-chcp 65001 >nul
+REM 雙擊後請在「同一個藍色/黑色視窗」內操作；關閉前需按任意鍵（由 PowerShell 處理，比 cmd 的 pause 穩定）
 cd /d "%~dp0"
-REM 雙擊即可：不需輸入；commit 訊息由腳本自動產生（時間戳）
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\push-to-github.ps1"
+title Push to GitHub
+"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -NoLogo -File "%~dp0scripts\push-to-github.ps1"
 exit /b %ERRORLEVEL%

@@ -10,7 +10,8 @@
         "-ExecutionPolicy",
         "Bypass",
         "-File",
-        "${workspaceFolder}/scripts/push-to-github.ps1"
+        "${workspaceFolder}/scripts/push-to-github.ps1",
+        "-NoWaitForKey"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
@@ -36,7 +37,8 @@
         "Bypass",
         "-File",
         "${workspaceFolder}/scripts/push-to-github.ps1",
-        "-Pull"
+        "-Pull",
+        "-NoWaitForKey"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
