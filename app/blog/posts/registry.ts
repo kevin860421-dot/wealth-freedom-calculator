@@ -11,9 +11,10 @@
  *    - `generateMetadata`：未公開時 `robots: { index: false, follow: false }`
  *    - 已公開：完整 SEO metadata；`ArticlePublishStamp` 用 `entry.publishAtIso`
  *
- * 未到 `publishAtIso` 時（全站自動）：
+ * 未到 `publishAtIso` 時（全站自動）—**基本邏輯：不對外露出**
  * - `/blog` 列表不顯示該篇
- * - 首頁勾了 `featureHomeHero` / `featureHomeFooter` 的捷徑不顯示
+ * - 首頁 Hero 第一篇連結不出現；`featureHomeFooter` 捷徑不出現
+ * - **文內系列互相引用**請用 `BlogPublishedLink`，未到時間不渲染成連結（避免導向「準備中」）
  * - sitemap 不含該 URL
  * - 直接開 `/blog/<slug>` 只看到「準備中」頁
  *
@@ -32,8 +33,9 @@ export type BlogPostRegistryEntry = {
   /** /blog 列表標題 */
   listTitle: string;
   listDescription: string;
-  /** 達公開時間後，是否顯示在首頁 Hero 區連結 */
+  /** 達公開時間後，可搭配 `getHomeHeroBlogPosts()` 多篇主打；首頁目前改為只連「第一篇」，此旗標可維持 false */
   featureHomeHero?: boolean;
+  /** 首頁 Hero 連結文案（僅第一篇使用時可填，未填則用 listTitle） */
   homeHeroLabel?: string;
   /** 達公開時間後，是否顯示在首頁頁尾「·」旁連結 */
   featureHomeFooter?: boolean;
@@ -48,8 +50,7 @@ export const BLOG_POST_REGISTRY: BlogPostRegistryEntry[] = [
     listTitle: "存股節稅（5）｜夫妻合併申報、股利抵減上限與整戶試算",
     listDescription:
       "合併申報、股利抵減 8.5%、每戶上限與級距：雙薪與股利並存時的決策視角，附互動情境與檢核。",
-    featureHomeHero: true,
-    homeHeroLabel: "部落格：家庭申報與股利抵減（5）→",
+    featureHomeHero: false,
     featureHomeFooter: true,
     homeFooterLabel: "家庭申報／股利（5）",
   },
@@ -77,8 +78,8 @@ export const BLOG_POST_REGISTRY: BlogPostRegistryEntry[] = [
   },
   {
     slug: "tax-overpay-blind-spot",
-    /** 與（1）隔 2 日，週四上午 */
-    publishAtIso: "2026-03-26T09:00:00+08:00",
+    /** 延後檔期（原 3/26）；仍早於（3）3/31 */
+    publishAtIso: "2026-03-30T09:00:00+08:00",
     listTitle: "存股節稅（2）｜八成存股族忽略的稅後真相",
     listDescription: "你複利的是稅前還是稅後？股利課稅、分離與合併、抵減與二代健保，把實拿算回來。",
     featureHomeHero: false,
@@ -90,6 +91,7 @@ export const BLOG_POST_REGISTRY: BlogPostRegistryEntry[] = [
     publishAtIso: "2026-03-24T08:30:00+08:00",
     listTitle: "存股節稅（1）｜2026 股利抵減 8.5% 與實拿",
     listDescription: "股利課稅、合併課稅與分離課稅、二代健保與實拿試算觀念。",
+    homeHeroLabel: "部落格：2026 存股節稅指南（1）→",
     featureHomeHero: false,
     featureHomeFooter: true,
     homeFooterLabel: "2026 存股節稅指南",

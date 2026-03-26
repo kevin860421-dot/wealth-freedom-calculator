@@ -21,7 +21,10 @@
 /build
 
 # misc
-.cursor/
+# Cursor：忽略本機雜項，但保留 `.cursor/rules/` 供專案約定（可 commit）
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
 .DS_Store
 *.pem
 

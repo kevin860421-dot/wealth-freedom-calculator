@@ -13,7 +13,12 @@ import {
   buildTickerDividendMonthsMap,
   buildDefault54cRatioMap,
 } from "./ticker-presets";
-import { blogPostPath, getHomeFooterBlogPosts, getHomeHeroBlogPosts } from "./blog/posts/registry";
+import {
+  blogPostPath,
+  getBlogPostBySlug,
+  getHomeFooterBlogPosts,
+  isBlogPostPublished,
+} from "./blog/posts/registry";
 
 /** 各標的除息月份（與 ticker-presets 同步） */
 const ETF_DIVIDEND_MONTHS = buildTickerDividendMonthsMap();
@@ -24,8 +29,13 @@ import * as XLSX from "xlsx";
 /** 頁尾「版權說明」版本號（請與 package.json 的 version 對齊） */
 const APP_VERSION = "0.1.0";
 
-const homeHeroBlogPosts = getHomeHeroBlogPosts();
 const homeFooterBlogPosts = getHomeFooterBlogPosts();
+
+/** 首頁 Hero：專欄「第一篇」slug；僅已達公開時間時顯示一條文字超連結（非按鈕） */
+const HOME_HERO_FIRST_SLUG = "2026-dividend-tax-guide" as const;
+const homeHeroFirstEntry = getBlogPostBySlug(HOME_HERO_FIRST_SLUG);
+const showHomeHeroFirstLink =
+  homeHeroFirstEntry != null && isBlogPostPublished(homeHeroFirstEntry.publishAtIso);
 
 const MONTHS = 40 * 12; // 模擬 40 年
 const TARGET_Q1 = 30000; // 每季 3 萬
@@ -2124,39 +2134,24 @@ export default function Home() {
             <p style={{ fontSize: 13, color: "#9ca3af", marginTop: 8, marginBottom: 0 }}>
               月領 {targetQuarterIncomeNum.toLocaleString("zh-TW")}，不是夢，是複利紀律。
             </p>
-            <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
-              <button
-                type="button"
-                onClick={() => {
-                  goalSettingCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
-                style={{
-                  fontSize: 13,
-                  fontWeight: 600,
-                  padding: "10px 18px",
-                  borderRadius: 10,
-                  border: "1px solid rgba(57,255,20,0.55)",
-                  background: "rgba(57,255,20,0.15)",
-                  color: "#39ff14",
-                  cursor: "pointer",
-                  boxShadow: "0 4px 14px rgba(57,255,20,0.12)",
-                }}
-              >
-                開始試算
-              </button>
-            </div>
-            {homeHeroBlogPosts.map((post) => (
-              <p key={post.slug} style={{ marginTop: 10, marginBottom: 0 }}>
+            {showHomeHeroFirstLink && homeHeroFirstEntry ? (
+              <p style={{ marginTop: 10, marginBottom: 0 }}>
                 <Link
-                  href={blogPostPath(post.slug)}
+                  href={blogPostPath(HOME_HERO_FIRST_SLUG)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ fontSize: 12, color: "#6ee7b7", textDecoration: "underline", textUnderlineOffset: 3 }}
+                  style={{
+                    fontSize: 12,
+                    color: "#6ee7b7",
+                    textDecoration: "underline",
+                    textUnderlineOffset: 3,
+                    transition: "none",
+                  }}
                 >
-                  {post.homeHeroLabel ?? post.listTitle}
+                  {homeHeroFirstEntry.homeHeroLabel ?? homeHeroFirstEntry.listTitle}
                 </Link>
               </p>
-            ))}
+            ) : null}
           </div>
           <div style={{ padding: "10px 0", background: "transparent", fontSize: 12, color: "#6b7280", lineHeight: 1.85 }}>
             <p style={{ margin: "0 0 6px 0" }}>◆ 月領 50,000 不是夢。年化 7%～10% 情境下，最快約 15 年可達成。</p>
@@ -2237,7 +2232,7 @@ export default function Home() {
         </div>
 
         {/* 3️⃣ GOAL SETTING CARD - 滾超過此區才顯示懸停橫幅（建議每月投入／達成所需資產／目標月領拉桿） */}
-        <div id="goal-setting" ref={(el) => { goalSettingCardRef.current = el; }} style={{ ...cardStyle }}>
+        <div ref={(el) => { goalSettingCardRef.current = el; }} style={{ ...cardStyle }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <h2 style={{ fontSize: 24, fontWeight: 600, color: "#e5e7eb", margin: 0 }}>目標設定</h2>
 

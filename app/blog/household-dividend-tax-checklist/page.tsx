@@ -6,6 +6,7 @@ import { BlogCalculatorSnippetDuo } from "../blog-calculator-snippet-duo";
 import { BlogHouseholdDividendPanel } from "../blog-household-dividend-panel";
 import { BlogScheduledPlaceholder } from "../blog-scheduled-placeholder";
 import { BlogScrollMilestoneModal } from "../blog-scroll-milestone-modal";
+import { BlogPublishedLink } from "../blog-published-link";
 import type { BlogPostRegistryEntry } from "../posts/registry";
 import { blogPostPath, getBlogPostBySlug, isBlogPostPublished } from "../posts/registry";
 import styles from "../blog.module.css";
@@ -113,10 +114,10 @@ function ArticleBody() {
       <div className={styles.article}>
         <p>
           前序文章已從
-          <Link href={blogPostPath("2026-dividend-tax-guide")}>股利課稅選項</Link>、
-          <Link href={blogPostPath("tax-overpay-blind-spot")}>稅後實拿</Link>、
-          <Link href={blogPostPath("passive-income-fire-blueprint")}>FIRE 架構</Link>，以及
-          <Link href={blogPostPath("etf-dividend-54c-structure")}>ETF 配息與 54C</Link>
+          <BlogPublishedLink slug="2026-dividend-tax-guide">股利課稅選項</BlogPublishedLink>、
+          <BlogPublishedLink slug="tax-overpay-blind-spot">稅後實拿</BlogPublishedLink>、
+          <BlogPublishedLink slug="passive-income-fire-blueprint">FIRE 架構</BlogPublishedLink>，以及
+          <BlogPublishedLink slug="etf-dividend-54c-structure">ETF 配息與 54C</BlogPublishedLink>
           逐步堆疊。第五篇處理最常見、也最容易被忽略的結構：<strong>合併申報</strong>下，股利如何與薪資、其他所得共享同一套級距與抵減空間。
         </p>
 

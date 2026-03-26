@@ -14,7 +14,7 @@
 | 篇別 | 上線時間（+08:00） | slug |
 |------|-------------------|------|
 | （1） | **2026/3/24（二）08:30** | `2026-dividend-tax-guide` |
-| （2） | **2026/3/26（四）09:00** | `tax-overpay-blind-spot` |
+| （2） | **2026/3/30（一）09:00** | `tax-overpay-blind-spot` |
 | （3） | **2026/3/31（二）09:30** | `passive-income-fire-blueprint` |
 | （4） | **2026/4/2（四）09:00** | `etf-dividend-54c-structure` |
 | （5） | **2026/4/7（二）09:30** | `household-dividend-tax-checklist` |

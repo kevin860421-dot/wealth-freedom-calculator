@@ -6,6 +6,7 @@ import { BlogCalculatorSnippetDuo } from "../blog-calculator-snippet-duo";
 import { BlogEtf54cComposition } from "../blog-etf-54c-composition";
 import { BlogScheduledPlaceholder } from "../blog-scheduled-placeholder";
 import { BlogScrollMilestoneModal } from "../blog-scroll-milestone-modal";
+import { BlogPublishedLink } from "../blog-published-link";
 import type { BlogPostRegistryEntry } from "../posts/registry";
 import { blogPostPath, getBlogPostBySlug, isBlogPostPublished } from "../posts/registry";
 import styles from "../blog.module.css";
@@ -114,8 +115,8 @@ function ArticleBody() {
       <div className={styles.article}>
         <p>
           若你已讀過
-          <Link href={blogPostPath("2026-dividend-tax-guide")}>存股節稅（1）</Link>與
-          <Link href={blogPostPath("tax-overpay-blind-spot")}>存股節稅（2）</Link>，應已熟悉<strong>合併課稅 分離課稅</strong>與<strong>二代健保 股利</strong>補充保費的門檻敘述。第四篇要把焦點放在
+          <BlogPublishedLink slug="2026-dividend-tax-guide">存股節稅（1）</BlogPublishedLink>與
+          <BlogPublishedLink slug="tax-overpay-blind-spot">存股節稅（2）</BlogPublishedLink>，應已熟悉<strong>合併課稅 分離課稅</strong>與<strong>二代健保 股利</strong>補充保費的門檻敘述。第四篇要把焦點放在
           <strong>ETF 與高股息商品常見的「配息組成」</strong>：為何站內試算要請你填<strong>54C 股利占現金股利占比</strong>。
         </p>
 
@@ -142,7 +143,7 @@ function ArticleBody() {
 
         <h2>4｜系列銜接與下一步</h2>
         <p>
-          <Link href={blogPostPath("passive-income-fire-blueprint")}>存股節稅（3）</Link>
+          <BlogPublishedLink slug="passive-income-fire-blueprint">存股節稅（3）</BlogPublishedLink>
           談的是 FIRE 與稅後現金流架構；本篇補上「配息從哪裡來」的細節，讓你的<strong>稅後口徑</strong>更站得住腳。第五篇將進一步處理
           <strong>家庭合併申報</strong>與<strong>每戶抵減上限</strong>的決策視角。
         </p>

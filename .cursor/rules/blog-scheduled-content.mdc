@@ -1,0 +1,19 @@
+---
+description: 部落格未到 publishAtIso 一律不對外露出（列表、導覽、文內連結、sitemap）
+globs: "**/app/blog/**/*.{tsx,ts}"
+alwaysApply: false
+---
+
+# 排程／草稿部落格：不露出原則
+
+與常見靜態站／Headless CMS 做法一致：**未到 `publishAtIso` 的內容不應出現在「發現入口」**（列表、首頁捷徑、頁尾、sitemap）；必要時連**文內互相引用**也不要導向「準備中」頁，應改為純文字或省略連結。參考：[Astro draft／scheduled 說明](https://destiner.io/blog/post/draft-publications-and-scheduling-in-astro/)、[靜態站排程貼文常見做法](https://leosjoberg.com/blog/scheduling-posts-on-a-static-site/)。
+
+## 本專案單一真相
+
+- `app/blog/posts/registry.ts` 的 `publishAtIso` + `isBlogPostPublished()`。
+- 列表／sitemap：只用 `getPublishedBlogPosts()`。
+- 首頁頁尾：只用 `getHomeFooterBlogPosts()`（已內建發布檢查）。
+- 首頁 Hero 第一篇連結：僅在 `isBlogPostPublished(第一篇)` 時渲染。
+- **文內**連到其他篇：使用 `BlogPublishedLink`（`app/blog/blog-published-link.tsx`），未到時間則渲染純文字、不可點。
+
+新增導覽或連結前，先問：**現在這一刻 `isBlogPostPublished` 是否為真？**

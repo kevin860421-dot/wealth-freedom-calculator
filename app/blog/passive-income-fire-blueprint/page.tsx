@@ -4,6 +4,7 @@ import { WF_BLOG_CALCULATOR_CTA_ID } from "../blog-calculator-cta";
 import { ArticlePublishStamp } from "../article-publish-stamp";
 import { BlogFireReadinessChecklist } from "../blog-fire-readiness-checklist";
 import { BlogScheduledPlaceholder } from "../blog-scheduled-placeholder";
+import { BlogPublishedLink } from "../blog-published-link";
 import { BlogScrollMilestoneModal } from "../blog-scroll-milestone-modal";
 import { BlogThreeLeverSandbox } from "../blog-three-lever-sandbox";
 import { CalculatorHeroPreview } from "../calculator-hero-preview";
@@ -137,9 +138,9 @@ function PassiveIncomeArticleBody() {
         <h2>1｜為何需要「稅後現金流」作為唯一錨點</h2>
         <p>
           <strong>被動收入 規劃</strong>若不以可花用現金為核心，常見後果是：年度現金流看起來達標，但可支配餘額與心理帳對不起來。我們在
-          <Link href={blogPostPath(SLUG_TAX_1)}>存股節稅（1）</Link>
+          <BlogPublishedLink slug={SLUG_TAX_1}>存股節稅（1）</BlogPublishedLink>
           與
-          <Link href={blogPostPath(SLUG_TAX_2)}>存股節稅（2）</Link>
+          <BlogPublishedLink slug={SLUG_TAX_2}>存股節稅（2）</BlogPublishedLink>
           已分別整理<strong>合併課稅 分離課稅</strong>、<strong>股利抵減 8.5%</strong>與<strong>二代健保 股利</strong>對實拿的影響；第三篇要把這些收斂成<strong>模型輸入</strong>，才能與
           <strong>財富自由 計算機</strong>這類工具對話。
         </p>

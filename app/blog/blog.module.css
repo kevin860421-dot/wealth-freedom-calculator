@@ -111,6 +111,23 @@
   font-weight: 600;
 }
 
+/* 系列文內互相引用：已發布＝可點；未到時間＝與內文同色、不可點 */
+.seriesInlineLink {
+  color: var(--morandi-highlight, #a8b5a0);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.seriesInlineLink:hover {
+  color: var(--morandi-text, #f0ebe5);
+}
+
+.seriesInlinePending {
+  color: inherit;
+  text-decoration: none;
+  cursor: default;
+}
+
 .article ul,
 .article ol {
   margin: 0 0 1.5rem 1.35rem;
