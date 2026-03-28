@@ -81,13 +81,6 @@
   color: #94a3b8;
 }
 
-.sectionHint {
-  margin: -4px 0 10px;
-  font-size: 11px;
-  line-height: 1.5;
-  color: #64748b;
-}
-
 .fieldGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -97,9 +90,28 @@
 
 .metricsGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  /* 第一欄（年化）較窄，避免彈窗內橫向捲動 */
+  grid-template-columns: minmax(0, 0.68fr) minmax(0, 1.16fr) minmax(0, 1.16fr);
+  gap: 8px;
   margin-bottom: 18px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.metricsGrid .field {
+  min-width: 0;
+}
+
+.metricsGrid .input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.metricsGrid .label {
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 @media (max-width: 520px) {

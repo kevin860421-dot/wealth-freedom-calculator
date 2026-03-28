@@ -17,6 +17,24 @@ function isStandalone(): boolean {
   );
 }
 
+/** 無法觸發系統安裝對話框時，依裝置顯示一步驟提示（不開彈窗） */
+function getManualInstallHint(kind: "mobile" | "desktop"): string {
+  if (typeof navigator === "undefined") {
+    return kind === "mobile"
+      ? "請用瀏覽器選單將本網站加入主畫面。"
+      : "請用瀏覽器選單將本網站安裝為應用程式。";
+  }
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua);
+  const isAndroid = /Android/i.test(ua);
+  if (kind === "mobile") {
+    if (isIOS) return "請點 Safari「分享」→「加入主畫面」，即可從主畫面開啟（像 App）。";
+    if (isAndroid) return "請點 Chrome「⋮」選單 →「安裝應用程式」或「加入主畫面」。";
+    return "請點瀏覽器選單 →「加入主畫面」或「安裝應用程式」。";
+  }
+  return "請點網址列右側「安裝」圖示，或選單 →「應用程式」→「安裝此網站」。";
+}
+
 type Props = {
   /** 內嵌在父區塊右下角時使用，不使用 position:fixed 佔滿視窗 */
   embedded?: boolean;
@@ -26,6 +44,7 @@ export function PwaInstallCorner({ embedded = false }: Props) {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [installed, setInstalled] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [fallbackHint, setFallbackHint] = useState<string | null>(null);
 
   useEffect(() => {
     setInstalled(isStandalone());
@@ -40,18 +59,29 @@ export function PwaInstallCorner({ embedded = false }: Props) {
     return () => window.removeEventListener("beforeinstallprompt", onBip);
   }, []);
 
-  const runInstall = useCallback(async () => {
-    if (!deferred) {
-      setHelpOpen(true);
-      return;
-    }
-    try {
-      await deferred.prompt();
-      await deferred.userChoice;
-    } finally {
-      setDeferred(null);
-    }
-  }, [deferred]);
+  useEffect(() => {
+    if (!fallbackHint) return;
+    const t = window.setTimeout(() => setFallbackHint(null), 14000);
+    return () => window.clearTimeout(t);
+  }, [fallbackHint]);
+
+  /** 優先叫出瀏覽器內建「安裝」對話框；若尚無法觸發，改顯示內聯一步驟（不開說明彈窗） */
+  const triggerInstall = useCallback(
+    async (kind: "mobile" | "desktop") => {
+      if (deferred) {
+        try {
+          await deferred.prompt();
+          await deferred.userChoice;
+        } finally {
+          setDeferred(null);
+        }
+        setFallbackHint(null);
+        return;
+      }
+      setFallbackHint(getManualInstallHint(kind));
+    },
+    [deferred],
+  );
 
   const wrapClass = embedded ? styles.embeddedWrap : styles.fab;
 
@@ -71,26 +101,41 @@ export function PwaInstallCorner({ embedded = false }: Props) {
   );
 
   const buttonRow = (
-    <div className={styles.fabRow}>
-      <button type="button" className={`${styles.fabBtn} ${styles.fabMobile}`} onClick={runInstall}>
-        <span className={styles.fabBtnIcon} aria-hidden>
-          <IconPhoneApp width={26} height={26} />
-        </span>
-        <span className={styles.fabBtnTextCol}>
-          <span className={styles.fabBtnTitle}>手機 App</span>
-          <span className={styles.fabBtnSub}>加入主畫面 · 快速開啟</span>
-        </span>
-      </button>
-      <button type="button" className={`${styles.fabBtn} ${styles.fabDesktop}`} onClick={runInstall}>
-        <span className={styles.fabBtnIcon} aria-hidden>
-          <IconDesktopApp width={26} height={26} />
-        </span>
-        <span className={styles.fabBtnTextCol}>
-          <span className={styles.fabBtnTitle}>電腦 App</span>
-          <span className={styles.fabBtnSub}>安裝為應用程式 · 獨立視窗</span>
-        </span>
-      </button>
-    </div>
+    <>
+      <div className={styles.fabRow}>
+        <button
+          type="button"
+          className={`${styles.fabBtn} ${styles.fabMobile}`}
+          onClick={() => void triggerInstall("mobile")}
+        >
+          <span className={styles.fabBtnIcon} aria-hidden>
+            <IconPhoneApp width={26} height={26} />
+          </span>
+          <span className={styles.fabBtnTextCol}>
+            <span className={styles.fabBtnTitle}>手機 App</span>
+            <span className={styles.fabBtnSub}>加入主畫面 · 快速開啟</span>
+          </span>
+        </button>
+        <button
+          type="button"
+          className={`${styles.fabBtn} ${styles.fabDesktop}`}
+          onClick={() => void triggerInstall("desktop")}
+        >
+          <span className={styles.fabBtnIcon} aria-hidden>
+            <IconDesktopApp width={26} height={26} />
+          </span>
+          <span className={styles.fabBtnTextCol}>
+            <span className={styles.fabBtnTitle}>電腦 App</span>
+            <span className={styles.fabBtnSub}>安裝為應用程式 · 獨立視窗</span>
+          </span>
+        </button>
+      </div>
+      {fallbackHint ? (
+        <p className={styles.inlineFallback} role="status" aria-live="polite">
+          {fallbackHint}
+        </p>
+      ) : null}
+    </>
   );
 
   const embeddedFooter = (
@@ -99,7 +144,11 @@ export function PwaInstallCorner({ embedded = false }: Props) {
         <span aria-hidden>📱</span> 使用 App 可快速開啟，較不易被當一般分頁清掉。
       </p>
       <div className={styles.footerBtnRow}>
-        <button type="button" className={`${styles.fabBtn} ${styles.fabMobile} ${styles.fabBtnEmbedded}`} onClick={runInstall}>
+        <button
+          type="button"
+          className={`${styles.fabBtn} ${styles.fabMobile} ${styles.fabBtnEmbedded}`}
+          onClick={() => void triggerInstall("mobile")}
+        >
           <span className={styles.fabBtnIcon} aria-hidden>
             <IconPhoneApp width={22} height={22} />
           </span>
@@ -108,7 +157,11 @@ export function PwaInstallCorner({ embedded = false }: Props) {
             <span className={styles.fabBtnSub}>加入主畫面</span>
           </span>
         </button>
-        <button type="button" className={`${styles.fabBtn} ${styles.fabDesktop} ${styles.fabBtnEmbedded}`} onClick={runInstall}>
+        <button
+          type="button"
+          className={`${styles.fabBtn} ${styles.fabDesktop} ${styles.fabBtnEmbedded}`}
+          onClick={() => void triggerInstall("desktop")}
+        >
           <span className={styles.fabBtnIcon} aria-hidden>
             <IconDesktopApp width={22} height={22} />
           </span>
@@ -118,8 +171,13 @@ export function PwaInstallCorner({ embedded = false }: Props) {
           </span>
         </button>
       </div>
+      {fallbackHint ? (
+        <p className={styles.inlineFallback} role="status" aria-live="polite">
+          {fallbackHint}
+        </p>
+      ) : null}
       <button type="button" className={styles.linkHelpFooter} onClick={() => setHelpOpen(true)}>
-        沒有出現安裝？查看手動步驟
+        沒有出現安裝？查看完整手動步驟
       </button>
     </div>
   );

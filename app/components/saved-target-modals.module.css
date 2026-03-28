@@ -285,19 +285,3 @@
   overflow-y: auto;
   animation: none;
 }
-
-/* 「僅有自選股資料而無試算」：游標旁黃色提示（內容敘述區塊內 hover） */
-.applyWarnFollow {
-  position: fixed;
-  z-index: 2147483641;
-  width: min(300px, calc(100vw - 20px));
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(251, 191, 36, 0.45);
-  background: rgba(15, 23, 42, 0.97);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
-  font-size: 11px;
-  line-height: 1.5;
-  color: #fbbf24;
-  pointer-events: none;
-}

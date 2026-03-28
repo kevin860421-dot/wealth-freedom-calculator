@@ -251,7 +251,6 @@ export function WatchlistNotesModal({ open, onClose }: Props) {
         </div>
 
         <p className={styles.sectionLabel}>參考數字（可自行修改，僅供參考）</p>
-        <p className={styles.sectionHint}>對應投資上常看的年化、股息率、股利率；數字僅存於此處。</p>
         <div className={styles.metricsGrid}>
           <label className={styles.field}>
             <span className={styles.label}>年化報酬率（%）</span>

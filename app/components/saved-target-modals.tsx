@@ -113,21 +113,6 @@ function clampPreviewPos(x: number, y: number): { x: number; y: number } {
   return { x: nx, y: ny };
 }
 
-/** 游標旁黃色提示（僅文字，較小） */
-function clampApplyWarnPos(x: number, y: number): { x: number; y: number } {
-  if (typeof window === "undefined") return { x, y };
-  const pad = 10;
-  const cardW = 300;
-  const cardH = 96;
-  let nx = x;
-  let ny = y;
-  if (nx + cardW > window.innerWidth - pad) nx = window.innerWidth - cardW - pad;
-  if (ny + cardH > window.innerHeight - pad) ny = window.innerHeight - cardH - pad;
-  nx = Math.max(pad, nx);
-  ny = Math.max(pad, ny);
-  return { x: nx, y: ny };
-}
-
 function SlotDetailPanel({
   bundle,
   index,
@@ -278,7 +263,6 @@ export function LoadTargetModal({ open, onClose, onApply }: LoadModalProps) {
   const [selected, setSelected] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [hoverPreview, setHoverPreview] = useState<{ slot: number; x: number; y: number } | null>(null);
-  const [inlineApplyWarnPos, setInlineApplyWarnPos] = useState<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -295,10 +279,7 @@ export function LoadTargetModal({ open, onClose, onApply }: LoadModalProps) {
   }, [open]);
 
   useEffect(() => {
-    if (!open) {
-      setHoverPreview(null);
-      setInlineApplyWarnPos(null);
-    }
+    if (!open) setHoverPreview(null);
   }, [open]);
 
   const updateHoverPos = useCallback((e: MouseEvent, slotIndex: number) => {
@@ -322,31 +303,10 @@ export function LoadTargetModal({ open, onClose, onApply }: LoadModalProps) {
     [onClose],
   );
 
-  if (!open) return null;
-
   const snap = bundles[selected]?.calculator ?? null;
   const canApply = snap != null;
-  const currentBundle = bundles[selected] ?? { calculator: null, notes: null };
-  const inlineNeedsApplyWarn =
-    currentBundle.notes != null &&
-    hasNotesContent(currentBundle.notes) &&
-    currentBundle.calculator == null;
 
-  const updateInlineApplyWarnPos = useCallback(
-    (e: MouseEvent) => {
-      if (!inlineNeedsApplyWarn) {
-        setInlineApplyWarnPos(null);
-        return;
-      }
-      const pos = clampApplyWarnPos(e.clientX + 14, e.clientY + 14);
-      setInlineApplyWarnPos({ x: pos.x, y: pos.y });
-    },
-    [inlineNeedsApplyWarn],
-  );
-
-  useEffect(() => {
-    setInlineApplyWarnPos(null);
-  }, [selected]);
+  if (!open) return null;
 
   const hoverCard =
     mounted &&
@@ -385,7 +345,7 @@ export function LoadTargetModal({ open, onClose, onApply }: LoadModalProps) {
           </button>
         </div>
         <p className={styles.lead}>
-          點選組別後下方會顯示<strong>試算與自選股敘述</strong>；套用後會取代目前試算輸入（與「恢復預設值」無關）。
+          <strong>滑鼠移到組別列上</strong>可預覽該組試算與自選股內容；點選列以決定要套用哪一組。套用後會取代目前試算輸入（與「恢復預設值」無關）。
         </p>
         <div style={{ marginBottom: 12 }}>
           {Array.from({ length: SAVED_TARGET_SLOT_COUNT }, (_, i) => (
@@ -406,27 +366,6 @@ export function LoadTargetModal({ open, onClose, onApply }: LoadModalProps) {
           ))}
         </div>
         {hoverCard}
-        {mounted &&
-          inlineApplyWarnPos != null &&
-          createPortal(
-            <div
-              className={styles.applyWarnFollow}
-              style={{ left: inlineApplyWarnPos.x, top: inlineApplyWarnPos.y }}
-              role="tooltip"
-            >
-              {APPLY_ONLY_WARN_TEXT}
-            </div>,
-            document.body,
-          )}
-        <div
-          key={selected}
-          aria-live="polite"
-          onMouseEnter={updateInlineApplyWarnPos}
-          onMouseMove={updateInlineApplyWarnPos}
-          onMouseLeave={() => setInlineApplyWarnPos(null)}
-        >
-          <SlotDetailPanel bundle={currentBundle} index={selected} showApplyWarning={false} />
-        </div>
         <div className={styles.footer}>
           <button type="button" className={styles.btnGhost} onClick={onClose}>
             取消

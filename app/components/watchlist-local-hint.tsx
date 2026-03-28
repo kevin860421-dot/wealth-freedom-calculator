@@ -2,9 +2,11 @@
 
 import styles from "./watchlist-local-hint.module.css";
 
-/** 精簡版；完整說明見 title（滑鼠懸停） */
-const HINT_SHORT = "僅本機，未上傳";
-const HINT_TITLE = "資料僅存在此裝置的瀏覽器中，未上傳至伺服器；清除網站資料可能一併刪除。";
+/** 標題下單一說明；完整補充見 title（滑鼠懸停） */
+const HINT_LEAD =
+  "資料存於本機、未上傳伺服器；清除網站資料可能遺失。建議安裝到主畫面或桌面，較不易遺失。";
+const HINT_TITLE =
+  "試算與自選股僅存在此裝置，未上傳至伺服器。清除網站資料或關閉無痕分頁可能一併刪除。若瀏覽器支援，請用「加到主畫面」或「安裝」取得捷徑。";
 
 function LocalDeviceIcon() {
   return (
@@ -41,14 +43,14 @@ type Props = {
 export function WatchlistLocalHint({ variant, titleId }: Props) {
   if (variant === "modal") {
     return (
-      <div className={styles.rowModal}>
+      <div className={`${styles.rowModal} ${styles.watchType}`}>
         <LocalDeviceIcon />
         <div className={styles.textBlockModal}>
           <h2 id={titleId} className={styles.titleModal}>
             我的自選股
           </h2>
-          <p className={styles.hint} title={HINT_TITLE}>
-            {HINT_SHORT}
+          <p className={styles.hintLead} title={HINT_TITLE}>
+            {HINT_LEAD}
           </p>
         </div>
       </div>
@@ -56,13 +58,13 @@ export function WatchlistLocalHint({ variant, titleId }: Props) {
   }
 
   return (
-    <div className={styles.stackFooter}>
+    <div className={`${styles.stackFooter} ${styles.watchType}`}>
       <LocalDeviceIcon />
       <h2 id={titleId} className={styles.titleFooter}>
         我的自選股
       </h2>
-      <p className={styles.hint} title={HINT_TITLE}>
-        {HINT_SHORT}
+      <p className={styles.hintLead} title={HINT_TITLE}>
+        {HINT_LEAD}
       </p>
     </div>
   );
