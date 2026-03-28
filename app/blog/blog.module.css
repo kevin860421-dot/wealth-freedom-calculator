@@ -58,8 +58,33 @@
   font-size: 1rem;
   line-height: 1.68;
   color: var(--morandi-text-soft, #b8aea4);
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.25rem;
   max-width: 36rem;
+}
+
+/* 「文章準備中」頁：副標題下方提示卡 */
+.scheduledTeaser {
+  margin: 0 0 1.75rem;
+  padding: 1rem 1.1rem;
+  border-radius: var(--blog-card-radius, 16px);
+  border: 1px solid rgba(168, 181, 160, 0.22);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+}
+
+.scheduledTeaserTitle {
+  margin: 0 0 0.45rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--morandi-text, #f0ebe5);
+  letter-spacing: 0.02em;
+}
+
+.scheduledTeaserBody {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--morandi-text-soft, #b8aea4);
 }
 
 /* 系列標示（專欄、專題等），常置於頂列右側 */

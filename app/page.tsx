@@ -6,8 +6,11 @@ import { FreedomCelebrationModal } from "./freedom-celebration-modal";
 import {
   buildSnapshotFromInputs,
   getDefaultCalculatorRepository,
+  type CalculatorSnapshotV1,
   type PayoutFrequencyPersist,
 } from "../lib/calculator-persistence";
+import { OPEN_LOAD_TARGET_MODAL_EVENT } from "../lib/watchlist-modal-events";
+import { LoadTargetModal, SaveTargetModal } from "./components/saved-target-modals";
 import {
   TICKER_PRESETS,
   buildTickerDividendMonthsMap,
@@ -19,6 +22,11 @@ import {
   getHomeFooterBlogPosts,
   isBlogPostPublished,
 } from "./blog/posts/registry";
+import { HomeFooterWatchlistSection } from "./components/home-footer-watchlist-section";
+import { MobileGoalSettingSection } from "./components/mobile-goal-setting-section";
+import { MobileHeroSection } from "./components/mobile-hero-section";
+import { MobileStockParamsSection } from "./components/mobile-stock-params-section";
+import type { StockParamsAdvancedBlockProps } from "./components/stock-params-advanced-block";
 
 /** 各標的除息月份（與 ticker-presets 同步） */
 const ETF_DIVIDEND_MONTHS = buildTickerDividendMonthsMap();
@@ -487,8 +495,26 @@ export default function Home() {
   useEffect(() => {
     setClientMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    if (sp.get("mobile") === "1") {
+      document.documentElement.setAttribute("data-preview-mobile", "true");
+      return () => {
+        document.documentElement.removeAttribute("data-preview-mobile");
+      };
+    }
+  }, []);
   /** 達成財富自由目標時顯示祝賀彈窗（關閉後需先「未達成」再達成才會再出現） */
   const [freedomCelebrationOpen, setFreedomCelebrationOpen] = useState(false);
+  const [saveTargetModalOpen, setSaveTargetModalOpen] = useState(false);
+  const [loadTargetModalOpen, setLoadTargetModalOpen] = useState(false);
+  useEffect(() => {
+    const onOpenLoad = () => setLoadTargetModalOpen(true);
+    window.addEventListener(OPEN_LOAD_TARGET_MODAL_EVENT, onOpenLoad);
+    return () => window.removeEventListener(OPEN_LOAD_TARGET_MODAL_EVENT, onOpenLoad);
+  }, []);
   const prevFreedomAchievedRef = useRef(false);
   const lastScrollYRef = useRef(0);
   const goalSettingCardRef = useRef<HTMLDivElement | null>(null);
@@ -778,6 +804,64 @@ export default function Home() {
     etfRatioEstimates,
     etfCodeFilter,
   ]);
+
+  const currentCalculatorSnapshot = useMemo(
+    () =>
+      buildSnapshotFromInputs({
+        initialPrincipal,
+        monthlyContribution,
+        monthlyExtra,
+        annualReturnRate,
+        dividendYieldPct,
+        stockDividendPct,
+        rateSource,
+        targetQuarterIncome,
+        reinvestRatio,
+        payoutFrequency: payoutFrequency as PayoutFrequencyPersist,
+        selectedEtf,
+        defaultYearStr,
+        defaultMonthStr,
+        initialYearStr,
+        initialMonthStr,
+        nthPeriod,
+        targetYearsToAchieve,
+        taxBracketRate,
+        applyTaxInTable,
+        applyNhi2InTable,
+        annualIncome,
+        separateTaxOpen,
+        manualOverrides,
+        etfRatioEstimates,
+        etfCodeFilter,
+      }),
+    [
+      initialPrincipal,
+      monthlyContribution,
+      monthlyExtra,
+      annualReturnRate,
+      dividendYieldPct,
+      stockDividendPct,
+      rateSource,
+      targetQuarterIncome,
+      reinvestRatio,
+      payoutFrequency,
+      selectedEtf,
+      defaultYearStr,
+      defaultMonthStr,
+      initialYearStr,
+      initialMonthStr,
+      nthPeriod,
+      targetYearsToAchieve,
+      taxBracketRate,
+      applyTaxInTable,
+      applyNhi2InTable,
+      annualIncome,
+      separateTaxOpen,
+      manualOverrides,
+      etfRatioEstimates,
+      etfCodeFilter,
+    ],
+  );
 
   /** 輸入接近時自動選到 ETF：完全符合或篩選後僅一檔則自動選取 */
   const handleEtfCodeChange = useCallback((raw: string) => {
@@ -1171,6 +1255,149 @@ export default function Home() {
   const reinvestNoteIsMet = useMemo(
     () => simulation.finalBalance * periodRate >= TAX_THRESHOLD,
     [simulation.finalBalance, periodRate]
+  );
+
+  const restoreStockParamsDefaults = useCallback(() => {
+    setInitialPrincipal("0");
+    setMonthlyContribution("12000");
+    setMonthlyExtra("6000");
+    setAnnualReturnRate(7.2);
+    setDividendYieldPct("");
+    setStockDividendPct("");
+    setRateSource(null);
+    setTargetQuarterIncome("50000");
+    setReinvestRatio(80);
+    handlePayoutFrequencyChange("month");
+    setSelectedEtf("none");
+    setTargetYearsToAchieve("20");
+    setNthPeriod(1);
+    setInitialYearStr(String(new Date().getFullYear()));
+    setInitialMonthStr(String(new Date().getMonth() + 1));
+  }, [handlePayoutFrequencyChange]);
+
+  const applyCalculatorSnapshot = useCallback(
+    (s: CalculatorSnapshotV1) => {
+      skipTaxSyncFromIncomeRef.current = true;
+      setInitialPrincipal(s.initialPrincipal);
+      setMonthlyContribution(s.monthlyContribution);
+      setMonthlyExtra(s.monthlyExtra);
+      setAnnualReturnRate(s.annualReturnRate);
+      setDividendYieldPct(s.dividendYieldPct === null ? "" : s.dividendYieldPct);
+      setStockDividendPct(s.stockDividendPct === null ? "" : s.stockDividendPct);
+      setRateSource(s.rateSource);
+      setTargetQuarterIncome(s.targetQuarterIncome);
+      setReinvestRatio(s.reinvestRatio);
+      setPayoutFrequency(s.payoutFrequency as PayoutFrequency);
+      setSelectedEtf(s.selectedEtf);
+      setDefaultYearStr(s.defaultYearStr);
+      setDefaultMonthStr(s.defaultMonthStr);
+      setInitialYearStr(s.initialYearStr);
+      setInitialMonthStr(s.initialMonthStr);
+      const clampedNth = Math.max(1, Math.min(maxNthPeriod, Math.floor(s.nthPeriod) || 1));
+      setNthPeriod(clampedNth);
+      setTargetYearsToAchieve(s.targetYearsToAchieve);
+      setTaxBracketRate(s.taxBracketRate);
+      setApplyTaxInTable(s.applyTaxInTable);
+      setApplyNhi2InTable(s.applyNhi2InTable);
+      setAnnualIncome(s.annualIncome);
+      setSeparateTaxOpen(s.separateTaxOpen);
+      setManualOverrides(s.manualOverrides && typeof s.manualOverrides === "object" ? s.manualOverrides : {});
+      setEtfRatioEstimates(
+        s.etfRatioEstimates && typeof s.etfRatioEstimates === "object" ? s.etfRatioEstimates : buildDefault54cRatioMap(),
+      );
+      setEtfCodeFilter(typeof s.etfCodeFilter === "string" ? s.etfCodeFilter : "");
+    },
+    [maxNthPeriod],
+  );
+
+  const stockAdvancedBlockProps: StockParamsAdvancedBlockProps = useMemo(
+    () => ({
+      etfCodeFilter,
+      handleEtfCodeChange,
+      selectedEtf,
+      setSelectedEtf,
+      filteredEtfs,
+      payoutFrequency,
+      handlePayoutFrequencyChange,
+      annualReturnRate,
+      setAnnualReturnRate,
+      setRateSource,
+      rateSource,
+      dividendYieldPct,
+      stockDividendPct,
+      setDividendYieldPct,
+      setStockDividendPct,
+      currentPrincipalNum,
+      selectedEtfInfo,
+      initialYearStr,
+      setInitialYearStr,
+      initialMonthStr,
+      setInitialMonthStr,
+      initialYear,
+      initialMonth,
+      defaultYear,
+      defaultMonth,
+      nthPeriod,
+      setNthPeriod,
+      maxNthPeriod,
+      defaultYearStr,
+      setDefaultYearStr,
+      defaultMonthStr,
+      setDefaultMonthStr,
+      todayYear,
+      todayMonth,
+      monthlyContributionNum,
+      monthlyExtraNum,
+      effectivePayoutLabel,
+      isNthPeriodDividendMonth,
+      nthPeriodEstimate: { grossDividend: nthPeriodEstimate.grossDividend },
+      sharesFromActualDividend,
+      reinvestRatio,
+      setReinvestRatio,
+      reinvestNoteIsMet,
+      periodLabelForBalance,
+      periodMonthsForBalance,
+      showAnnualInEtfRow: false,
+      showInlinePrincipalCard: false,
+      stackEtfRow: true,
+      mobileGrouped: true,
+    }),
+    [
+      etfCodeFilter,
+      handleEtfCodeChange,
+      selectedEtf,
+      filteredEtfs,
+      payoutFrequency,
+      handlePayoutFrequencyChange,
+      annualReturnRate,
+      rateSource,
+      dividendYieldPct,
+      stockDividendPct,
+      currentPrincipalNum,
+      selectedEtfInfo,
+      initialYearStr,
+      initialMonthStr,
+      initialYear,
+      initialMonth,
+      defaultYear,
+      defaultMonth,
+      nthPeriod,
+      maxNthPeriod,
+      defaultYearStr,
+      defaultMonthStr,
+      todayYear,
+      todayMonth,
+      monthlyContributionNum,
+      monthlyExtraNum,
+      effectivePayoutLabel,
+      isNthPeriodDividendMonth,
+      nthPeriodEstimate,
+      sharesFromActualDividend,
+      reinvestRatio,
+      reinvestNoteIsMet,
+      periodLabelForBalance,
+      periodMonthsForBalance,
+    ]
   );
 
   const periodSnapshots = useMemo(
@@ -1882,6 +2109,8 @@ export default function Home() {
 
   const showStickyBar = stickyBarPinned || stickyBarVisible;
 
+  const homeHeroBlogHref = blogPostPath(HOME_HERO_FIRST_SLUG);
+
   return (
     <main
       style={{
@@ -2114,6 +2343,7 @@ export default function Home() {
         )}
 
       <div style={{ width: "100%", maxWidth: 1600, margin: "0 auto", display: "flex", flexDirection: "column", gap: 24 }}>
+        <div id="desktop-app-view">
         {/* 1️⃣ HERO HEADER */}
         <header
           style={{
@@ -2232,7 +2462,7 @@ export default function Home() {
         </div>
 
         {/* 3️⃣ GOAL SETTING CARD - 滾超過此區才顯示懸停橫幅（建議每月投入／達成所需資產／目標月領拉桿） */}
-        <div ref={(el) => { goalSettingCardRef.current = el; }} style={{ ...cardStyle }}>
+        <div id="desktop-goal-setting" ref={(el) => { goalSettingCardRef.current = el; }} style={{ ...cardStyle }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <h2 style={{ fontSize: 24, fontWeight: 600, color: "#e5e7eb", margin: 0 }}>目標設定</h2>
 
@@ -2382,42 +2612,70 @@ export default function Home() {
         </div>
 
         {/* 4️⃣ INVESTMENT PARAMETER SETTINGS */}
-          <div style={{ ...cardStyle, display: "flex", flexDirection: "column", gap: 12, padding: 16 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div id="desktop-stock-params" style={{ ...cardStyle, display: "flex", flexDirection: "column", gap: 12, padding: 16 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
               <h2 style={{ fontSize: 24, fontWeight: 600, color: "#e5e7eb", margin: 0 }}>
                 存股參數設定
               </h2>
-              <button
-                onClick={() => {
-                  setInitialPrincipal("0");
-                  setMonthlyContribution("12000");
-                  setMonthlyExtra("6000");
-                  setAnnualReturnRate(7.2);
-                  setDividendYieldPct("");
-                  setStockDividendPct("");
-                  setRateSource(null);
-                  setTargetQuarterIncome("50000");
-                  setReinvestRatio(80);
-                  handlePayoutFrequencyChange("month");
-                  setSelectedEtf("none");
-                  setTargetYearsToAchieve("20");
-                  setNthPeriod(1);
-                  setInitialYearStr(String(new Date().getFullYear()));
-                  setInitialMonthStr(String(new Date().getMonth() + 1));
-                }}
-                style={{
-                  fontSize: 11,
-                  padding: "6px 10px",
-                  borderRadius: 999,
-                  border: "1px solid rgba(57,255,20,0.6)",
-                  background:
-                    "radial-gradient(circle at top left, rgba(57,255,20,0.16), transparent)",
-                  color: "#39ff14",
-                  cursor: "pointer",
-                }}
-              >
-                恢復預設值
-              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={() => setSaveTargetModalOpen(true)}
+                  style={{
+                    display: "inline-flex",
+                    width: "fit-content",
+                    boxSizing: "border-box",
+                    fontSize: 11,
+                    padding: "6px 10px",
+                    border: "1px solid rgba(192, 132, 252, 0.55)",
+                    borderRadius: 8,
+                    background: "rgba(0, 0, 0, 0.2)",
+                    fontWeight: 600,
+                    color: "#c084fc",
+                    cursor: "pointer",
+                  }}
+                >
+                  加入標的
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLoadTargetModalOpen(true)}
+                  style={{
+                    display: "inline-flex",
+                    width: "fit-content",
+                    boxSizing: "border-box",
+                    fontSize: 11,
+                    padding: "6px 10px",
+                    border: "1px solid rgba(96, 165, 250, 0.55)",
+                    borderRadius: 8,
+                    background: "rgba(0, 0, 0, 0.2)",
+                    fontWeight: 600,
+                    color: "#60a5fa",
+                    cursor: "pointer",
+                  }}
+                >
+                  使用我的標的
+                </button>
+                <button
+                  type="button"
+                  onClick={restoreStockParamsDefaults}
+                  style={{
+                    display: "inline-flex",
+                    width: "fit-content",
+                    boxSizing: "border-box",
+                    fontSize: 11,
+                    padding: "6px 10px",
+                    border: "1px solid rgba(57, 255, 20, 0.5)",
+                    borderRadius: 8,
+                    background: "rgba(0, 0, 0, 0.2)",
+                    fontWeight: 600,
+                    color: "#39ff14",
+                    cursor: "pointer",
+                  }}
+                >
+                  恢復預設值
+                </button>
+              </div>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -2870,6 +3128,58 @@ export default function Home() {
               </div>
             </div>
           </div>
+        </div>
+        </div>
+
+        <div id="mobile-app-view">
+          <MobileHeroSection
+            fireEtaStr={fireEtaStr}
+            achievementPercent={achievementPercent}
+            targetQuarterIncomeNum={targetQuarterIncomeNum}
+            showHomeHeroFirstLink={showHomeHeroFirstLink}
+            homeHeroFirstEntry={homeHeroFirstEntry}
+            blogHref={homeHeroBlogHref}
+            simulationAtTargetYears={{
+              finalBalance: simulationAtTargetYears.finalBalance,
+              totalDividends: simulationAtTargetYears.totalDividends,
+            }}
+          />
+          <MobileGoalSettingSection
+            targetQuarterIncome={targetQuarterIncome}
+            setTargetQuarterIncome={setTargetQuarterIncome}
+            targetQuarterIncomeNum={targetQuarterIncomeNum}
+            targetYearsToAchieve={targetYearsToAchieve}
+            setTargetYearsToAchieve={setTargetYearsToAchieve}
+            payoutFrequency={payoutFrequency}
+            handlePayoutFrequencyChange={handlePayoutFrequencyChange}
+            requiredMonthlyToAchieveInYears={requiredMonthlyToAchieveInYears}
+            requiredAssetsForTarget={requiredAssetsForTarget}
+            commitFormula={commitFormula}
+            parseFormula={parseFormula}
+          />
+          <MobileStockParamsSection
+            onRestoreDefaults={restoreStockParamsDefaults}
+            onOpenSaveTarget={() => setSaveTargetModalOpen(true)}
+            onOpenLoadTarget={() => setLoadTargetModalOpen(true)}
+            currentPrincipalStr={currentPrincipalStr}
+            setCurrentPrincipalStr={setCurrentPrincipalStr}
+            commitFormulaWithCommas={commitFormulaWithCommas}
+            parseFormula={parseFormula}
+            monthlyContribution={monthlyContribution}
+            setMonthlyContribution={setMonthlyContribution}
+            monthlyExtra={monthlyExtra}
+            setMonthlyExtra={setMonthlyExtra}
+            commitFormula={commitFormula}
+            annualReturnRate={annualReturnRate}
+            setAnnualReturnRate={setAnnualReturnRate}
+            setRateSource={setRateSource}
+            rateSource={rateSource}
+            dividendYieldPct={dividendYieldPct}
+            stockDividendPct={stockDividendPct}
+            currentPrincipalNum={currentPrincipalNum}
+            selectedEtfInfo={selectedEtfInfo}
+            advancedProps={stockAdvancedBlockProps}
+          />
         </div>
 
         {/* 6️⃣ FIRE COUNTDOWN */}
@@ -3581,6 +3891,7 @@ export default function Home() {
             ))}
           </div>
           <FooterStatsStrip />
+          <HomeFooterWatchlistSection />
           {/* 廣告預留區（僅佔位，日後可替換為廣告元件） */}
           <div
             role="complementary"
@@ -3591,11 +3902,14 @@ export default function Home() {
               minHeight: 120,
               padding: "32px 20px",
               borderRadius: 12,
-              border: "1px dashed rgba(148,163,184,0.25)",
-              background: "rgba(15,23,42,0.4)",
+              border: "1px dashed rgba(148,163,184,0.35)",
+              background:
+                "linear-gradient(165deg, rgba(15,23,42,0.55), rgba(2,6,23,0.5))",
               display: "flex",
+              flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
+              gap: 10,
               color: "#64748b",
               fontSize: 15,
               fontWeight: 500,
@@ -3623,7 +3937,13 @@ export default function Home() {
               達標年期。試算表整合股利所得課稅、54C 應稅股利占比、8.5% 股利抵減與上限、分離課稅選項、二代健保補充保費門檻與費率、申購與再投入手續費等假設，提供累積金額、每期扣除與總資產欄位，並可匯出
               Excel 做情境比較。本頁內容僅供教育與參考，不構成投資、稅務或法律建議；實際申報與交易請以主管機關、稽徵機關、券商及基金公司公告與您個案事實為準。建議同步檢視緊急預備金、保險保障與整體資產配置。
             </p>
-            敬請期待
+            <span style={{ fontSize: 28, lineHeight: 1, opacity: 0.85 }} aria-hidden>
+              ✦
+            </span>
+            <span>敬請期待</span>
+            <span style={{ fontSize: 11, letterSpacing: "0.06em", color: "#475569", fontWeight: 500 }}>
+              合作／廣告欄位預留
+            </span>
           </div>
           <section
             aria-labelledby="legal-disclaimer-heading"
@@ -3754,10 +4074,22 @@ export default function Home() {
         </footer>
       </div>
       {clientMounted ? (
-        <FreedomCelebrationModal
-          open={freedomCelebrationOpen}
-          onClose={() => setFreedomCelebrationOpen(false)}
-        />
+        <>
+          <FreedomCelebrationModal
+            open={freedomCelebrationOpen}
+            onClose={() => setFreedomCelebrationOpen(false)}
+          />
+          <SaveTargetModal
+            open={saveTargetModalOpen}
+            onClose={() => setSaveTargetModalOpen(false)}
+            snapshot={currentCalculatorSnapshot}
+          />
+          <LoadTargetModal
+            open={loadTargetModalOpen}
+            onClose={() => setLoadTargetModalOpen(false)}
+            onApply={applyCalculatorSnapshot}
+          />
+        </>
       ) : null}
     </main>
   );

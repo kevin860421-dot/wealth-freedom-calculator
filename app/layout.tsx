@@ -1,8 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { Geist, Geist_Mono, Noto_Sans_TC } from "next/font/google";
+import "./desktop-mobile-isolation.css";
 import "./globals.css";
 import { getPublicStatsSnapshot } from "@/lib/stats-store";
+import { PwaServiceWorkerRegister } from "./pwa-service-worker-register";
 import { StatsProvider } from "./stats-provider";
 import { VisitStatsSeoSnippet } from "./visit-stats-seo-snippet";
 
@@ -41,6 +43,11 @@ export const metadata: Metadata = {
     "財富自由計算機：台股 ETF、定期定額、股利再投入、稅負與二代健保試算，結果僅供參考。",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -55,6 +62,7 @@ export default async function RootLayout({
         style={{ position: "relative" }}
       >
         <VisitStatsSeoSnippet stats={initialStats} />
+        <PwaServiceWorkerRegister />
         <StatsProvider initialStats={initialStats}>{children}</StatsProvider>
         <Analytics />
       </body>

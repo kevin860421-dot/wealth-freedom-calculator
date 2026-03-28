@@ -1,0 +1,87 @@
+/* 我的自選股：本機／未上傳 圖示 + 精簡說明 */
+
+.iconBox {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  background: linear-gradient(145deg, rgba(88, 28, 135, 0.35), rgba(15, 23, 42, 0.6));
+  color: #c4b5fd;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+}
+
+.iconSvg {
+  width: 26px;
+  height: 26px;
+}
+
+.hint {
+  margin: 4px 0 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  line-height: 1.35;
+}
+
+/* 彈窗標題列：圖 + 標題 + 說明 橫向 */
+.rowModal {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.textBlockModal {
+  min-width: 0;
+}
+
+.titleModal {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #e5e7eb;
+  letter-spacing: 0.03em;
+}
+
+/* 首頁區塊：圖 + 標題 + 說明 置中 */
+.stackFooter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.titleFooter {
+  margin: 12px 0 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #f8fafc;
+  letter-spacing: 0.04em;
+}
+
+.stackFooter .hint {
+  margin-top: 6px;
+}
+
+@media (max-width: 480px) {
+  .titleFooter {
+    font-size: 1.2rem;
+  }
+
+  .iconBox {
+    width: 40px;
+    height: 40px;
+  }
+
+  .iconSvg {
+    width: 24px;
+    height: 24px;
+  }
+}

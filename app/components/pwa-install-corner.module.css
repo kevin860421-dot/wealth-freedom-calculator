@@ -1,0 +1,310 @@
+/* 全站固定浮層（目前已改為僅內嵌使用，保留類名供日後需要） */
+.fab {
+  position: fixed;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  z-index: 2147483000;
+  max-width: min(380px, calc(100vw - 24px));
+  pointer-events: none;
+}
+
+/* 內嵌：在父區塊內排版，不固定於視窗 */
+.embeddedWrap {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  pointer-events: auto;
+}
+
+/* 頁尾內嵌：提示 + 帶框雙按鈕 + 手動連結 */
+.embeddedFooter {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+}
+
+.footerHint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.footerBtnRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.fabBtnEmbedded {
+  flex: 1 1 148px;
+  max-width: 100%;
+  min-height: 48px;
+  padding: 8px 10px;
+}
+
+.fabBtnEmbedded .fabBtnIcon {
+  width: 34px;
+  height: 34px;
+}
+
+.fabBtnEmbedded .fabBtnTitle {
+  font-size: 12px;
+}
+
+.fabBtnEmbedded .fabBtnSub {
+  font-size: 10px;
+}
+
+.linkHelpFooter {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 11px;
+  color: #6ee7b7;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  text-align: center;
+  align-self: center;
+}
+
+.linkHelpFooter:hover {
+  color: #a7f3d0;
+}
+
+.installedPlain {
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.fab *,
+.embeddedWrap * {
+  pointer-events: auto;
+}
+
+.fabCard {
+  padding: 14px 14px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  background: linear-gradient(155deg, rgba(15, 23, 42, 0.97), rgba(2, 6, 23, 0.95));
+  box-shadow:
+    0 12px 36px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+}
+
+.fabLead {
+  margin: 0 0 12px;
+  font-size: 11px;
+  line-height: 1.55;
+  color: #94a3b8;
+}
+
+.fabLead strong {
+  color: #fcd34d;
+  font-weight: 600;
+}
+
+.fabRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.fabBtn {
+  flex: 1 1 160px;
+  min-height: 52px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  font-family: inherit;
+}
+
+.fabBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.fabBtnIcon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.35);
+  color: #6ee7b7;
+}
+
+.fabBtnTextCol {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.fabDesktop {
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.2), rgba(15, 23, 42, 0.95));
+  border-color: rgba(52, 211, 153, 0.45);
+  color: #ecfdf5;
+}
+
+.fabMobile {
+  background: linear-gradient(135deg, rgba(45, 212, 191, 0.22), rgba(15, 23, 42, 0.95));
+  border-color: rgba(45, 212, 191, 0.45);
+  color: #ecfdf5;
+}
+
+.fabBtnTitle {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.fabBtnSub {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.linkHelp {
+  margin-top: 0;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 11px;
+  color: #6ee7b7;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  text-align: right;
+}
+
+@media (max-width: 700px) {
+  .linkHelp {
+    text-align: left;
+  }
+}
+
+.linkHelp:hover {
+  color: #a7f3d0;
+}
+
+.installedBadge {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6ee7b7;
+  border: 1px solid rgba(57, 255, 20, 0.35);
+  background: rgba(57, 255, 20, 0.1);
+  pointer-events: auto;
+}
+
+.helpOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(2, 6, 23, 0.78);
+  backdrop-filter: blur(6px);
+}
+
+.helpDialog {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: #0f172a;
+  padding: 18px 18px 16px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+}
+
+.helpHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.helpTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #e5e7eb;
+}
+
+.helpClose {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.8);
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.helpList {
+  margin: 0 0 12px;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: #cbd5e1;
+}
+
+.helpList li {
+  margin-bottom: 8px;
+}
+
+.helpList strong {
+  color: #fcd34d;
+}
+
+.helpNote {
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #94a3b8;
+}
+
+.helpOk {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(30, 41, 59, 0.95);
+  color: #e5e7eb;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  .fab {
+    right: 8px;
+    bottom: 8px;
+    max-width: calc(100vw - 16px);
+  }
+}

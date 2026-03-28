@@ -1,0 +1,97 @@
+/* 首頁「我的自選股」：整體外框（與早期區塊一致：綠框 + 漸層底 + 陰影） */
+
+.section {
+  margin-bottom: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.card {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 24px 22px 22px;
+  border-radius: 16px;
+  border: 1px solid rgba(57, 255, 20, 0.28);
+  background:
+    radial-gradient(ellipse 120% 80% at 20% 0%, rgba(57, 255, 20, 0.12), transparent 50%),
+    linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(2, 6, 23, 0.88));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 0 28px rgba(57, 255, 20, 0.1);
+}
+
+.ctaWrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.cta {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  height: 56px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 20px;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #022c22;
+  background: linear-gradient(135deg, #34d399 0%, #22c55e 38%, #39ff14 100%);
+  box-shadow:
+    0 4px 20px rgba(57, 255, 20, 0.28),
+    0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    filter 0.18s ease;
+}
+
+.cta:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  box-shadow:
+    0 8px 32px rgba(57, 255, 20, 0.45),
+    0 12px 40px rgba(16, 185, 129, 0.2),
+    0 1px 0 rgba(255, 255, 255, 0.22) inset;
+}
+
+.cta:active {
+  transform: translateY(0);
+}
+
+.cta:focus-visible {
+  outline: 2px solid #6ee7b7;
+  outline-offset: 3px;
+}
+
+.ctaIcon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.appStrip {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 20px 16px 18px;
+  }
+
+  .cta {
+    font-size: 15px;
+    letter-spacing: 0.04em;
+  }
+}

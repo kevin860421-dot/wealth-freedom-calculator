@@ -1,0 +1,10 @@
+---
+description: 首頁 Hero+KPI 桌機／手機以 #desktop-app-view / #mobile-app-view + CSS 隔離
+alwaysApply: true
+---
+
+# 首頁 Hero+KPI 隔離規則
+
+- **桌機**：`app/components/home-desktop-hero-kpi.tsx`（由 **`#desktop-app-view`** 包裝）。**`#desktop-app-view` 在桌機寬度為 `display: contents`**，不額外佔一層 flex，排版與未包裝前一致。
+- **手機**：僅改 **`app/components/mobile-hero-section.tsx`**（由 **`#mobile-app-view`** 包裝）；顯示切換由 **`app/desktop-mobile-isolation.css`** 的 `@media (max-width: 768px)` 控制，**勿**用 JS `matchMedia` 取代整段顯示邏輯來改桌機 DOM。
+- **禁止**：為手機去改桌機元件的 style、或刪除雙層 DOM 結構。

@@ -1,0 +1,303 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483640;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(2, 6, 23, 0.78);
+  backdrop-filter: blur(8px);
+}
+
+.dialog {
+  width: 100%;
+  max-width: 440px;
+  max-height: min(90vh, 720px);
+  overflow: auto;
+  border-radius: 16px;
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  background: linear-gradient(165deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.96));
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+  padding: 18px 16px 16px;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #e5e7eb;
+}
+
+.close {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.8);
+  color: #94a3b8;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.lead {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #94a3b8;
+}
+
+.preview {
+  margin: 0 0 14px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(0, 0, 0, 0.35);
+  font-size: 12px;
+  line-height: 1.65;
+  color: #cbd5e1;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, "Cascadia Code", monospace;
+}
+
+/* 選取組別時：試算 + 自選股敘述 */
+.detailPanel {
+  margin: 0 0 14px;
+  padding: 12px 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(168, 85, 247, 0.28);
+  background: linear-gradient(165deg, rgba(30, 27, 75, 0.35), rgba(0, 0, 0, 0.4));
+  animation: detailIn 0.2s ease-out;
+}
+
+@keyframes detailIn {
+  from {
+    opacity: 0.65;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.detailPanelTitle {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #c4b5fd;
+}
+
+.detailSectionLabel {
+  margin: 0 0 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #94a3b8;
+}
+
+.detailSectionLabelSpaced {
+  margin: 12px 0 6px;
+}
+
+.detailBlock {
+  margin: 0;
+  padding: 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #cbd5e1;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, "Cascadia Code", monospace;
+}
+
+.detailHint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.55;
+  color: #64748b;
+}
+
+.detailWarn {
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #fbbf24;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #a5b4fc;
+}
+
+.select {
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(0, 0, 0, 0.45);
+  color: #e5e7eb;
+  font-size: 13px;
+  padding: 8px 10px;
+  outline: none;
+  cursor: pointer;
+}
+
+.slotRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  background: rgba(0, 0, 0, 0.25);
+  margin-bottom: 8px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+  color: inherit;
+  font: inherit;
+}
+
+.slotRow:hover {
+  border-color: rgba(57, 255, 20, 0.25);
+}
+
+.slotRowSelected {
+  border-color: rgba(168, 85, 247, 0.45);
+  background: rgba(88, 28, 135, 0.2);
+}
+
+.slotNum {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(168, 85, 247, 0.25);
+  color: #e9d5ff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slotMeta {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: #e5e7eb;
+}
+
+.slotEmpty {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.btnGhost {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: transparent;
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnPurple {
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: none;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #faf5ff;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 55%, #c084fc 100%);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.35);
+}
+
+.btnPurple:hover {
+  filter: brightness(1.06);
+}
+
+.btnGreen {
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: none;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #022c22;
+  background: linear-gradient(135deg, #34d399, #39ff14);
+  box-shadow: 0 8px 24px rgba(57, 255, 20, 0.2);
+}
+
+.btnGreen:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* 游標旁浮動預覽（與下方「內容敘述」同結構；掛到 document.body 避免被 dialog 裁切） */
+.hoverPreview {
+  position: fixed;
+  z-index: 2147483641;
+  width: min(320px, calc(100vw - 20px));
+  max-height: min(320px, calc(100vh - 20px));
+  border-radius: 12px;
+  border: 1px solid rgba(168, 85, 247, 0.65);
+  background: linear-gradient(165deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.96));
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.hoverPreviewDetail {
+  margin: 0 !important;
+  max-height: min(318px, calc(100vh - 24px));
+  overflow-x: hidden;
+  overflow-y: auto;
+  animation: none;
+}
+
+/* 「僅有自選股資料而無試算」：游標旁黃色提示（內容敘述區塊內 hover） */
+.applyWarnFollow {
+  position: fixed;
+  z-index: 2147483641;
+  width: min(300px, calc(100vw - 20px));
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  background: rgba(15, 23, 42, 0.97);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+  font-size: 11px;
+  line-height: 1.5;
+  color: #fbbf24;
+  pointer-events: none;
+}

@@ -1,0 +1,96 @@
+/**
+ * 首頁 Hero+KPI：桌機／手機雙層 DOM，僅以 @media 切換顯示，不修改桌機 inline。
+ */
+
+/* 預設視為桌機寬度：手機專用區塊一律隱藏（加 !important 避免被其他規則覆寫而兩套同時出現） */
+#mobile-app-view {
+  display: none !important;
+}
+
+/**
+ * 桌機寬度：此 div 不參與排版（子層 header / KPI 直接當成外層 flex 的子項），
+ * 視覺與「未包 #desktop-app-view」前一致；手機寬度改為 display:none 整段隱藏。
+ */
+#desktop-app-view {
+  display: contents;
+}
+
+@media (max-width: 768px) {
+  #desktop-app-view {
+    display: none !important;
+  }
+
+  #mobile-app-view {
+    display: block !important;
+  }
+}
+
+/**
+ * Cursor 內嵌 Simple Browser 常為寬視窗，@media 不會觸發。
+ * 網址加 ?mobile=1 時強制顯示手機區塊（僅首頁 Home 會設 data-preview-mobile）。
+ */
+html[data-preview-mobile="true"] #desktop-app-view {
+  display: none !important;
+}
+
+html[data-preview-mobile="true"] #mobile-app-view {
+  display: block !important;
+}
+
+/**
+ * 首頁「目標設定」：桌機 #desktop-goal-setting／手機 #mobile-goal-setting，與 Hero 相同切換邏輯。
+ */
+#desktop-goal-setting {
+  display: block !important;
+}
+
+#mobile-goal-setting {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  #desktop-goal-setting {
+    display: none !important;
+  }
+
+  #mobile-goal-setting {
+    display: block !important;
+  }
+}
+
+html[data-preview-mobile="true"] #desktop-goal-setting {
+  display: none !important;
+}
+
+html[data-preview-mobile="true"] #mobile-goal-setting {
+  display: block !important;
+}
+
+/**
+ * 首頁「存股參數設定」：桌機 #desktop-stock-params／手機 #mobile-stock-params。
+ */
+#desktop-stock-params {
+  display: block !important;
+}
+
+#mobile-stock-params {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  #desktop-stock-params {
+    display: none !important;
+  }
+
+  #mobile-stock-params {
+    display: block !important;
+  }
+}
+
+html[data-preview-mobile="true"] #desktop-stock-params {
+  display: none !important;
+}
+
+html[data-preview-mobile="true"] #mobile-stock-params {
+  display: block !important;
+}
