@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* 全站預設：深色莫蘭迪（Muted / Morandi）— 高對比可讀性 */
 :root {
   color-scheme: dark;

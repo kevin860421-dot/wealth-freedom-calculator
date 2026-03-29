@@ -44,6 +44,30 @@
   margin-bottom: 4px;
 }
 
+.autoPickLead,
+.autoSaveLead {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 0 0 4px;
+  line-height: 1.45;
+}
+
+.autoPickMethod {
+  font-size: 15px;
+  font-weight: 700;
+  color: #e5e7eb;
+  margin: 0 0 14px;
+  letter-spacing: 0.02em;
+}
+
+.autoSaveAmt {
+  font-size: 20px;
+  font-weight: 800;
+  color: #4ade80;
+  margin: 0;
+  text-shadow: 0 0 20px rgba(74, 222, 128, 0.18);
+}
+
 .autoSub {
   font-size: 11px;
   color: #9ca3af;

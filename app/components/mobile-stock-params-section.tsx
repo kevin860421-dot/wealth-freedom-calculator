@@ -174,6 +174,18 @@ export function MobileStockParamsSection({
         </div>
       </div>
 
+      {/* 手機：標的篩選／ETF／配息提到最上層，不必先展開「進階設定」才看得到 */}
+      <div className={styles.etfLeadWrap} aria-label="標的與配息">
+        <StockParamsAdvancedBlock
+          {...advancedProps}
+          showAnnualInEtfRow={false}
+          showInlinePrincipalCard={false}
+          stackEtfRow
+          mobileGrouped
+          mobileEtfLeadOnly
+        />
+      </div>
+
       <div className={styles.basicCard}>
         <p className={styles.sectionLabel}>① 基本設定</p>
         <div className={styles.basicFields}>
@@ -401,6 +413,7 @@ export function MobileStockParamsSection({
               showInlinePrincipalCard={false}
               stackEtfRow
               mobileGrouped
+              mobileOmitEtfPayoutLead
             />
           </div>
         </div>

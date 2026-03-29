@@ -15,6 +15,13 @@
   box-sizing: border-box;
 }
 
+/* 標的篩選／ETF／配息：置於標題下、基本設定前 */
+.etfLeadWrap {
+  width: 100%;
+  min-width: 0;
+  margin-top: -6px;
+}
+
 .headRow {
   display: flex;
   justify-content: space-between;

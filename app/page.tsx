@@ -28,6 +28,7 @@ import { MobileHeroSection } from "./components/mobile-hero-section";
 import { MobileStockParamsSection } from "./components/mobile-stock-params-section";
 import type { StockParamsAdvancedBlockProps } from "./components/stock-params-advanced-block";
 import { TaxSettingsDesktopClassicLeftColumn } from "./components/manual-tax-block";
+import { MobileNhi2ImpactBlock } from "./components/mobile-nhi2-impact-block";
 import { TaxSettingsLeftPanel, type TaxSettingsMode } from "./components/tax-settings-panel";
 
 /** 各標的除息月份（與 ticker-presets 同步） */
@@ -36,6 +37,9 @@ const ETF_DIVIDEND_MONTHS = buildTickerDividendMonthsMap();
 /** 首次載入與「恢復預設」時使用的預設標的（與 ticker-presets 第一檔一致） */
 const DEFAULT_SELECTED_ETF_ID = "0050";
 const DEFAULT_ETF_PRESET = TICKER_PRESETS.find((p) => p.id === DEFAULT_SELECTED_ETF_ID) ?? TICKER_PRESETS[0]!;
+/** 試算起始年月預設（與 getPeriodSnapshots 之 startYear／startMonth 預設一致） */
+const DEFAULT_SIM_START_YEAR = 2026;
+const DEFAULT_SIM_START_MONTH = 3;
 /** 標的代碼篩選僅供當次操作；不寫入快照，避免還原後下拉只剩子集合 */
 const ETF_CODE_FILTER_PERSIST = "";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -473,18 +477,18 @@ export default function Home() {
   const [selectedEtf, setSelectedEtf] = useState<string>(DEFAULT_SELECTED_ETF_ID);
   const todayYear = new Date().getFullYear();
   const todayMonth = new Date().getMonth() + 1;
-  const [defaultYearStr, setDefaultYearStr] = useState(() => String(todayYear));
-  const [defaultMonthStr, setDefaultMonthStr] = useState(() => String(todayMonth));
+  const [defaultYearStr, setDefaultYearStr] = useState(() => String(DEFAULT_SIM_START_YEAR));
+  const [defaultMonthStr, setDefaultMonthStr] = useState(() => String(DEFAULT_SIM_START_MONTH));
   const defaultYear = useMemo(() => {
     const n = parseInt(defaultYearStr, 10);
-    return Number.isFinite(n) && n >= 2000 && n <= 2100 ? n : todayYear;
-  }, [defaultYearStr, todayYear]);
+    return Number.isFinite(n) && n >= 2000 && n <= 2100 ? n : DEFAULT_SIM_START_YEAR;
+  }, [defaultYearStr]);
   const defaultMonth = useMemo(() => {
     const n = parseInt(defaultMonthStr, 10);
-    return Number.isFinite(n) && n >= 1 && n <= 12 ? n : todayMonth;
-  }, [defaultMonthStr, todayMonth]);
-  const [initialYearStr, setInitialYearStr] = useState(() => String(todayYear));
-  const [initialMonthStr, setInitialMonthStr] = useState(() => String(todayMonth));
+    return Number.isFinite(n) && n >= 1 && n <= 12 ? n : DEFAULT_SIM_START_MONTH;
+  }, [defaultMonthStr]);
+  const [initialYearStr, setInitialYearStr] = useState(() => String(DEFAULT_SIM_START_YEAR));
+  const [initialMonthStr, setInitialMonthStr] = useState(() => String(DEFAULT_SIM_START_MONTH));
   const initialYear = useMemo(() => {
     const n = parseInt(initialYearStr, 10);
     return Number.isFinite(n) && n >= 2000 && n <= 2100 ? n : defaultYear;
@@ -551,6 +555,12 @@ export default function Home() {
   /** 稅務 UI：自動依級距套用合併／分開與試算；手動則顯示完整選項（僅手機版區塊；桌機經典版面不受此同步影響） */
   const [taxSettingsMode, setTaxSettingsMode] = useState<TaxSettingsMode>("auto");
   const [mobileTaxLayoutActive, setMobileTaxLayoutActive] = useState(false);
+  /** 手機「累積金額與股數表」：是否展開「未來10期」卡片列 */
+  const [mobileAccumShowNextTen, setMobileAccumShowNextTen] = useState(false);
+  /** 手機：與 Excel 相同欄位的完整表格預覽彈窗 */
+  const [mobileAccumFullTableModalOpen, setMobileAccumFullTableModalOpen] = useState(false);
+  /** 手機：累積表「計算說明」收合 */
+  const [mobileAccumCalcHelpOpen, setMobileAccumCalcHelpOpen] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined") return;
     const read = () => {
@@ -781,7 +791,7 @@ export default function Home() {
       setEtfRatioEstimates(
         s.etfRatioEstimates && typeof s.etfRatioEstimates === "object" ? s.etfRatioEstimates : buildDefault54cRatioMap(),
       );
-      setEtfCodeFilter("");
+      setEtfCodeFilter(s.selectedEtf === "none" ? "" : s.selectedEtf);
     }
     setStorageReady(true);
   }, [clientMounted, maxNthPeriod]);
@@ -913,6 +923,23 @@ export default function Home() {
     }
   }, []);
 
+  /** 從任一處「選擇 ETF」下拉選單變更：同步篩選碼＋套用預設參數，避免手機多區塊代碼／選單不同步 */
+  const selectEtfFromMenu = useCallback(
+    (id: string) => {
+      setEtfCodeFilter(id === "none" ? "" : id);
+      setSelectedEtf(id);
+      const preset = TICKER_PRESETS.find((p) => p.id === id);
+      if (preset) {
+        setAnnualReturnRate(preset.annualReturn);
+        handlePayoutFrequencyChange(preset.frequency as PayoutFrequency);
+        setDividendYieldPct(preset.dividendYieldPct ?? "");
+        setStockDividendPct(preset.stockDividendPct ?? "");
+        setRateSource("dividend");
+      }
+    },
+    [handlePayoutFrequencyChange],
+  );
+
   const selectedEtfInfo = useMemo(
     () => (selectedEtf && selectedEtf !== "none" ? TICKER_PRESETS.find((p) => p.id === selectedEtf) : null),
     [selectedEtf],
@@ -991,6 +1018,25 @@ export default function Home() {
       netPerPeriod: Math.round(net),
     };
   }, [totalPriceForEstimateStr, computedTotalForEstimate, effectiveAnnualRate, payoutFrequency, taxBracketRate, separateTaxOpen, selectedEtf, etfRatioEstimates]);
+
+  /** 自動模式 UI：相對另一種課稅方式的預估「多拿／多省」金額（與 getAfterTaxAndNhi2WithRate 一致，僅供展示） */
+  const taxAutoSavingsYuan = useMemo(() => {
+    const raw = totalPriceForEstimateStr.replace(/,/g, "").trim();
+    const total = raw === "" ? computedTotalForEstimate : Math.max(0, parseFormula(raw) || 0) || computedTotalForEstimate;
+    if (total <= 0 || effectiveAnnualRate <= 0) return null;
+    const periodsPerYear = payoutFrequency === "month" ? 12 : payoutFrequency === "quarter" ? 4 : payoutFrequency === "semiannual" ? 2 : 1;
+    const estimatedDividend = Math.round((total * (effectiveAnnualRate / 100)) / periodsPerYear);
+    const ratioPct = selectedEtf !== "none" ? (parseFloat(String(etfRatioEstimates[selectedEtf] || "0").replace(/,/g, "")) || 50) : 100;
+    const ratio = ratioPct / 100;
+    const { net: netMerge } = getAfterTaxAndNhi2WithRate(estimatedDividend, taxBracketRate, true, periodsPerYear, true, ratio);
+    const { net: netSep } = getAfterTaxAndNhi2WithRate(estimatedDividend, 0.28, true, periodsPerYear, false, ratio);
+    const nMerge = Math.round(netMerge);
+    const nSep = Math.round(netSep);
+    const autoPickSeparate = taxBracketRate >= 0.3;
+    const chosen = autoPickSeparate ? nSep : nMerge;
+    const alternate = autoPickSeparate ? nMerge : nSep;
+    return Math.max(0, chosen - alternate);
+  }, [totalPriceForEstimateStr, computedTotalForEstimate, effectiveAnnualRate, payoutFrequency, taxBracketRate, selectedEtf, etfRatioEstimates]);
 
   /** 依所選 ETF 每股每期股利：約幾股以上需繳所得稅（單期股利 ≥ 2 萬） */
   const sharesForTaxThreshold = useMemo(() => {
@@ -1304,9 +1350,9 @@ export default function Home() {
     setReinvestRatio(80);
     setTargetYearsToAchieve("20");
     setNthPeriod(1);
-    setInitialYearStr(String(new Date().getFullYear()));
-    setInitialMonthStr(String(new Date().getMonth() + 1));
-    setEtfCodeFilter("");
+    setInitialYearStr(String(DEFAULT_SIM_START_YEAR));
+    setInitialMonthStr(String(DEFAULT_SIM_START_MONTH));
+    setEtfCodeFilter(DEFAULT_SELECTED_ETF_ID);
     setSelectedEtf(DEFAULT_SELECTED_ETF_ID);
     setAnnualReturnRate(DEFAULT_ETF_PRESET.annualReturn);
     handlePayoutFrequencyChange(DEFAULT_ETF_PRESET.frequency);
@@ -1345,7 +1391,7 @@ export default function Home() {
       setEtfRatioEstimates(
         s.etfRatioEstimates && typeof s.etfRatioEstimates === "object" ? s.etfRatioEstimates : buildDefault54cRatioMap(),
       );
-      setEtfCodeFilter("");
+      setEtfCodeFilter(s.selectedEtf === "none" ? "" : s.selectedEtf);
     },
     [maxNthPeriod],
   );
@@ -1355,7 +1401,7 @@ export default function Home() {
       etfCodeFilter,
       handleEtfCodeChange,
       selectedEtf,
-      setSelectedEtf,
+      setSelectedEtf: selectEtfFromMenu,
       filteredEtfs,
       payoutFrequency,
       handlePayoutFrequencyChange,
@@ -1405,6 +1451,7 @@ export default function Home() {
     [
       etfCodeFilter,
       handleEtfCodeChange,
+      selectEtfFromMenu,
       selectedEtf,
       filteredEtfs,
       payoutFrequency,
@@ -1470,6 +1517,10 @@ export default function Home() {
       initialMonth,
     ]
   );
+
+  useEffect(() => {
+    setMobileAccumShowNextTen(false);
+  }, [periodSnapshots.length]);
 
   const noInvestBalance20y = currentPrincipalNum + (monthlyContributionNum + monthlyExtraNum) * 240;
   const investBalance20y = periodSnapshots.length > 0 ? periodSnapshots[periodSnapshots.length - 1].balance : 0;
@@ -1787,6 +1838,149 @@ export default function Home() {
 
   const getCellVal = useCallback((rowIdx: number, colKey: string, calc: number) => safeNumber(manualOverrides[`${rowIdx}_${colKey}`] ?? calc), [manualOverrides]);
 
+  /** 累積金額與股數表：桌機 tbody 與手機卡片共用之衍生欄位（不重複計算邏輯） */
+  const accumulatedPeriodRowModels = useMemo(() => {
+    let cumulativeDividend = 0;
+    return periodSnapshots.map((row, i) => {
+      const effectiveRateForTable = separateTaxOpen ? 0.28 : taxBracketRate;
+      const intervalMonths =
+        payoutFrequency === "month" ? 1 : payoutFrequency === "quarter" ? 3 : payoutFrequency === "semiannual" ? 6 : 12;
+      const periodsPerYearForTable =
+        payoutFrequency === "month" ? 12 : payoutFrequency === "quarter" ? 4 : payoutFrequency === "semiannual" ? 2 : 1;
+      const divisorForPerPeriodTax = selectedEtfInfo?.dividendMonths?.length ?? periodsPerYearForTable;
+      const ratio54C =
+        selectedEtf !== "none" ? (parseFloat(String(etfRatioEstimates[selectedEtf] || "50").replace(/,/g, "")) || 50) / 100 : 1;
+      const rate = applyTaxInTable ? effectiveRateForTable : 0;
+      const { nhi2 } = getAfterTaxAndNhi2WithRate(
+        row.lastPeriodDividend,
+        rate,
+        applyNhi2InTable,
+        periodsPerYearForTable,
+        applyTaxInTable && !separateTaxOpen,
+        ratio54C
+      );
+      const isMonthlyRows = Boolean(selectedEtfInfo?.dividendMonths?.length);
+      const contributionDisplay = isMonthlyRows ? Math.round(monthlyContributionNum) : Math.round(monthlyContributionNum * intervalMonths);
+      const extraDisplay = isMonthlyRows ? Math.round(monthlyExtraNum) : Math.round(monthlyExtraNum * intervalMonths);
+      const taxableBase = row.lastPeriodDividend * ratio54C;
+      const annualTaxableBase = annualTaxableBaseByYear[row.year] ?? 0;
+      const isLastPeriodOfYear = i === periodSnapshots.length - 1 || periodSnapshots[i + 1]?.year !== row.year;
+      const hasAnnualData = isLastPeriodOfYear && annualDividendByYear[row.year] != null && annualDividendByYear[row.year] > 0;
+      const perPeriodTax =
+        row.lastPeriodDividend > 0 && annualTaxableBase > 0 && applyTaxInTable
+          ? (() => {
+              const annualOrig = annualTaxableBase * effectiveRateForTable;
+              const creditAmt = Math.min(annualTaxableBase * TAX_CREDIT_RATE, TAX_CREDIT_CAP);
+              const diff = annualOrig - creditAmt;
+              const buShuiE = diff >= 0 ? Math.ceil(diff) : 0;
+              return Math.ceil(buShuiE / divisorForPerPeriodTax);
+            })()
+          : 0;
+      const nhi2Num = taxableBase >= NHI2_THRESHOLD && applyNhi2InTable ? nhi2 : 0;
+      const totalDeduction = Math.round(perPeriodTax + nhi2Num + safeNumber(row.contributionFee) + safeNumber(row.reinvestFee));
+      const deductionVal = getCellVal(i, "totalDeduction", totalDeduction);
+      const reinvestDisplayVal =
+        row.lastPeriodDividend > 0 ? Math.round(Math.max(0, safeNumber(row.lastPeriodDividend) - deductionVal) * (row.reinvestPct / 100)) : 0;
+      const totalInflowThisPeriod = safeNumber(row.fixedAddThisPeriod) + reinvestDisplayVal;
+      const isFirstPeriod = i === 0;
+      const nhi2Val = taxableBase < NHI2_THRESHOLD || !applyNhi2InTable ? 0 : Math.round(nhi2);
+      const feeVal = safeNumber(row.contributionFee) + safeNumber(row.reinvestFee);
+      const balancePbVal = getCellVal(i, "previousBalance", safeNumber(row.previousBalance));
+      const balanceTifVal = getCellVal(i, "totalInflow", totalInflowThisPeriod);
+      const balanceBalVal = getCellVal(i, "balance", safeNumber(row.balance));
+      const balanceDisplayStr = `${Math.round(balancePbVal).toLocaleString("zh-TW")}+${Math.round(balanceTifVal).toLocaleString("zh-TW")}=${Math.round(balanceBalVal).toLocaleString("zh-TW")}`;
+      const bracketDisplay = applyTaxInTable ? (separateTaxOpen ? "28%" : `${Math.round(taxBracketRate * 100)}%`) : "—";
+
+      const dividendThisGross = getCellVal(i, "lastPeriodDividend", row.lastPeriodDividend);
+      cumulativeDividend += dividendThisGross;
+      const netTakeHome = Math.max(0, dividendThisGross - deductionVal);
+
+      let sheetTax54CLine = "—";
+      let sheetRefundLine = "—";
+      if (hasAnnualData) {
+        sheetTax54CLine = `${Number(Math.ceil(annualTaxableBase).toFixed(0)).toLocaleString("zh-TW")} × ${
+          effectiveRateForTable === 0.28 ? "28%" : `${Math.round(effectiveRateForTable * 100)}%`
+        } = ${Number(Math.ceil(annualTaxableBase * effectiveRateForTable).toFixed(0)).toLocaleString("zh-TW")}（54C應稅額×級距）`;
+        const annualOrig = annualTaxableBase * effectiveRateForTable;
+        const credit = Math.min(annualTaxableBase * TAX_CREDIT_RATE, TAX_CREDIT_CAP);
+        const diff = annualOrig - credit;
+        const isRefund = diff < 0;
+        const origDisplay = Number(Math.ceil(annualOrig).toFixed(0)).toLocaleString("zh-TW");
+        const creditDisplay = Number(Math.ceil(credit).toFixed(0)).toLocaleString("zh-TW");
+        const displayVal = isRefund ? Math.abs(Math.floor(diff)) : Math.ceil(Math.max(diff, 0));
+        sheetRefundLine = `${origDisplay} － ${creditDisplay} = ${displayVal.toLocaleString("zh-TW")} ${isRefund ? "(退稅額)" : "(補稅額)"}`;
+      }
+
+      return {
+        row,
+        i,
+        effectiveRateForTable,
+        intervalMonths,
+        periodsPerYearForTable,
+        divisorForPerPeriodTax,
+        ratio54C,
+        nhi2,
+        isMonthlyRows,
+        contributionDisplay,
+        extraDisplay,
+        taxableBase,
+        annualTaxableBase,
+        isLastPeriodOfYear,
+        hasAnnualData,
+        perPeriodTax,
+        nhi2Num,
+        totalDeduction,
+        deductionVal,
+        reinvestDisplayVal,
+        totalInflowThisPeriod,
+        isFirstPeriod,
+        nhi2Val,
+        feeVal,
+        balancePbVal,
+        balanceTifVal,
+        balanceBalVal,
+        balanceDisplayStr,
+        bracketDisplay,
+        cumulativeDividend,
+        netTakeHome,
+        dividendThisGross,
+        sheetRatio54cPct: Math.round(ratio54C * 100),
+        sheetTax54CLine,
+        sheetRefundLine,
+      };
+    });
+  }, [
+    periodSnapshots,
+    getCellVal,
+    payoutFrequency,
+    selectedEtfInfo?.dividendMonths,
+    separateTaxOpen,
+    taxBracketRate,
+    applyTaxInTable,
+    applyNhi2InTable,
+    selectedEtf,
+    etfRatioEstimates,
+    annualDividendByYear,
+    annualTaxableBaseByYear,
+    monthlyContributionNum,
+    monthlyExtraNum,
+  ]);
+
+  /** 手機版「累積金額與股數表」卡片：試算時間軸第 1 期（與試算起始年月一致，例如 2026/3） */
+  const accumulatedPeriodRecentMobile = useMemo(() => {
+    if (accumulatedPeriodRowModels.length === 0) return null;
+    return accumulatedPeriodRowModels[0]!;
+  }, [accumulatedPeriodRowModels]);
+
+  /**
+   * 手機「未來10期」：接續第 1 期之後的第 2～11 期，依時間正序（例如 2026/4 起），不含倒數或從表末回推。
+   */
+  const accumulatedPeriodNextTenMobile = useMemo(() => {
+    const m = accumulatedPeriodRowModels;
+    if (m.length <= 1) return [];
+    return m.slice(1, 11);
+  }, [accumulatedPeriodRowModels]);
+
   /** 本期總投入欄寬：依數字長度（含手動覆蓋） */
   const totalInflowColWidthDyn = useMemo(() => {
     let maxLen = "本期總投入".length;
@@ -1849,7 +2043,8 @@ export default function Home() {
     selectedEtf,
   ]);
 
-  const downloadTableExcel = useCallback(() => {
+  /** 與「下載 Excel」相同的二維陣列（含表頭），供手機完整明細彈窗預覽 */
+  const accumulatedSheetExcelMatrix = useMemo(() => {
     const intervalMonths = payoutFrequency === "month" ? 1 : payoutFrequency === "quarter" ? 3 : payoutFrequency === "semiannual" ? 6 : 12;
     const periodsPerYearForTable = payoutFrequency === "month" ? 12 : payoutFrequency === "quarter" ? 4 : payoutFrequency === "semiannual" ? 2 : 1;
     const divisorForPerPeriodTax = selectedEtfInfo?.dividendMonths?.length ?? periodsPerYearForTable;
@@ -1864,7 +2059,7 @@ export default function Home() {
     const rows: (string | number)[][] = [headers];
     periodSnapshots.forEach((row, i) => {
       const rate = applyTaxInTable ? effectiveRateForTable : 0;
-      const { tax, nhi2, credit } = getAfterTaxAndNhi2WithRate(
+      const { nhi2 } = getAfterTaxAndNhi2WithRate(
         row.lastPeriodDividend,
         rate,
         applyNhi2InTable,
@@ -1873,21 +2068,24 @@ export default function Home() {
         ratio54C
       );
       const taxableBase = row.lastPeriodDividend * ratio54C;
-      const annualDividend = annualDividendByYear[row.year] ?? 0;
       const annualTaxableBase = annualTaxableBaseByYear[row.year] ?? 0;
       const isLastPeriodOfYear = i === periodSnapshots.length - 1 || periodSnapshots[i + 1]?.year !== row.year;
       const hasAnnualData = isLastPeriodOfYear && annualDividendByYear[row.year] != null && annualDividendByYear[row.year] > 0;
-      const perPeriodTax = row.lastPeriodDividend > 0 && annualTaxableBase > 0 && applyTaxInTable ? (() => {
-        const annualOrig = annualTaxableBase * effectiveRateForTable;
-        const creditAmt = Math.min(annualTaxableBase * TAX_CREDIT_RATE, TAX_CREDIT_CAP);
-        const diff = annualOrig - creditAmt;
-        const buShuiE = diff >= 0 ? Math.ceil(diff) : 0;
-        return Math.ceil(buShuiE / divisorForPerPeriodTax);
-      })() : 0;
+      const perPeriodTax =
+        row.lastPeriodDividend > 0 && annualTaxableBase > 0 && applyTaxInTable
+          ? (() => {
+              const annualOrig = annualTaxableBase * effectiveRateForTable;
+              const creditAmt = Math.min(annualTaxableBase * TAX_CREDIT_RATE, TAX_CREDIT_CAP);
+              const diff = annualOrig - creditAmt;
+              const buShuiE = diff >= 0 ? Math.ceil(diff) : 0;
+              return Math.ceil(buShuiE / divisorForPerPeriodTax);
+            })()
+          : 0;
       const nhi2Num = taxableBase >= NHI2_THRESHOLD && applyNhi2InTable ? nhi2 : 0;
       const totalDeduction = Math.round(perPeriodTax + nhi2Num + safeNumber(row.contributionFee) + safeNumber(row.reinvestFee));
       const deductionVal = getCellVal(i, "totalDeduction", totalDeduction);
-      const reinvestDisplayVal = row.lastPeriodDividend > 0 ? Math.round(Math.max(0, safeNumber(row.lastPeriodDividend) - deductionVal) * (row.reinvestPct / 100)) : 0;
+      const reinvestDisplayVal =
+        row.lastPeriodDividend > 0 ? Math.round(Math.max(0, safeNumber(row.lastPeriodDividend) - deductionVal) * (row.reinvestPct / 100)) : 0;
       const totalInflowThisPeriod = safeNumber(row.fixedAddThisPeriod) + reinvestDisplayVal;
       const isFirstPeriod = i === 0;
 
@@ -1906,15 +2104,17 @@ export default function Home() {
         hasAnnualData ? Math.ceil(annualTaxableBase) : "—",
         hasAnnualData ? Math.ceil(annualTaxableBase * effectiveRateForTable) : "—",
         hasAnnualData ? Math.ceil(Math.min(annualTaxableBase * TAX_CREDIT_RATE, TAX_CREDIT_CAP)) : "—",
-        hasAnnualData ? (() => {
-          const annualOrig = annualTaxableBase * effectiveRateForTable;
-          const credit = Math.min(annualTaxableBase * TAX_CREDIT_RATE, TAX_CREDIT_CAP);
-          const diff = annualOrig - credit;
-          const isRefund = diff < 0;
-          const displayVal = isRefund ? Math.abs(Math.floor(diff)) : Math.ceil(Math.max(diff, 0));
-          const note = isRefund ? " (退稅額)" : " (補稅額)";
-          return `${displayVal}${note}`;
-        })() : "—",
+        hasAnnualData
+          ? (() => {
+              const annualOrig = annualTaxableBase * effectiveRateForTable;
+              const credit = Math.min(annualTaxableBase * TAX_CREDIT_RATE, TAX_CREDIT_CAP);
+              const diff = annualOrig - credit;
+              const isRefund = diff < 0;
+              const displayVal = isRefund ? Math.abs(Math.floor(diff)) : Math.ceil(Math.max(diff, 0));
+              const note = isRefund ? " (退稅額)" : " (補稅額)";
+              return `${displayVal}${note}`;
+            })()
+          : "—",
         (() => {
           if (row.lastPeriodDividend <= 0) return "—";
           const annualOrig = annualTaxableBase * effectiveRateForTable;
@@ -1930,11 +2130,13 @@ export default function Home() {
         "=",
         getCellVal(i, "totalDeduction", totalDeduction),
         `${row.reinvestPct}%`,
-        row.lastPeriodDividend > 0 ? (() => {
-          const deductionVal = getCellVal(i, "totalDeduction", totalDeduction);
-          const afterTax = Math.max(0, safeNumber(row.lastPeriodDividend) - deductionVal);
-          return Math.round(afterTax * (row.reinvestPct / 100));
-        })() : "—",
+        row.lastPeriodDividend > 0
+          ? (() => {
+              const dv = getCellVal(i, "totalDeduction", totalDeduction);
+              const afterTax = Math.max(0, safeNumber(row.lastPeriodDividend) - dv);
+              return Math.round(afterTax * (row.reinvestPct / 100));
+            })()
+          : "—",
         getCellVal(i, "previousBalance", isFirstPeriod ? 0 : safeNumber(row.previousBalance)),
         getCellVal(i, "contribution", contributionDisplay),
         "+",
@@ -1947,11 +2149,44 @@ export default function Home() {
       ]);
     });
 
-    const ws = XLSX.utils.aoa_to_sheet(rows);
+    return rows;
+  }, [
+    periodSnapshots,
+    payoutFrequency,
+    selectedEtfInfo?.dividendMonths,
+    monthlyContributionNum,
+    monthlyExtraNum,
+    separateTaxOpen,
+    taxBracketRate,
+    applyTaxInTable,
+    applyNhi2InTable,
+    getCellVal,
+    selectedEtf,
+    etfRatioEstimates,
+    annualDividendByYear,
+    annualTaxableBaseByYear,
+  ]);
+
+  const downloadTableExcel = useCallback(() => {
+    const ws = XLSX.utils.aoa_to_sheet(accumulatedSheetExcelMatrix);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "累積金額與股數");
     XLSX.writeFile(wb, `累積金額與股數表_${new Date().toISOString().slice(0, 10)}.xlsx`, { cellStyles: false });
-  }, [periodSnapshots, payoutFrequency, selectedEtfInfo?.dividendMonths, monthlyContributionNum, monthlyExtraNum, separateTaxOpen, taxBracketRate, applyTaxInTable, applyNhi2InTable, getCellVal, selectedEtf, etfRatioEstimates, annualDividendByYear, annualTaxableBaseByYear]);
+  }, [accumulatedSheetExcelMatrix]);
+
+  useEffect(() => {
+    if (!mobileAccumFullTableModalOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileAccumFullTableModalOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [mobileAccumFullTableModalOpen]);
 
   const fireEtaYears = simulation.yearsToUserTarget;
   const fireEtaMonths = simulation.monthsToUserTarget;
@@ -2149,6 +2384,254 @@ export default function Home() {
 
   const showStickyBar = stickyBarPinned || stickyBarVisible;
 
+  const renderAccumulatedDesktopTable = () => (
+            <table style={{ width: "fit-content", minWidth: 1056 + lastPeriodDividendColWidth + annualDividendColWidth + annualTaxableBaseColWidth + annualOrigTaxColWidth + taxCreditColWidth + perPeriodTaxColWidth + amount54CColWidth + nhi2StatusColWidth + nhi2AmountColWidth + feeColWidth + totalDeductionColWidth + reinvestPctColWidth + reinvestAmountColWidth + previousBalanceColWidth + contributionColWidth + extraColWidth + reinvestInflowColWidth + totalInflowColWidthDyn + balanceColWidthDyn, tableLayout: "fixed", borderCollapse: "collapse", fontSize: 11 }}>
+              <colgroup>
+                <col style={{ width: 48 }} />
+                <col style={{ width: 40 }} />
+                <col style={{ width: lastPeriodDividendColWidth }} />
+                <col style={{ width: annualDividendColWidth }} />
+                <col style={{ width: 4 }} />
+                <col style={{ width: 38 }} />
+                <col style={{ width: 4 }} />
+                <col style={{ width: annualTaxableBaseColWidth }} />
+                <col style={{ width: annualOrigTaxColWidth }} />
+                <col style={{ width: taxCreditColWidth }} />
+                <col style={{ width: 72 }} />
+                <col style={{ width: perPeriodTaxColWidth }} />
+                <col style={{ width: amount54CColWidth }} />
+                <col style={{ width: nhi2StatusColWidth }} />
+                <col style={{ width: nhi2AmountColWidth }} />
+                <col style={{ width: feeColWidth }} />
+                <col style={{ width: 4 }} />
+                <col style={{ width: totalDeductionColWidth }} />
+                <col style={{ width: reinvestPctColWidth }} />
+                <col style={{ width: reinvestAmountColWidth }} />
+                <col style={{ width: previousBalanceColWidth }} />
+                <col style={{ width: contributionColWidth }} />
+                <col style={{ width: 4 }} />
+                <col style={{ width: extraColWidth }} />
+                <col style={{ width: 4 }} />
+                <col style={{ width: reinvestInflowColWidth }} />
+                <col style={{ width: 4 }} />
+                <col style={{ width: totalInflowColWidthDyn }} />
+                <col style={{ width: balanceColWidthDyn }} />
+              </colgroup>
+              <thead style={{ position: "sticky", top: 0, background: "rgba(15,23,42,0.95)", zIndex: 1 }}>
+                <tr>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "nowrap", lineHeight: 1.3, textAlign: "center" }}>期數</th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "nowrap", lineHeight: 1.3 }}>所得級距</th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "nowrap", lineHeight: 1.3 }}>本次股息</th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "nowrap", lineHeight: 1.4 }}>整年股息<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>該年加總</span></th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", color: "#34d399" }}>×</th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.3 }}>54C<br />股利佔比</th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", color: "#34d399" }}>=</th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>54C應稅額<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>年股息×54C</span></th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>54C應納稅額<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>54C應稅額×級距</span></th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>扣抵稅額<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>應稅額×8.5%（上限8萬）</span></th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>補退稅淨額<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>應納稅額－扣抵稅額</span></th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>每期補稅<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>補稅額÷配息次數</span></th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>54C計入金額<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>本次股息×54C佔比</span></th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.3, wordBreak: "break-word" }}>二代健保門檻<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>須繳二代健保</span></th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.3 }}>補充保費<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>二代健保</span></th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "nowrap", lineHeight: 1.4 }}>手續費<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>投入×0.1425%</span></th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", color: "#34d399" }}>=</th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all", overflow: "hidden" }}>須扣除資金<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>補稅+補充保費+手續費</span></th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all", overflow: "hidden" }}>再投入比例<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>股利再投入%</span></th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>本次再投入<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>(股息-扣除)×再投入比例</span></th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>上期餘額</th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>固定投入</th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", color: "#34d399" }}>+</th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>額外加碼<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>加班費等</span></th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", color: "#34d399" }}>+</th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>股利再投入</th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", color: "#34d399" }}>=</th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "nowrap", lineHeight: 1.4 }}>本期總投入</th>
+                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.2, wordBreak: "keep-all", padding: "2px 2px" }}>總資產<br /><span style={{ color: "#6b7280", fontWeight: 400, fontSize: 10 }}>上期餘額＋本期總投入</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {accumulatedPeriodRowModels.map((d) => {
+                  const {
+                    row,
+                    i,
+                    effectiveRateForTable,
+                    divisorForPerPeriodTax,
+                    ratio54C,
+                    nhi2,
+                    taxableBase,
+                    annualTaxableBase,
+                    isLastPeriodOfYear,
+                    hasAnnualData,
+                    totalDeduction,
+                    deductionVal,
+                    reinvestDisplayVal,
+                    totalInflowThisPeriod,
+                    isFirstPeriod,
+                    nhi2Val,
+                    feeVal,
+                    balanceDisplayStr,
+                    bracketDisplay,
+                    contributionDisplay,
+                    extraDisplay,
+                  } = d;
+                  return (
+                    <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                      <td style={{ ...tableCellBase, color: "#d1d5db", textAlign: "center", whiteSpace: "nowrap" }}>{row.periodLabel}</td>
+                      <td style={{ ...tableCellBase, color: "#9ca3af", textAlign: "center", whiteSpace: "nowrap" }}>{bracketDisplay}</td>
+                      <TableEditableCell rowIdx={i} colKey="lastPeriodDividend" calcNum={row.lastPeriodDividend} displayStr={row.lastPeriodDividend > 0 ? Math.round(safeNumber(row.lastPeriodDividend)).toLocaleString("zh-TW") : "—"} color="#9ca3af" nowrap />
+                      <td style={{ ...tableCellBase, color: "#9ca3af", textAlign: "center", whiteSpace: "nowrap" }}>
+                        {isLastPeriodOfYear && annualDividendByYear[row.year] != null ? Number(Math.floor(annualDividendByYear[row.year]).toFixed(0)).toLocaleString("zh-TW") : "—"}
+                      </td>
+                      <td style={{ ...tableCellBase, color: "#34d399", textAlign: "center" }}>×</td>
+                      <td style={{ ...tableCellBase, color: "#9ca3af", textAlign: "center" }}>{Math.round(ratio54C * 100)}%</td>
+                      <td style={{ ...tableCellBase, color: "#34d399", textAlign: "center" }}>=</td>
+                      <td style={{ ...tableCellBase, color: "#9ca3af", textAlign: "center", lineHeight: 1.4, whiteSpace: "normal", wordBreak: "keep-all" }}>
+                        {hasAnnualData ? (
+                          <>
+                            {Number(Math.ceil(annualTaxableBase).toFixed(0)).toLocaleString("zh-TW")}
+                            <br />
+                            <span style={{ fontSize: 10, color: "#6b7280" }}>年股息×54C</span>
+                          </>
+                        ) : "—"}
+                      </td>
+                      <td style={{ ...tableCellBase, color: "#9ca3af", textAlign: "center", lineHeight: 1.4, whiteSpace: "normal", wordBreak: "keep-all" }}>
+                        {hasAnnualData ? (
+                          <>
+                            {Number(Math.ceil(annualTaxableBase).toFixed(0)).toLocaleString("zh-TW")} × {effectiveRateForTable === 0.28 ? "28%" : `${Math.round(effectiveRateForTable * 100)}%`} = {Number(Math.ceil(annualTaxableBase * effectiveRateForTable).toFixed(0)).toLocaleString("zh-TW")}
+                            <br />
+                            <span style={{ fontSize: 10, color: "#6b7280" }}>54C應稅額×級距</span>
+                          </>
+                        ) : "—"}
+                      </td>
+                      <td style={{ ...tableCellBase, color: "#9ca3af", textAlign: "center", lineHeight: 1.4, whiteSpace: "normal", wordBreak: "keep-all" }}>
+                        {hasAnnualData ? (() => {
+                          const rawCredit = annualTaxableBase * TAX_CREDIT_RATE;
+                          const cappedCredit = Math.min(rawCredit, TAX_CREDIT_CAP);
+                          const rawDisplay = Number(Math.ceil(rawCredit).toFixed(0)).toLocaleString("zh-TW");
+                          const cappedDisplay = Number(Math.ceil(cappedCredit).toFixed(0)).toLocaleString("zh-TW");
+                          const hitCap = rawCredit >= TAX_CREDIT_CAP;
+                          return (
+                            <>
+                              {Number(Math.ceil(annualTaxableBase).toFixed(0)).toLocaleString("zh-TW")} × 8.5% = {rawDisplay}
+                              {hitCap && (
+                                <>
+                                  <br />
+                                  <span style={{ fontSize: 10, color: "#6b7280" }}>→ 取上限 {cappedDisplay}</span>
+                                </>
+                              )}
+                              <br />
+                              <span style={{ fontSize: 10, color: "#6b7280" }}>應稅額×8.5%（上限8萬）</span>
+                            </>
+                          );
+                        })() : "—"}
+                      </td>
+                      <td style={{ ...tableCellBase, textAlign: "center", lineHeight: 1.4, whiteSpace: "normal", wordBreak: "keep-all" }}>
+                        {hasAnnualData ? (() => {
+                          const annualOrig = annualTaxableBase * effectiveRateForTable;
+                          const credit = Math.min(annualTaxableBase * TAX_CREDIT_RATE, TAX_CREDIT_CAP);
+                          const diff = annualOrig - credit;
+                          const isRefund = diff < 0;
+                          const displayVal = isRefund ? Math.abs(Math.floor(diff)) : -Math.ceil(Math.max(diff, 0));
+                          const origDisplay = Number(Math.ceil(annualOrig).toFixed(0)).toLocaleString("zh-TW");
+                          const creditDisplay = Number(Math.ceil(credit).toFixed(0)).toLocaleString("zh-TW");
+                          const resultColor = isRefund ? "#34d399" : "#ef4444";
+                          return (
+                            <>
+                              <span style={{ color: "#9ca3af" }}>{origDisplay} － {creditDisplay} = </span>
+                              <span style={{ color: resultColor }}>{Math.abs(displayVal).toLocaleString("zh-TW")}</span>
+                              <br />
+                              <span style={{ fontSize: 10, color: resultColor }}>{isRefund ? "(退稅額)" : "(補稅額)"}</span>
+                            </>
+                          );
+                        })() : "—"}
+                      </td>
+                      <td style={{ ...tableCellBase, color: row.lastPeriodDividend > 0 ? "#ef4444" : "#9ca3af", textAlign: "center" }}>
+                        {row.lastPeriodDividend > 0 ? (() => {
+                          const annualOrig = annualTaxableBase * effectiveRateForTable;
+                          const creditAmt = Math.min(annualTaxableBase * TAX_CREDIT_RATE, TAX_CREDIT_CAP);
+                          const diff = annualOrig - creditAmt;
+                          const buShuiE = diff >= 0 ? Math.ceil(diff) : 0;
+                          const val = Math.ceil(buShuiE / divisorForPerPeriodTax);
+                          return val.toLocaleString("zh-TW");
+                        })() : "—"}
+                      </td>
+                      <td style={{ ...tableCellBase, color: "#9ca3af", textAlign: "center", whiteSpace: "normal", wordBreak: "keep-all", lineHeight: 1.4 }}>
+                        {row.lastPeriodDividend > 0 ? (
+                          <>
+                            {Math.round(safeNumber(row.lastPeriodDividend)).toLocaleString("zh-TW")}×{Math.round(ratio54C * 100)}%=
+                            <br />
+                            {Math.round(taxableBase).toLocaleString("zh-TW")}
+                            <br />
+                            <span style={{ fontSize: 10, color: "#6b7280" }}>本次股息×54C佔比</span>
+                          </>
+                        ) : "—"}
+                      </td>
+                      <td style={{ ...tableCellBase, textAlign: "center", whiteSpace: "normal", wordBreak: "keep-all", lineHeight: 1.4 }}>
+                        {!applyNhi2InTable || !row.lastPeriodDividend || row.lastPeriodDividend <= 0 ? (
+                          <span style={{ color: "#9ca3af" }}>—</span>
+                        ) : taxableBase >= NHI2_THRESHOLD ? (
+                          <>
+                            <span style={{ color: "#ef4444", fontWeight: 600 }}>達標</span>
+                            <br />
+                            <span style={{ color: "#ef4444" }}>{Math.round(taxableBase).toLocaleString("zh-TW")}≥20,000</span>
+                            <br />
+                            <span style={{ fontSize: 10, color: "#6b7280" }}>54C計入金額≥20,000</span>
+                          </>
+                        ) : (
+                          <>
+                            <span style={{ color: "#34d399", fontWeight: 600 }}>未達標</span>
+                            <br />
+                            <span style={{ color: "#34d399" }}>{Math.round(taxableBase).toLocaleString("zh-TW")}&lt;20,000</span>
+                            <br />
+                            <span style={{ fontSize: 10, color: "#6b7280" }}>54C計入金額&lt;20,000</span>
+                          </>
+                        )}
+                      </td>
+                      <TableEditableCell rowIdx={i} colKey="nhi2" calcNum={nhi2Val} displayStr={taxableBase >= NHI2_THRESHOLD && applyNhi2InTable ? `${Math.round(safeNumber(row.lastPeriodDividend)).toLocaleString("zh-TW")}×${Math.round(ratio54C * 100)}%×2.11%=${Math.round(nhi2).toLocaleString("zh-TW")}` : "—"} color={taxableBase >= NHI2_THRESHOLD && applyNhi2InTable ? "#ef4444" : "#9ca3af"} formula={taxableBase >= NHI2_THRESHOLD && applyNhi2InTable ? "本次股息×54C佔比×2.11%" : undefined} wrap breakAtEquals />
+                      <TableEditableCell rowIdx={i} colKey="fee" calcNum={feeVal} displayStr={feeVal.toLocaleString("zh-TW")} color="#ef4444" formula="投入×0.1425%" />
+                      <td style={{ ...tableCellBase, color: "#34d399" }}>=</td>
+                      <TableEditableCell rowIdx={i} colKey="totalDeduction" calcNum={totalDeduction} displayStr={totalDeduction.toLocaleString("zh-TW")} color="#ef4444" formula="補稅+補充保費+手續費" wrap />
+                      <td style={{ ...tableCellBase, color: "#f5c451" }}>{`${row.reinvestPct}%`}</td>
+                      <td style={{ ...tableCellBase, color: "#f5c451", textAlign: "center", whiteSpace: "normal", wordBreak: "keep-all", lineHeight: 1.4 }}>
+                        {row.lastPeriodDividend > 0 ? (() => {
+                          const div = Math.round(safeNumber(row.lastPeriodDividend));
+                          const formulaStr = `(${div.toLocaleString("zh-TW")}-${deductionVal.toLocaleString("zh-TW")})×${row.reinvestPct}%=`;
+                          const resultStr = reinvestDisplayVal.toLocaleString("zh-TW");
+                          return (
+                            <div style={{ lineHeight: 1.3 }}>
+                              <div>{formulaStr}</div>
+                              <div>{resultStr}</div>
+                              <span style={{ fontSize: 10, color: "#6b7280" }}>(股息-扣除)×再投入比例</span>
+                            </div>
+                          );
+                        })() : "—"}
+                      </td>
+                      <TableEditableCell rowIdx={i} colKey="previousBalance" calcNum={safeNumber(row.previousBalance)} displayStr={isFirstPeriod ? "—" : safeNumber(row.previousBalance).toLocaleString("zh-TW")} color="#d1d5db" />
+                      <TableEditableCell rowIdx={i} colKey="contribution" calcNum={contributionDisplay} displayStr={contributionDisplay.toLocaleString("zh-TW")} color="#e5e7eb" />
+                      <td style={{ ...tableCellBase, color: "#34d399", fontWeight: 600 }}>+</td>
+                      <TableEditableCell rowIdx={i} colKey="extra" calcNum={extraDisplay} displayStr={extraDisplay.toLocaleString("zh-TW")} color="#e5e7eb" />
+                      <td style={{ ...tableCellBase, color: "#34d399", fontWeight: 600 }}>+</td>
+                      <td style={{ ...tableCellBase, color: "#f5c451", textAlign: "center" }}>{reinvestDisplayVal.toLocaleString("zh-TW")}</td>
+                      <td style={{ ...tableCellBase, color: "#34d399", fontWeight: 600 }}>=</td>
+                      <TableEditableCell rowIdx={i} colKey="totalInflow" calcNum={totalInflowThisPeriod} displayStr={totalInflowThisPeriod.toLocaleString("zh-TW")} color="#e5e7eb" />
+                      <TableEditableCell
+                        rowIdx={i}
+                        colKey="balance"
+                        calcNum={safeNumber(row.balance)}
+                        displayStr={balanceDisplayStr}
+                        color="#39ff14"
+                        formula="上期餘額＋本期總投入＝期末總資產"
+                        wrap
+                        breakAtEquals
+                      />
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+  );
+
   const homeHeroBlogHref = blogPostPath(HOME_HERO_FIRST_SLUG);
 
   return (
@@ -2182,7 +2665,7 @@ export default function Home() {
         <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%", maxWidth: 1600, margin: "0 auto", position: "relative", paddingBottom: 4 }}>
           {/* 右上角：上方恢復、下方釘選 */}
           <div style={{ position: "absolute", top: 0, right: 0, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
-            <button type="button" onClick={() => { setInitialPrincipal("0"); setMonthlyContribution("12000"); setMonthlyExtra("6000"); setTargetQuarterIncome("50000"); setReinvestRatio(80); setTargetYearsToAchieve("20"); setNthPeriod(1); setInitialYearStr(String(new Date().getFullYear())); setInitialMonthStr(String(new Date().getMonth() + 1)); setEtfCodeFilter(""); setSelectedEtf(DEFAULT_SELECTED_ETF_ID); setAnnualReturnRate(DEFAULT_ETF_PRESET.annualReturn); handlePayoutFrequencyChange(DEFAULT_ETF_PRESET.frequency); setDividendYieldPct(DEFAULT_ETF_PRESET.dividendYieldPct ?? ""); setStockDividendPct(DEFAULT_ETF_PRESET.stockDividendPct ?? ""); setRateSource("dividend"); }} style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: "1px solid rgba(57,255,20,0.6)", background: "rgba(57,255,20,0.16)", color: "#39ff14", cursor: "pointer" }}>恢復預設</button>
+            <button type="button" onClick={() => { setInitialPrincipal("0"); setMonthlyContribution("12000"); setMonthlyExtra("6000"); setTargetQuarterIncome("50000"); setReinvestRatio(80); setTargetYearsToAchieve("20"); setNthPeriod(1); setInitialYearStr(String(DEFAULT_SIM_START_YEAR)); setInitialMonthStr(String(DEFAULT_SIM_START_MONTH)); setEtfCodeFilter(DEFAULT_SELECTED_ETF_ID); setSelectedEtf(DEFAULT_SELECTED_ETF_ID); setAnnualReturnRate(DEFAULT_ETF_PRESET.annualReturn); handlePayoutFrequencyChange(DEFAULT_ETF_PRESET.frequency); setDividendYieldPct(DEFAULT_ETF_PRESET.dividendYieldPct ?? ""); setStockDividendPct(DEFAULT_ETF_PRESET.stockDividendPct ?? ""); setRateSource("dividend"); }} style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: "1px solid rgba(57,255,20,0.6)", background: "rgba(57,255,20,0.16)", color: "#39ff14", cursor: "pointer" }}>恢復預設</button>
             <button type="button" onClick={() => setStickyBarPinned((p) => !p)} title={stickyBarPinned ? "取消釘選" : "釘選"} style={{ padding: "4px 8px", fontSize: 11, borderRadius: 6, border: "1px solid rgba(255,255,255,0.2)", background: stickyBarPinned ? "rgba(57,255,20,0.2)" : "rgba(255,255,255,0.08)", color: stickyBarPinned ? "#39ff14" : "#9ca3af", cursor: "pointer", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 12 }}>📌</span>
               {stickyBarPinned ? "已釘選" : "釘選"}
@@ -2242,7 +2725,7 @@ export default function Home() {
               <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                 <span style={{ fontSize: 11, color: "#9ca3af", whiteSpace: "nowrap" }}>ETF</span>
                 <input type="text" placeholder="篩選" maxLength={5} value={etfCodeFilter} title={`輸入 1–5 碼縮小清單；刪空可顯示全部 ${TICKER_PRESETS.length} 檔`} onChange={(e) => handleEtfCodeChange(e.target.value)} style={{ ...inputStyle, width: 52, padding: "4px 6px", fontSize: 11 }} />
-                <select value={selectedEtf} onChange={(e) => { const id = e.target.value; setSelectedEtf(id); const preset = TICKER_PRESETS.find((p) => p.id === id); if (preset) { setAnnualReturnRate(preset.annualReturn); handlePayoutFrequencyChange(preset.frequency as PayoutFrequency); setDividendYieldPct(preset.dividendYieldPct ?? ""); setStockDividendPct(preset.stockDividendPct ?? ""); setRateSource("dividend"); } }} style={{ ...inputStyle, padding: "4px 6px", fontSize: 11, minWidth: 110, height: 26 }}>
+                <select value={selectedEtf} onChange={(e) => selectEtfFromMenu(e.target.value)} style={{ ...inputStyle, padding: "4px 6px", fontSize: 11, minWidth: 110, height: 26 }}>
                   <option value="none">自訂</option>
                   {filteredEtfs.map((etf) => <option key={etf.id} value={etf.id}>{etf.label.split("（")[0]}</option>)}
                 </select>
@@ -2303,9 +2786,9 @@ export default function Home() {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "nowrap" }}>
               <span style={{ fontSize: 11, color: "#9ca3af", whiteSpace: "nowrap" }}>預設</span>
-              <input type="text" inputMode="numeric" value={defaultYearStr} onChange={(e) => { const v = e.target.value.replace(/\D/g, ""); if (v === "" || (v.length <= 4 && parseInt(v, 10) <= 2100)) setDefaultYearStr(v); }} onBlur={() => { const n = parseInt(defaultYearStr, 10); if (!Number.isFinite(n) || n < 2000) setDefaultYearStr(String(todayYear)); else if (n > 2100) setDefaultYearStr("2100"); }} style={{ ...inputStyle, width: 48, padding: "4px 6px", fontSize: 11, textAlign: "center" }} />
+              <input type="text" inputMode="numeric" value={defaultYearStr} onChange={(e) => { const v = e.target.value.replace(/\D/g, ""); if (v === "" || (v.length <= 4 && parseInt(v, 10) <= 2100)) setDefaultYearStr(v); }} onBlur={() => { const n = parseInt(defaultYearStr, 10); if (!Number.isFinite(n) || n < 2000) setDefaultYearStr(String(DEFAULT_SIM_START_YEAR)); else if (n > 2100) setDefaultYearStr("2100"); }} style={{ ...inputStyle, width: 48, padding: "4px 6px", fontSize: 11, textAlign: "center" }} />
               <span style={{ fontSize: 10, color: "#9ca3af" }}>年</span>
-              <input type="text" inputMode="numeric" value={defaultMonthStr} onChange={(e) => { const v = e.target.value.replace(/\D/g, ""); if (v === "" || v.length <= 2) setDefaultMonthStr(v); }} onBlur={() => { const n = parseInt(defaultMonthStr, 10); if (!Number.isFinite(n) || n < 1) setDefaultMonthStr(String(todayMonth)); else if (n > 12) setDefaultMonthStr("12"); }} style={{ ...inputStyle, width: 36, padding: "4px 6px", fontSize: 11, textAlign: "center" }} />
+              <input type="text" inputMode="numeric" value={defaultMonthStr} onChange={(e) => { const v = e.target.value.replace(/\D/g, ""); if (v === "" || v.length <= 2) setDefaultMonthStr(v); }} onBlur={() => { const n = parseInt(defaultMonthStr, 10); if (!Number.isFinite(n) || n < 1) setDefaultMonthStr(String(DEFAULT_SIM_START_MONTH)); else if (n > 12) setDefaultMonthStr("12"); }} style={{ ...inputStyle, width: 36, padding: "4px 6px", fontSize: 11, textAlign: "center" }} />
               <span style={{ fontSize: 10, color: "#9ca3af" }}>月</span>
               <button type="button" onClick={() => { const d = new Date(); setInitialYearStr(String(d.getFullYear())); setInitialMonthStr(String(d.getMonth() + 1)); }} style={{ padding: "4px 8px", fontSize: 10, borderRadius: 6, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.08)", color: "#e5e7eb", cursor: "pointer", flexShrink: 0 }}>恢復</button>
               <label className="tax-sticky-desktop-only" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#d1d5db", cursor: "pointer", whiteSpace: "nowrap" }}>
@@ -2843,18 +3326,7 @@ export default function Home() {
                   <label style={{ fontSize: 12, color: "#d1d5db", lineHeight: 1.2 }}>選擇 ETF</label>
                   <select
                     value={selectedEtf}
-                    onChange={(e) => {
-                      const id = e.target.value;
-                      setSelectedEtf(id);
-                      const preset = TICKER_PRESETS.find((p) => p.id === id);
-                      if (preset) {
-                        setAnnualReturnRate(preset.annualReturn);
-                        handlePayoutFrequencyChange(preset.frequency as PayoutFrequency);
-                        setDividendYieldPct(preset.dividendYieldPct ?? "");
-                        setStockDividendPct(preset.stockDividendPct ?? "");
-                        setRateSource("dividend");
-                      }
-                    }}
+                    onChange={(e) => selectEtfFromMenu(e.target.value)}
                     style={{ ...inputStyle, paddingRight: 24, width: "100%", boxSizing: "border-box", minWidth: 0, height: 28 }}
                   >
                     <option value="none">不使用預設（自行輸入年化）</option>
@@ -3009,7 +3481,7 @@ export default function Home() {
                           }}
                           onBlur={() => {
                             const n = parseInt(defaultYearStr, 10);
-                            if (!Number.isFinite(n) || n < 2000) setDefaultYearStr(String(todayYear));
+                            if (!Number.isFinite(n) || n < 2000) setDefaultYearStr(String(DEFAULT_SIM_START_YEAR));
                             else if (n > 2100) setDefaultYearStr("2100");
                           }}
                           style={{ ...inputStyle, width: 72, height: 28, textAlign: "center", border: "none", borderRadius: 0 }}
@@ -3031,7 +3503,7 @@ export default function Home() {
                           }}
                           onBlur={() => {
                             const n = parseInt(defaultMonthStr, 10);
-                            if (!Number.isFinite(n) || n < 1) setDefaultMonthStr(String(todayMonth));
+                            if (!Number.isFinite(n) || n < 1) setDefaultMonthStr(String(DEFAULT_SIM_START_MONTH));
                             else if (n > 12) setDefaultMonthStr("12");
                           }}
                           style={{ ...inputStyle, width: 56, height: 28, textAlign: "center", border: "none", borderRadius: 0 }}
@@ -3345,18 +3817,7 @@ export default function Home() {
                     <label style={{ fontSize: 11, color: "#9ca3af", lineHeight: 1.3 }}>選擇 ETF</label>
                     <select
                       value={selectedEtf}
-                      onChange={(e) => {
-                        const id = e.target.value;
-                        setSelectedEtf(id);
-                        const preset = TICKER_PRESETS.find((p) => p.id === id);
-                        if (preset) {
-                          setAnnualReturnRate(preset.annualReturn);
-                          handlePayoutFrequencyChange(preset.frequency as PayoutFrequency);
-                          setDividendYieldPct(preset.dividendYieldPct ?? "");
-                          setStockDividendPct(preset.stockDividendPct ?? "");
-                          setRateSource("dividend");
-                        }
-                      }}
+                      onChange={(e) => selectEtfFromMenu(e.target.value)}
                       style={{ ...inputStyle, paddingRight: 24, width: 260, boxSizing: "border-box", height: 26 }}
                     >
                       <option value="none">不使用預設（自行輸入年化）</option>
@@ -3503,6 +3964,7 @@ export default function Home() {
                     sharesForCreditCap80k={sharesForCreditCap80k}
                     selectedEtfInfo={selectedEtfInfo ?? null}
                     taxThreshold={TAX_THRESHOLD}
+                    taxAutoSavingsYuan={taxAutoSavingsYuan}
                   />
                 </div>
                 <div
@@ -3519,107 +3981,23 @@ export default function Home() {
                     opacity: taxSettingsMode === "manual" ? 0.92 : 1,
                   }}
                 >
-                  {taxSettingsMode === "manual" ? (
-                    <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#d1d5db", cursor: "pointer" }}>
-                      <input type="checkbox" checked={applyNhi2InTable} onChange={(e) => setApplyNhi2InTable(e.target.checked)} />
-                      <span>二代健保</span>
-                    </label>
-                  ) : (
-                    <div style={{ fontSize: 12, color: "#6ee7b7", fontWeight: 500, paddingBottom: 2 }}>二代健保 · 已納入試算</div>
-                  )}
-                  <div style={{ display: "flex", flexDirection: "row", flexWrap: "nowrap", gap: 8, alignItems: "flex-end" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      <label style={{ fontSize: 11, color: "#9ca3af", lineHeight: 1.3 }}>輸入代碼</label>
-                      <input
-                        type="text"
-                        placeholder="例: 0050、00919"
-                        value={etfCodeFilter}
-                        maxLength={5}
-                        title={`刪空篩選可顯示全部 ${TICKER_PRESETS.length} 檔`}
-                        onChange={(e) => {
-                          const raw = e.target.value;
-                          handleEtfCodeChange(raw);
-                        }}
-                        style={{ ...inputStyle, width: 72, boxSizing: "border-box", height: 26 }}
-                      />
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      <label style={{ fontSize: 11, color: "#9ca3af", lineHeight: 1.3 }}>選擇 ETF</label>
-                      <select
-                        value={selectedEtf}
-                        onChange={(e) => {
-                          const id = e.target.value;
-                          setSelectedEtf(id);
-                          const preset = TICKER_PRESETS.find((p) => p.id === id);
-                          if (preset) {
-                            setAnnualReturnRate(preset.annualReturn);
-                            handlePayoutFrequencyChange(preset.frequency as PayoutFrequency);
-                            setDividendYieldPct(preset.dividendYieldPct ?? "");
-                            setStockDividendPct(preset.stockDividendPct ?? "");
-                            setRateSource("dividend");
-                          }
-                        }}
-                        style={{ ...inputStyle, paddingRight: 24, width: 260, boxSizing: "border-box", height: 26 }}
-                      >
-                        <option value="none">不使用預設（自行輸入年化）</option>
-                        {filteredEtfs.map((etf) => (
-                          <option key={etf.id} value={etf.id}>{etf.label} 占比 {etfRatioEstimates[etf.id] !== undefined && etfRatioEstimates[etf.id] !== "" ? etfRatioEstimates[etf.id] + "%" : "?"}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      <label style={{ fontSize: 11, color: "#9ca3af", lineHeight: 1.3 }}>54C 占比(手動調整)</label>
-                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <input
-                          type="text"
-                          value={selectedEtf !== "none" ? (etfRatioEstimates[selectedEtf] ?? "") : ""}
-                          onChange={(e) => {
-                            const v = e.target.value;
-                            if (selectedEtf !== "none") setEtfRatioEstimates((prev) => ({ ...prev, [selectedEtf]: v }));
-                          }}
-                          placeholder="—"
-                          style={{ ...inputStyle, width: 40, boxSizing: "border-box", height: 26, textAlign: "center" }}
-                        />
-                        <span style={{ fontSize: 11, color: "#9ca3af" }}>%</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 11, lineHeight: 1.5, color: "#9ca3af", marginTop: 2, paddingTop: 2, borderTop: "1px dashed rgba(255,255,255,0.08)" }}>
-                    <span style={{ color: "#d1d5db" }}>單筆股利 &gt; 2 萬按 2.11% 計收；</span>僅「54C 股利」計入，平準金與資本利得免計。
-                    <span
-                      onMouseEnter={() => setTooltipWhich("nhi2")}
-                      onMouseLeave={() => setTooltipWhich(null)}
-                      style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center", width: 14, height: 14, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.4)", color: "#9ca3af", fontSize: 10, cursor: "help", marginLeft: 4, verticalAlign: "middle" }}
-                    >i
-                      {tooltipWhich === "nhi2" && (
-                        <span style={{ position: "absolute", right: 0, bottom: "100%", marginBottom: 6, zIndex: 10, padding: "12px 14px", background: "#ffffff", border: "1px solid #e5e7eb", borderRadius: 8, fontSize: 11, color: "#1f2937", lineHeight: 1.7, whiteSpace: "normal", width: 340, boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}>
-                          <strong>二代健保補充保費怎麼算？</strong><br />
-                          單筆股利超過 2 萬的部分，要繳 2.11% 補充保費。但<strong>不是整筆股利都算</strong>：只有「54C 股利」要計入，收益平準金、資本利得不用算。<br /><br />
-                          <strong>實際例子（數字）</strong><br />
-                          假設這筆領到股利 <strong>10 萬</strong>，54C 占比 <strong>50%</strong>：<br />
-                          · 要計入的金額＝10 萬×50%＝<strong>5 萬</strong><br />
-                          · 5 萬 &gt; 2 萬門檻 → 補充保費＝5 萬×2.11%＝<strong>1,055 元</strong><br /><br />
-                          若誤把整筆 10 萬都算：10 萬×2.11%＝2,110 元，多算了 <strong>1,055 元</strong>。                        所以上面「占比」就是在填 54C 大概占幾成，算出來才不會高估。
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                  {nhi2FreeEstimate && selectedEtfInfo ? (
-                    <div style={{ marginTop: 2, padding: "6px 8px", background: "rgba(0,0,0,0.15)", borderRadius: 8, fontSize: 11, color: "#d1d5db", lineHeight: 1.5, border: "1px solid rgba(255,255,255,0.06)" }}>
-                      <div style={{ fontWeight: 600, color: "#e5e7eb", marginBottom: 4, fontSize: 12 }}>{selectedEtf}-{selectedEtfInfo.label.split("（")[0].trim()}</div>
-                      <div>約 <strong style={{ color: "#39ff14" }}>{nhi2FreeEstimate.maxDividend.toLocaleString("zh-TW")}</strong> 元股利以內不用繳（54C {nhi2FreeEstimate.ratioPct}%）</div>
-                      <div style={{ fontSize: 10, color: "#9ca3af", marginTop: 4 }}>試算：2 萬 ÷ {nhi2FreeEstimate.ratioPct}% ＝ {nhi2FreeEstimate.maxDividend.toLocaleString("zh-TW")} 元</div>
-                      {nhi2FreeEstimate.shares != null && nhi2FreeEstimate.price != null && nhi2FreeEstimate.dividendPerPeriod != null && (
-                        <div style={{ marginTop: 4, fontSize: 10, color: "#9ca3af" }}>
-                          約 <strong style={{ color: "#d1d5db" }}>{nhi2FreeEstimate.shares.toLocaleString("zh-TW")}</strong> 股（股價 {nhi2FreeEstimate.price} 元、每股 {nhi2FreeEstimate.dividendPerPeriod} 元/期）
-                          {nhi2FreeEstimate.marketValue != null && <> · 市值約 <strong>{nhi2FreeEstimate.marketValue.toLocaleString("zh-TW")}</strong> 元</>}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div style={{ marginTop: 12, fontSize: 11, color: "#6b7280" }}>請選擇 ETF 並輸入 54C 占比，即可試算。</div>
-                  )}
-                  {taxSettingsMode === "manual" && deductionEstimate && (
+                    <MobileNhi2ImpactBlock
+                    taxSettingsMode={taxSettingsMode}
+                    applyNhi2InTable={applyNhi2InTable}
+                    setApplyNhi2InTable={setApplyNhi2InTable}
+                    inputStyle={inputStyle}
+                    etfCodeFilter={etfCodeFilter}
+                    onEtfCodeChange={handleEtfCodeChange}
+                    tickersCount={TICKER_PRESETS.length}
+                    selectedEtf={selectedEtf}
+                    onSelectEtf={selectEtfFromMenu}
+                    filteredEtfs={filteredEtfs}
+                    etfRatioEstimates={etfRatioEstimates}
+                    onRatioChange={(etfId, value) => setEtfRatioEstimates((prev) => ({ ...prev, [etfId]: value }))}
+                    deductionEstimate={deductionEstimate}
+                    selectedEtfInfo={selectedEtfInfo}
+                    manualDetailSlot={
+                      taxSettingsMode === "manual" && deductionEstimate ? (
                     <div style={{ marginTop: 2, padding: "6px 8px", background: "rgba(0,0,0,0.2)", borderRadius: 8, fontSize: 11, color: "#d1d5db", lineHeight: 1.5, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
                       <div style={{ fontWeight: 600, color: "#e5e7eb", marginBottom: 4, fontSize: 12 }}>以目前本金+投入+額外試算</div>
                       <div style={{ display: "grid", gap: 3 }}>
@@ -3670,290 +4048,210 @@ export default function Home() {
                         </div>
                       </div>
                     </div>
-                  )}
+                      ) : null
+                    }
+                  />
                 </div>
+              </div>
+            </div>
+            <div className="md:hidden mt-5 flex flex-col gap-3">
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between rounded-xl bg-white/[0.04] px-4 py-3 text-left text-sm font-medium text-slate-300"
+                  onClick={() => setMobileAccumCalcHelpOpen((o) => !o)}
+                  aria-expanded={mobileAccumCalcHelpOpen}
+                >
+                  <span>ℹ️ 計算說明</span>
+                  <span className="text-slate-500">{mobileAccumCalcHelpOpen ? "▲" : "▼"}</span>
+                </button>
+                {mobileAccumCalcHelpOpen ? (
+                  <ul className="list-disc space-y-2 pl-5 text-sm leading-relaxed text-slate-500">
+                    <li>期數依配息頻率（月／季／半年／年）對照。</li>
+                    <li>本次股息為該期 gross；再投入比例為股利再投入％。</li>
+                    <li>須扣除資金＝補稅＋二代健保＋手續費（二代門檻 2 萬）。</li>
+                    <li>手續費：投入／再投入各 0.1425%（最低 20 元）。</li>
+                    <li>本期總投入＝固定投入（已扣手續費）＋股利再投入；股數依標的股價試算。</li>
+                  </ul>
+                ) : null}
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/25 p-4 text-sm leading-relaxed text-slate-500">
+                <div className="mb-2 font-semibold text-slate-200">每檔稅金說明</div>
+                <div>{taxMessage}</div>
               </div>
             </div>
           </div>
 
-          <div style={{ display: "flex", flexWrap: "nowrap", alignItems: "center", gap: 12, marginBottom: 8, overflowX: "auto" }}>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "nowrap",
+              alignItems: "center",
+              gap: 12,
+              marginBottom: mobileTaxLayoutActive ? 12 : 8,
+              overflowX: "auto",
+              ...(mobileTaxLayoutActive ? { paddingTop: 16, paddingBottom: 16 } : {}),
+            }}
+          >
             <h2 style={{ fontSize: 24, fontWeight: 600, color: "#e5e7eb", margin: 0, flexShrink: 0 }}>累積金額與股數表</h2>
           </div>
-          <div style={{ overflowX: "auto", maxHeight: 360, overflowY: "auto", paddingRight: 10, boxSizing: "border-box" }}>
-            <table style={{ width: "fit-content", minWidth: 1056 + lastPeriodDividendColWidth + annualDividendColWidth + annualTaxableBaseColWidth + annualOrigTaxColWidth + taxCreditColWidth + perPeriodTaxColWidth + amount54CColWidth + nhi2StatusColWidth + nhi2AmountColWidth + feeColWidth + totalDeductionColWidth + reinvestPctColWidth + reinvestAmountColWidth + previousBalanceColWidth + contributionColWidth + extraColWidth + reinvestInflowColWidth + totalInflowColWidthDyn + balanceColWidthDyn, tableLayout: "fixed", borderCollapse: "collapse", fontSize: 11 }}>
-              <colgroup>
-                <col style={{ width: 48 }} />
-                <col style={{ width: 40 }} />
-                <col style={{ width: lastPeriodDividendColWidth }} />
-                <col style={{ width: annualDividendColWidth }} />
-                <col style={{ width: 4 }} />
-                <col style={{ width: 38 }} />
-                <col style={{ width: 4 }} />
-                <col style={{ width: annualTaxableBaseColWidth }} />
-                <col style={{ width: annualOrigTaxColWidth }} />
-                <col style={{ width: taxCreditColWidth }} />
-                <col style={{ width: 72 }} />
-                <col style={{ width: perPeriodTaxColWidth }} />
-                <col style={{ width: amount54CColWidth }} />
-                <col style={{ width: nhi2StatusColWidth }} />
-                <col style={{ width: nhi2AmountColWidth }} />
-                <col style={{ width: feeColWidth }} />
-                <col style={{ width: 4 }} />
-                <col style={{ width: totalDeductionColWidth }} />
-                <col style={{ width: reinvestPctColWidth }} />
-                <col style={{ width: reinvestAmountColWidth }} />
-                <col style={{ width: previousBalanceColWidth }} />
-                <col style={{ width: contributionColWidth }} />
-                <col style={{ width: 4 }} />
-                <col style={{ width: extraColWidth }} />
-                <col style={{ width: 4 }} />
-                <col style={{ width: reinvestInflowColWidth }} />
-                <col style={{ width: 4 }} />
-                <col style={{ width: totalInflowColWidthDyn }} />
-                <col style={{ width: balanceColWidthDyn }} />
-              </colgroup>
-              <thead style={{ position: "sticky", top: 0, background: "rgba(15,23,42,0.95)", zIndex: 1 }}>
-                <tr>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "nowrap", lineHeight: 1.3, textAlign: "center" }}>期數</th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "nowrap", lineHeight: 1.3 }}>所得級距</th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "nowrap", lineHeight: 1.3 }}>本次股息</th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "nowrap", lineHeight: 1.4 }}>整年股息<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>該年加總</span></th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", color: "#34d399" }}>×</th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.3 }}>54C<br />股利佔比</th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", color: "#34d399" }}>=</th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>54C應稅額<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>年股息×54C</span></th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>54C應納稅額<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>54C應稅額×級距</span></th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>扣抵稅額<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>應稅額×8.5%（上限8萬）</span></th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>補退稅淨額<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>應納稅額－扣抵稅額</span></th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>每期補稅<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>補稅額÷配息次數</span></th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>54C計入金額<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>本次股息×54C佔比</span></th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.3, wordBreak: "break-word" }}>二代健保門檻<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>須繳二代健保</span></th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.3 }}>補充保費<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>二代健保</span></th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "nowrap", lineHeight: 1.4 }}>手續費<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>投入×0.1425%</span></th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", color: "#34d399" }}>=</th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all", overflow: "hidden" }}>須扣除資金<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>補稅+補充保費+手續費</span></th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all", overflow: "hidden" }}>再投入比例<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>股利再投入%</span></th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>本次再投入<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>(股息-扣除)×再投入比例</span></th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>上期餘額</th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>固定投入</th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", color: "#34d399" }}>+</th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>額外加碼<br /><span style={{ color: "#6b7280", fontWeight: 400 }}>加班費等</span></th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", color: "#34d399" }}>+</th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.4, wordBreak: "keep-all" }}>股利再投入</th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", color: "#34d399" }}>=</th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "nowrap", lineHeight: 1.4 }}>本期總投入</th>
-                  <th style={{ ...tableCellBase, borderBottom: "1px solid rgba(255,255,255,0.15)", whiteSpace: "normal", lineHeight: 1.2, wordBreak: "keep-all", padding: "2px 2px" }}>總資產<br /><span style={{ color: "#6b7280", fontWeight: 400, fontSize: 10 }}>上期餘額＋本期總投入</span></th>
-                </tr>
-              </thead>
-              <tbody>
-                {periodSnapshots.map((row, i) => {
-                  const effectiveRateForTable = separateTaxOpen ? 0.28 : taxBracketRate;
-                  const intervalMonths = payoutFrequency === "month" ? 1 : payoutFrequency === "quarter" ? 3 : payoutFrequency === "semiannual" ? 6 : 12;
-                  const periodsPerYearForTable =
-                    payoutFrequency === "month" ? 12 : payoutFrequency === "quarter" ? 4 : payoutFrequency === "semiannual" ? 2 : 1;
-                  const divisorForPerPeriodTax = selectedEtfInfo?.dividendMonths?.length ?? periodsPerYearForTable;
-                  const ratio54C = selectedEtf !== "none" ? (parseFloat(String(etfRatioEstimates[selectedEtf] || "50").replace(/,/g, "")) || 50) / 100 : 1;
-                  const rate = applyTaxInTable ? effectiveRateForTable : 0;
-                  const { tax, nhi2, credit } = getAfterTaxAndNhi2WithRate(
-                    row.lastPeriodDividend,
-                    rate,
-                    applyNhi2InTable,
-                    periodsPerYearForTable,
-                    applyTaxInTable && !separateTaxOpen,
-                    ratio54C
-                  );
-                  const isMonthlyRows = Boolean(selectedEtfInfo?.dividendMonths?.length);
-                  const contributionDisplay = isMonthlyRows ? Math.round(monthlyContributionNum) : Math.round(monthlyContributionNum * intervalMonths);
-                  const extraDisplay = isMonthlyRows ? Math.round(monthlyExtraNum) : Math.round(monthlyExtraNum * intervalMonths);
-                  const taxableBase = row.lastPeriodDividend * ratio54C;
-                  const annualDividend = annualDividendByYear[row.year] ?? 0;
-                  const annualTaxableBase = annualTaxableBaseByYear[row.year] ?? 0;
-                  const isLastPeriodOfYear = i === periodSnapshots.length - 1 || periodSnapshots[i + 1]?.year !== row.year;
-                  const hasAnnualData = isLastPeriodOfYear && annualDividendByYear[row.year] != null && annualDividendByYear[row.year] > 0;
-                  const nhi2Str =
-                    taxableBase < NHI2_THRESHOLD || !applyNhi2InTable
-                      ? "未達標"
-                      : Math.round(nhi2).toLocaleString("zh-TW");
-                  const perPeriodTax = row.lastPeriodDividend > 0 && annualTaxableBase > 0 && applyTaxInTable ? (() => {
-                    const annualOrig = annualTaxableBase * effectiveRateForTable;
-                    const creditAmt = Math.min(annualTaxableBase * TAX_CREDIT_RATE, TAX_CREDIT_CAP);
-                    const diff = annualOrig - creditAmt;
-                    const buShuiE = diff >= 0 ? Math.ceil(diff) : 0;
-                    return Math.ceil(buShuiE / divisorForPerPeriodTax);
-                  })() : 0;
-                  const nhi2Num = taxableBase >= NHI2_THRESHOLD && applyNhi2InTable ? nhi2 : 0;
-                  const totalDeduction = Math.round(perPeriodTax + nhi2Num + safeNumber(row.contributionFee) + safeNumber(row.reinvestFee));
-                  const deductionVal = getCellVal(i, "totalDeduction", totalDeduction);
-                  const reinvestDisplayVal = row.lastPeriodDividend > 0 ? Math.round(Math.max(0, safeNumber(row.lastPeriodDividend) - deductionVal) * (row.reinvestPct / 100)) : 0;
-                  const totalInflowThisPeriod = safeNumber(row.fixedAddThisPeriod) + reinvestDisplayVal;
-                  const isFirstPeriod = i === 0;
-                  const nhi2Val = taxableBase < NHI2_THRESHOLD || !applyNhi2InTable ? 0 : Math.round(nhi2);
-                  const feeVal = safeNumber(row.contributionFee) + safeNumber(row.reinvestFee);
-                  const balancePbVal = getCellVal(i, "previousBalance", safeNumber(row.previousBalance));
-                  const balanceTifVal = getCellVal(i, "totalInflow", totalInflowThisPeriod);
-                  const balanceBalVal = getCellVal(i, "balance", safeNumber(row.balance));
-                  const balanceDisplayStr = `${Math.round(balancePbVal).toLocaleString("zh-TW")}+${Math.round(balanceTifVal).toLocaleString("zh-TW")}=${Math.round(balanceBalVal).toLocaleString("zh-TW")}`;
-
-                  const bracketDisplay = applyTaxInTable ? (separateTaxOpen ? "28%" : `${Math.round(taxBracketRate * 100)}%`) : "—";
-                  return (
-                    <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                      <td style={{ ...tableCellBase, color: "#d1d5db", textAlign: "center", whiteSpace: "nowrap" }}>{row.periodLabel}</td>
-                      <td style={{ ...tableCellBase, color: "#9ca3af", textAlign: "center", whiteSpace: "nowrap" }}>{bracketDisplay}</td>
-                      <TableEditableCell rowIdx={i} colKey="lastPeriodDividend" calcNum={row.lastPeriodDividend} displayStr={row.lastPeriodDividend > 0 ? Math.round(safeNumber(row.lastPeriodDividend)).toLocaleString("zh-TW") : "—"} color="#9ca3af" nowrap />
-                      <td style={{ ...tableCellBase, color: "#9ca3af", textAlign: "center", whiteSpace: "nowrap" }}>
-                        {isLastPeriodOfYear && annualDividendByYear[row.year] != null ? Number(Math.floor(annualDividendByYear[row.year]).toFixed(0)).toLocaleString("zh-TW") : "—"}
-                      </td>
-                      <td style={{ ...tableCellBase, color: "#34d399", textAlign: "center" }}>×</td>
-                      <td style={{ ...tableCellBase, color: "#9ca3af", textAlign: "center" }}>{Math.round(ratio54C * 100)}%</td>
-                      <td style={{ ...tableCellBase, color: "#34d399", textAlign: "center" }}>=</td>
-                      <td style={{ ...tableCellBase, color: "#9ca3af", textAlign: "center", lineHeight: 1.4, whiteSpace: "normal", wordBreak: "keep-all" }}>
-                        {hasAnnualData ? (
-                          <>
-                            {Number(Math.ceil(annualTaxableBase).toFixed(0)).toLocaleString("zh-TW")}
-                            <br />
-                            <span style={{ fontSize: 10, color: "#6b7280" }}>年股息×54C</span>
-                          </>
-                        ) : "—"}
-                      </td>
-                      <td style={{ ...tableCellBase, color: "#9ca3af", textAlign: "center", lineHeight: 1.4, whiteSpace: "normal", wordBreak: "keep-all" }}>
-                        {hasAnnualData ? (
-                          <>
-                            {Number(Math.ceil(annualTaxableBase).toFixed(0)).toLocaleString("zh-TW")} × {effectiveRateForTable === 0.28 ? "28%" : `${Math.round(effectiveRateForTable * 100)}%`} = {Number(Math.ceil(annualTaxableBase * effectiveRateForTable).toFixed(0)).toLocaleString("zh-TW")}
-                            <br />
-                            <span style={{ fontSize: 10, color: "#6b7280" }}>54C應稅額×級距</span>
-                          </>
-                        ) : "—"}
-                      </td>
-                      <td style={{ ...tableCellBase, color: "#9ca3af", textAlign: "center", lineHeight: 1.4, whiteSpace: "normal", wordBreak: "keep-all" }}>
-                        {hasAnnualData ? (() => {
-                          const rawCredit = annualTaxableBase * TAX_CREDIT_RATE;
-                          const cappedCredit = Math.min(rawCredit, TAX_CREDIT_CAP);
-                          const rawDisplay = Number(Math.ceil(rawCredit).toFixed(0)).toLocaleString("zh-TW");
-                          const cappedDisplay = Number(Math.ceil(cappedCredit).toFixed(0)).toLocaleString("zh-TW");
-                          const hitCap = rawCredit >= TAX_CREDIT_CAP;
-                          return (
-                            <>
-                              {Number(Math.ceil(annualTaxableBase).toFixed(0)).toLocaleString("zh-TW")} × 8.5% = {rawDisplay}
-                              {hitCap && (
-                                <>
-                                  <br />
-                                  <span style={{ fontSize: 10, color: "#6b7280" }}>→ 取上限 {cappedDisplay}</span>
-                                </>
-                              )}
-                              <br />
-                              <span style={{ fontSize: 10, color: "#6b7280" }}>應稅額×8.5%（上限8萬）</span>
-                            </>
-                          );
-                        })() : "—"}
-                      </td>
-                      <td style={{ ...tableCellBase, textAlign: "center", lineHeight: 1.4, whiteSpace: "normal", wordBreak: "keep-all" }}>
-                        {hasAnnualData ? (() => {
-                          const annualOrig = annualTaxableBase * effectiveRateForTable;
-                          const credit = Math.min(annualTaxableBase * TAX_CREDIT_RATE, TAX_CREDIT_CAP);
-                          const diff = annualOrig - credit;
-                          const isRefund = diff < 0;
-                          const displayVal = isRefund ? Math.abs(Math.floor(diff)) : -Math.ceil(Math.max(diff, 0));
-                          const origDisplay = Number(Math.ceil(annualOrig).toFixed(0)).toLocaleString("zh-TW");
-                          const creditDisplay = Number(Math.ceil(credit).toFixed(0)).toLocaleString("zh-TW");
-                          const resultColor = isRefund ? "#34d399" : "#ef4444";
-                          return (
-                            <>
-                              <span style={{ color: "#9ca3af" }}>{origDisplay} － {creditDisplay} = </span>
-                              <span style={{ color: resultColor }}>{Math.abs(displayVal).toLocaleString("zh-TW")}</span>
-                              <br />
-                              <span style={{ fontSize: 10, color: resultColor }}>{isRefund ? "(退稅額)" : "(補稅額)"}</span>
-                            </>
-                          );
-                        })() : "—"}
-                      </td>
-                      <td style={{ ...tableCellBase, color: row.lastPeriodDividend > 0 ? "#ef4444" : "#9ca3af", textAlign: "center" }}>
-                        {row.lastPeriodDividend > 0 ? (() => {
-                          const annualOrig = annualTaxableBase * effectiveRateForTable;
-                          const creditAmt = Math.min(annualTaxableBase * TAX_CREDIT_RATE, TAX_CREDIT_CAP);
-                          const diff = annualOrig - creditAmt;
-                          const buShuiE = diff >= 0 ? Math.ceil(diff) : 0;
-                          const val = Math.ceil(buShuiE / divisorForPerPeriodTax);
-                          return val.toLocaleString("zh-TW");
-                        })() : "—"}
-                      </td>
-                      <td style={{ ...tableCellBase, color: "#9ca3af", textAlign: "center", whiteSpace: "normal", wordBreak: "keep-all", lineHeight: 1.4 }}>
-                        {row.lastPeriodDividend > 0 ? (
-                          <>
-                            {Math.round(safeNumber(row.lastPeriodDividend)).toLocaleString("zh-TW")}×{Math.round(ratio54C * 100)}%=
-                            <br />
-                            {Math.round(taxableBase).toLocaleString("zh-TW")}
-                            <br />
-                            <span style={{ fontSize: 10, color: "#6b7280" }}>本次股息×54C佔比</span>
-                          </>
-                        ) : "—"}
-                      </td>
-                      <td style={{ ...tableCellBase, textAlign: "center", whiteSpace: "normal", wordBreak: "keep-all", lineHeight: 1.4 }}>
-                        {!applyNhi2InTable || !row.lastPeriodDividend || row.lastPeriodDividend <= 0 ? (
-                          <span style={{ color: "#9ca3af" }}>—</span>
-                        ) : taxableBase >= NHI2_THRESHOLD ? (
-                          <>
-                            <span style={{ color: "#ef4444", fontWeight: 600 }}>達標</span>
-                            <br />
-                            <span style={{ color: "#ef4444" }}>{Math.round(taxableBase).toLocaleString("zh-TW")}≥20,000</span>
-                            <br />
-                            <span style={{ fontSize: 10, color: "#6b7280" }}>54C計入金額≥20,000</span>
-                          </>
-                        ) : (
-                          <>
-                            <span style={{ color: "#34d399", fontWeight: 600 }}>未達標</span>
-                            <br />
-                            <span style={{ color: "#34d399" }}>{Math.round(taxableBase).toLocaleString("zh-TW")}&lt;20,000</span>
-                            <br />
-                            <span style={{ fontSize: 10, color: "#6b7280" }}>54C計入金額&lt;20,000</span>
-                          </>
-                        )}
-                      </td>
-                      <TableEditableCell rowIdx={i} colKey="nhi2" calcNum={nhi2Val} displayStr={taxableBase >= NHI2_THRESHOLD && applyNhi2InTable ? `${Math.round(safeNumber(row.lastPeriodDividend)).toLocaleString("zh-TW")}×${Math.round(ratio54C * 100)}%×2.11%=${Math.round(nhi2).toLocaleString("zh-TW")}` : "—"} color={taxableBase >= NHI2_THRESHOLD && applyNhi2InTable ? "#ef4444" : "#9ca3af"} formula={taxableBase >= NHI2_THRESHOLD && applyNhi2InTable ? "本次股息×54C佔比×2.11%" : undefined} wrap breakAtEquals />
-                      <TableEditableCell rowIdx={i} colKey="fee" calcNum={feeVal} displayStr={feeVal.toLocaleString("zh-TW")} color="#ef4444" formula="投入×0.1425%" />
-                      <td style={{ ...tableCellBase, color: "#34d399" }}>=</td>
-                      <TableEditableCell rowIdx={i} colKey="totalDeduction" calcNum={totalDeduction} displayStr={totalDeduction.toLocaleString("zh-TW")} color="#ef4444" formula="補稅+補充保費+手續費" wrap />
-                      <td style={{ ...tableCellBase, color: "#f5c451" }}>{`${row.reinvestPct}%`}</td>
-                      <td style={{ ...tableCellBase, color: "#f5c451", textAlign: "center", whiteSpace: "normal", wordBreak: "keep-all", lineHeight: 1.4 }}>
-                        {row.lastPeriodDividend > 0 ? (() => {
-                          const div = Math.round(safeNumber(row.lastPeriodDividend));
-                          const formulaStr = `(${div.toLocaleString("zh-TW")}-${deductionVal.toLocaleString("zh-TW")})×${row.reinvestPct}%=`;
-                          const resultStr = reinvestDisplayVal.toLocaleString("zh-TW");
-                          return (
-                            <div style={{ lineHeight: 1.3 }}>
-                              <div>{formulaStr}</div>
-                              <div>{resultStr}</div>
-                              <span style={{ fontSize: 10, color: "#6b7280" }}>(股息-扣除)×再投入比例</span>
-                            </div>
-                          );
-                        })() : "—"}
-                      </td>
-                      <TableEditableCell rowIdx={i} colKey="previousBalance" calcNum={safeNumber(row.previousBalance)} displayStr={isFirstPeriod ? "—" : safeNumber(row.previousBalance).toLocaleString("zh-TW")} color="#d1d5db" />
-                      <TableEditableCell rowIdx={i} colKey="contribution" calcNum={contributionDisplay} displayStr={contributionDisplay.toLocaleString("zh-TW")} color="#e5e7eb" />
-                      <td style={{ ...tableCellBase, color: "#34d399", fontWeight: 600 }}>+</td>
-                      <TableEditableCell rowIdx={i} colKey="extra" calcNum={extraDisplay} displayStr={extraDisplay.toLocaleString("zh-TW")} color="#e5e7eb" />
-                      <td style={{ ...tableCellBase, color: "#34d399", fontWeight: 600 }}>+</td>
-                      <td style={{ ...tableCellBase, color: "#f5c451", textAlign: "center" }}>{reinvestDisplayVal.toLocaleString("zh-TW")}</td>
-                      <td style={{ ...tableCellBase, color: "#34d399", fontWeight: 600 }}>=</td>
-                      <TableEditableCell rowIdx={i} colKey="totalInflow" calcNum={totalInflowThisPeriod} displayStr={totalInflowThisPeriod.toLocaleString("zh-TW")} color="#e5e7eb" />
-                      <TableEditableCell
-                        rowIdx={i}
-                        colKey="balance"
-                        calcNum={safeNumber(row.balance)}
-                        displayStr={balanceDisplayStr}
-                        color="#39ff14"
-                        formula="上期餘額＋本期總投入＝期末總資產"
-                        wrap
-                        breakAtEquals
-                      />
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div
+            className="hidden md:block"
+            style={{ overflowX: "auto", maxHeight: 360, overflowY: "auto", paddingRight: 10, boxSizing: "border-box" }}
+          >
+            {!mobileAccumFullTableModalOpen ? renderAccumulatedDesktopTable() : null}
           </div>
+          <div className="flex flex-col gap-5 md:gap-4">
+          <div className="md:hidden flex flex-col gap-6">
+            {accumulatedPeriodRecentMobile ? (
+              <>
+                <div
+                  className={
+                    accumulatedPeriodRecentMobile.dividendThisGross > 0
+                      ? "rounded-xl border border-emerald-500/35 bg-emerald-950/25 p-4 shadow-[0_4px_24px_rgba(0,0,0,0.25)]"
+                      : "rounded-xl border border-white/10 bg-slate-950/40 p-4 shadow-[0_4px_24px_rgba(0,0,0,0.25)]"
+                  }
+                >
+                  <div className="mb-3 border-b border-white/10 pb-2 text-lg font-bold text-slate-100">
+                    試算第1期 · {accumulatedPeriodRecentMobile.row.periodLabel}
+                  </div>
+                  <div className="flex flex-col gap-4">
+                    <div>
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">股利</div>
+                      <div className="text-xl font-bold text-slate-100">
+                        {accumulatedPeriodRecentMobile.dividendThisGross > 0
+                          ? Math.round(accumulatedPeriodRecentMobile.dividendThisGross).toLocaleString("zh-TW")
+                          : "—"}
+                        {accumulatedPeriodRecentMobile.dividendThisGross > 0 ? (
+                          <span className="text-sm font-bold text-slate-400"> 元</span>
+                        ) : null}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">本期投入</div>
+                      <div className="text-xl font-bold text-slate-100">
+                        {Math.round(accumulatedPeriodRecentMobile.totalInflowThisPeriod).toLocaleString("zh-TW")}
+                        <span className="text-sm font-bold text-slate-400"> 元</span>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">總資產</div>
+                      <div className="text-xl font-bold text-slate-100">
+                        {Math.round(accumulatedPeriodRecentMobile.balanceBalVal).toLocaleString("zh-TW")}
+                        <span className="text-sm font-bold text-slate-400"> 元</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {accumulatedPeriodNextTenMobile.length > 0 ? (
+                  <div className="flex flex-col gap-4">
+                    <button
+                      type="button"
+                      className="w-full rounded-xl bg-transparent px-0 py-2.5 text-left text-sm font-medium text-slate-500 transition-colors hover:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/35"
+                      onClick={() => setMobileAccumShowNextTen((v) => !v)}
+                    >
+                      {mobileAccumShowNextTen ? "▲ 收合未來10期" : "▼ 展開未來10期"}
+                    </button>
+                    {mobileAccumShowNextTen ? (
+                      <div className="flex flex-col gap-6">
+                        <div className="flex flex-col gap-4">
+                          <h3 className="text-center text-sm font-bold text-slate-300">未來10期</h3>
+                          <div className="flex flex-col gap-4">
+                            {accumulatedPeriodNextTenMobile.map((d) => {
+                              const hasDiv = d.dividendThisGross > 0;
+                              return (
+                                <div
+                                  key={d.i}
+                                  className={
+                                    hasDiv
+                                      ? "rounded-xl border border-emerald-500/35 bg-emerald-950/25 p-4 shadow-[0_4px_24px_rgba(0,0,0,0.25)]"
+                                      : "rounded-xl border border-white/10 bg-slate-950/40 p-4 shadow-[0_4px_24px_rgba(0,0,0,0.25)]"
+                                  }
+                                >
+                                  <div className="mb-2 border-b border-white/10 pb-2 text-base font-bold text-slate-100">{d.row.periodLabel}</div>
+                                  <div className="flex flex-col gap-3">
+                                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                                      <span className="text-xs font-semibold text-slate-500">股利</span>
+                                      <span className="text-lg font-bold text-slate-100">
+                                        {d.dividendThisGross > 0 ? Math.round(d.dividendThisGross).toLocaleString("zh-TW") : "—"}
+                                        {d.dividendThisGross > 0 ? <span className="text-sm font-bold text-slate-400"> 元</span> : null}
+                                      </span>
+                                    </div>
+                                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                                      <span className="text-xs font-semibold text-slate-500">本期投入</span>
+                                      <span className="text-lg font-bold text-slate-100">
+                                        {Math.round(d.totalInflowThisPeriod).toLocaleString("zh-TW")}
+                                        <span className="text-sm font-bold text-slate-400"> 元</span>
+                                      </span>
+                                    </div>
+                                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                                      <span className="text-xs font-semibold text-slate-500">總資產</span>
+                                      <span className="text-lg font-bold text-slate-100">
+                                        {Math.round(d.balanceBalVal).toLocaleString("zh-TW")}
+                                        <span className="text-sm font-bold text-slate-400"> 元</span>
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          className="flex min-h-[3.5rem] w-full items-center justify-center rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 px-4 py-3.5 text-base font-medium text-white shadow-lg shadow-emerald-950/30 transition hover:scale-[1.01] hover:brightness-110 active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50"
+                          onClick={() => {
+                            if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("calc-engagement"));
+                            setMobileAccumFullTableModalOpen(true);
+                          }}
+                        >
+                          查看完整明細
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className="flex min-h-[3.5rem] w-full items-center justify-center rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 px-4 py-3.5 text-base font-medium text-white shadow-lg shadow-emerald-950/30 transition hover:scale-[1.01] hover:brightness-110 active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50"
+                        onClick={() => {
+                          if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("calc-engagement"));
+                          setMobileAccumFullTableModalOpen(true);
+                        }}
+                      >
+                        查看完整明細
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="flex min-h-[3.5rem] w-full items-center justify-center rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 px-4 py-3.5 text-base font-medium text-white shadow-lg shadow-emerald-950/30 transition hover:scale-[1.01] hover:brightness-110 active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50"
+                    onClick={() => {
+                      if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("calc-engagement"));
+                      setMobileAccumFullTableModalOpen(true);
+                    }}
+                  >
+                    查看完整明細
+                  </button>
+                )}
+              </>
+            ) : null}
+            <div className="rounded-xl border border-white/10 bg-slate-950/30 p-4">
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("calc-engagement"));
+                  downloadTableExcel();
+                }}
+                className="min-h-[3rem] w-full rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-200/95 transition hover:border-emerald-500/35 hover:bg-emerald-500/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
+              >
+                下載 Excel
+              </button>
+            </div>
+          </div>
+          <div className="hidden md:block">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
             <span style={{ fontSize: 11, color: "#6b7280" }}>藍色數字為手動覆蓋，算式不變</span>
-            <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button
               type="button"
               onClick={() => { setManualOverrides({}); setEditingCell(null); }}
@@ -3995,6 +4293,8 @@ export default function Home() {
           <div style={{ marginTop: 12, padding: "6px 8px", background: "rgba(0,0,0,0.25)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)", fontSize: 11, color: "#9ca3af", lineHeight: 1.5 }}>
             <div style={{ fontWeight: 600, color: "#e5e7eb", marginBottom: 6 }}>每檔稅金說明</div>
             <div>{taxMessage}</div>
+          </div>
+          </div>
           </div>
         </div>
 
@@ -4227,6 +4527,73 @@ export default function Home() {
             onClose={() => setLoadTargetModalOpen(false)}
             onApply={applyCalculatorSnapshot}
           />
+          {mobileAccumFullTableModalOpen
+            ? createPortal(
+                <div className="fixed inset-0 z-[100000] flex flex-col" role="dialog" aria-modal="true" aria-labelledby="mobile-accum-full-table-title">
+                  <button
+                    type="button"
+                    className="absolute inset-0 bg-black/65 backdrop-blur-[2px]"
+                    aria-label="關閉試算表"
+                    onClick={() => setMobileAccumFullTableModalOpen(false)}
+                  />
+                  <div className="pointer-events-none relative flex min-h-0 flex-1 flex-col items-center justify-center px-3 py-6 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                    <div className="pointer-events-auto w-full max-w-xl sm:max-w-4xl">
+                      <div className="flex max-h-[min(52vh,420px)] w-full flex-col overflow-hidden rounded-2xl border border-slate-500/50 bg-slate-950 shadow-2xl shadow-black/60">
+                        <div className="flex shrink-0 items-center gap-2 border-b border-slate-600/90 bg-[#185c37] px-3 py-2.5 sm:px-4">
+                          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                            <h2 id="mobile-accum-full-table-title" className="truncate text-sm font-semibold text-white sm:text-base">
+                              累積金額與股數表
+                            </h2>
+                          </div>
+                          <div className="flex shrink-0 flex-col items-stretch gap-1.5 sm:flex-row sm:items-center">
+                            <div className="flex flex-row items-center justify-end gap-1.5 sm:justify-start">
+                              <button
+                                type="button"
+                                className="rounded-md border border-white/30 bg-white/[0.08] px-2 py-1 text-[10px] font-medium leading-tight text-white/90 shadow-sm active:bg-white/20 sm:text-xs"
+                                onClick={() => {
+                                  setManualOverrides({});
+                                  setEditingCell(null);
+                                }}
+                              >
+                                清除覆蓋
+                              </button>
+                              <button
+                                type="button"
+                                className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-[#185c37] shadow-sm active:bg-emerald-50"
+                                onClick={() => {
+                                  if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("calc-engagement"));
+                                  downloadTableExcel();
+                                }}
+                              >
+                                下載 Excel
+                              </button>
+                            </div>
+                            <button
+                              type="button"
+                              className="rounded-lg border border-white/35 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white shadow-sm active:bg-white/20"
+                              onClick={() => setMobileAccumFullTableModalOpen(false)}
+                            >
+                              關閉
+                            </button>
+                          </div>
+                        </div>
+                        <div
+                          className="shrink-0 overflow-x-auto overflow-y-scroll bg-[#0c1222] p-2 sm:p-3"
+                          style={{
+                            height: "min(240px, 38vh)",
+                            WebkitOverflowScrolling: "touch",
+                            overscrollBehavior: "contain",
+                          }}
+                        >
+                          {renderAccumulatedDesktopTable()}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>,
+                document.body
+              )
+            : null}
         </>
       ) : null}
     </main>
