@@ -27,9 +27,17 @@ import { MobileGoalSettingSection } from "./components/mobile-goal-setting-secti
 import { MobileHeroSection } from "./components/mobile-hero-section";
 import { MobileStockParamsSection } from "./components/mobile-stock-params-section";
 import type { StockParamsAdvancedBlockProps } from "./components/stock-params-advanced-block";
+import { TaxSettingsDesktopClassicLeftColumn } from "./components/manual-tax-block";
+import { TaxSettingsLeftPanel, type TaxSettingsMode } from "./components/tax-settings-panel";
 
 /** 各標的除息月份（與 ticker-presets 同步） */
 const ETF_DIVIDEND_MONTHS = buildTickerDividendMonthsMap();
+
+/** 首次載入與「恢復預設」時使用的預設標的（與 ticker-presets 第一檔一致） */
+const DEFAULT_SELECTED_ETF_ID = "0050";
+const DEFAULT_ETF_PRESET = TICKER_PRESETS.find((p) => p.id === DEFAULT_SELECTED_ETF_ID) ?? TICKER_PRESETS[0]!;
+/** 標的代碼篩選僅供當次操作；不寫入快照，避免還原後下拉只剩子集合 */
+const ETF_CODE_FILTER_PERSIST = "";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import * as XLSX from "xlsx";
@@ -454,16 +462,15 @@ export default function Home() {
   const [initialPrincipal, setInitialPrincipal] = useState("0");
   const [monthlyContribution, setMonthlyContribution] = useState("12000");
   const [monthlyExtra, setMonthlyExtra] = useState("6000");
-  // 預設以 0050 約 7% 報酬率為基準
-  const [annualReturnRate, setAnnualReturnRate] = useState(7.0);
-  const [dividendYieldPct, setDividendYieldPct] = useState<number | "">(4);
-  const [stockDividendPct, setStockDividendPct] = useState<number | "">(3);
+  // 預設標的 0050：年化、配息頻率、股息股利與 ticker-presets 一致
+  const [annualReturnRate, setAnnualReturnRate] = useState(DEFAULT_ETF_PRESET.annualReturn);
+  const [dividendYieldPct, setDividendYieldPct] = useState<number | "">(DEFAULT_ETF_PRESET.dividendYieldPct ?? "");
+  const [stockDividendPct, setStockDividendPct] = useState<number | "">(DEFAULT_ETF_PRESET.stockDividendPct ?? "");
   const [rateSource, setRateSource] = useState<"annual" | "dividend" | null>("dividend");
   const [targetQuarterIncome, setTargetQuarterIncome] = useState("50000");
   const [reinvestRatio, setReinvestRatio] = useState(80);
-  const [payoutFrequency, setPayoutFrequency] =
-    useState<PayoutFrequency>("month");
-  const [selectedEtf, setSelectedEtf] = useState<string>("0050");
+  const [payoutFrequency, setPayoutFrequency] = useState<PayoutFrequency>(DEFAULT_ETF_PRESET.frequency);
+  const [selectedEtf, setSelectedEtf] = useState<string>(DEFAULT_SELECTED_ETF_ID);
   const todayYear = new Date().getFullYear();
   const todayMonth = new Date().getMonth() + 1;
   const [defaultYearStr, setDefaultYearStr] = useState(() => String(todayYear));
@@ -541,6 +548,39 @@ export default function Home() {
     }
   }, [annualIncomeWan]);
   const [separateTaxOpen, setSeparateTaxOpen] = useState(false);
+  /** 稅務 UI：自動依級距套用合併／分開與試算；手動則顯示完整選項（僅手機版區塊；桌機經典版面不受此同步影響） */
+  const [taxSettingsMode, setTaxSettingsMode] = useState<TaxSettingsMode>("auto");
+  const [mobileTaxLayoutActive, setMobileTaxLayoutActive] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const read = () => {
+      const mq = window.matchMedia("(max-width: 768px)").matches;
+      const preview = document.documentElement.getAttribute("data-preview-mobile") === "true";
+      setMobileTaxLayoutActive(mq || preview);
+    };
+    read();
+    const mq = window.matchMedia("(max-width: 768px)");
+    mq.addEventListener("change", read);
+    const mo = new MutationObserver(read);
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-preview-mobile"] });
+    return () => {
+      mq.removeEventListener("change", read);
+      mo.disconnect();
+    };
+  }, []);
+  useEffect(() => {
+    if (!mobileTaxLayoutActive) return;
+    if (taxSettingsMode !== "auto") return;
+    setApplyTaxInTable(true);
+    setApplyNhi2InTable(true);
+    if (taxBracketRate >= 0.3) {
+      setSeparateTaxOpen(true);
+      setMergeTaxOpen(false);
+    } else {
+      setSeparateTaxOpen(false);
+      setMergeTaxOpen(true);
+    }
+  }, [mobileTaxLayoutActive, taxSettingsMode, taxBracketRate]);
   /** 表格手動覆蓋：key = "rowIdx_colKey"，value = 覆蓋的數值（顯示優先於算式結果） */
   const [manualOverrides, setManualOverrides] = useState<Record<string, number>>({});
   const [editingCell, setEditingCell] = useState<{ key: string; value: string } | null>(null);
@@ -694,11 +734,19 @@ export default function Home() {
 
   const filteredEtfs = useMemo(() => {
     const code = etfCodeFilter.replace(/\s/g, "").slice(0, 5);
-    if (!code) return TICKER_PRESETS;
-    return TICKER_PRESETS.filter(
-      (p) => p.id.includes(code) || p.id.startsWith(code) || p.label.includes(code),
-    );
-  }, [etfCodeFilter]);
+    const list = !code
+      ? TICKER_PRESETS
+      : TICKER_PRESETS.filter(
+          (p) => p.id.includes(code) || p.id.startsWith(code) || p.label.includes(code),
+        );
+    if (selectedEtf && selectedEtf !== "none") {
+      const cur = TICKER_PRESETS.find((p) => p.id === selectedEtf);
+      if (cur && !list.some((p) => p.id === selectedEtf)) {
+        return [cur, ...list];
+      }
+    }
+    return list;
+  }, [etfCodeFilter, selectedEtf]);
 
   useEffect(() => {
     if (!clientMounted) return;
@@ -733,12 +781,17 @@ export default function Home() {
       setEtfRatioEstimates(
         s.etfRatioEstimates && typeof s.etfRatioEstimates === "object" ? s.etfRatioEstimates : buildDefault54cRatioMap(),
       );
-      setEtfCodeFilter(typeof s.etfCodeFilter === "string" ? s.etfCodeFilter : "");
+      setEtfCodeFilter("");
     }
     setStorageReady(true);
   }, [clientMounted, maxNthPeriod]);
 
   const persistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /**
+   * 自動存 localStorage：刻意不傳依賴陣列，每次 commit 後以 debounce 寫入最新快照。
+   * 若使用長依賴陣列，在熱更新／部分裝置上曾出現「依賴陣列長度變動」的 React 執行期錯誤。
+   * 篩選字不寫入：etfCodeFilter 固定 ETF_CODE_FILTER_PERSIST。
+   */
   useEffect(() => {
     if (!clientMounted || !storageReady) return;
     const snap = buildSnapshotFromInputs({
@@ -766,7 +819,7 @@ export default function Home() {
       separateTaxOpen,
       manualOverrides,
       etfRatioEstimates,
-      etfCodeFilter,
+      etfCodeFilter: ETF_CODE_FILTER_PERSIST,
     });
     if (persistTimerRef.current) clearTimeout(persistTimerRef.current);
     persistTimerRef.current = setTimeout(() => {
@@ -775,35 +828,7 @@ export default function Home() {
     return () => {
       if (persistTimerRef.current) clearTimeout(persistTimerRef.current);
     };
-  }, [
-    clientMounted,
-    storageReady,
-    initialPrincipal,
-    monthlyContribution,
-    monthlyExtra,
-    annualReturnRate,
-    dividendYieldPct,
-    stockDividendPct,
-    rateSource,
-    targetQuarterIncome,
-    reinvestRatio,
-    payoutFrequency,
-    selectedEtf,
-    defaultYearStr,
-    defaultMonthStr,
-    initialYearStr,
-    initialMonthStr,
-    nthPeriod,
-    targetYearsToAchieve,
-    taxBracketRate,
-    applyTaxInTable,
-    applyNhi2InTable,
-    annualIncome,
-    separateTaxOpen,
-    manualOverrides,
-    etfRatioEstimates,
-    etfCodeFilter,
-  ]);
+  });
 
   const currentCalculatorSnapshot = useMemo(
     () =>
@@ -832,7 +857,7 @@ export default function Home() {
         separateTaxOpen,
         manualOverrides,
         etfRatioEstimates,
-        etfCodeFilter,
+        etfCodeFilter: ETF_CODE_FILTER_PERSIST,
       }),
     [
       initialPrincipal,
@@ -859,7 +884,6 @@ export default function Home() {
       separateTaxOpen,
       manualOverrides,
       etfRatioEstimates,
-      etfCodeFilter,
     ],
   );
 
@@ -934,14 +958,14 @@ export default function Home() {
     if (total <= 0 || effectiveAnnualRate <= 0) return null;
     const periodsPerYear = payoutFrequency === "month" ? 12 : payoutFrequency === "quarter" ? 4 : payoutFrequency === "semiannual" ? 2 : 1;
     const estimatedDividend = Math.round((total * (effectiveAnnualRate / 100)) / periodsPerYear);
-    const taxMethod = separateTaxOpen ? "separate" : "merge";
+    const taxMethod: "separate" | "merge" = separateTaxOpen ? "separate" : "merge";
     const taxRate = separateTaxOpen ? 0.28 : taxBracketRate;
     const taxRatePct = separateTaxOpen ? 28 : Math.round(taxBracketRate * 100);
     const bracketLabel = TAX_BRACKETS.find((b) => b.value === taxBracketRate)?.label ?? "";
     const ratioPct = selectedEtf !== "none" ? (parseFloat(String(etfRatioEstimates[selectedEtf] || "0").replace(/,/g, "")) || 50) : 100; // 個股 100%，ETF 依占比
     const nhi2Countable = Math.round(estimatedDividend * (ratioPct / 100));
     const ratio = ratioPct / 100;
-    const { tax: taxAmount, nhi2: nhi2Amount, credit, taxableBase } = getAfterTaxAndNhi2WithRate(
+    const { tax: taxAmount, nhi2: nhi2Amount, credit, taxableBase, net } = getAfterTaxAndNhi2WithRate(
       estimatedDividend,
       taxRate,
       true,
@@ -950,7 +974,22 @@ export default function Home() {
       ratio
     );
     const taxBeforeCredit = taxableBase * taxRate;
-    return { totalAssets: total, estimatedDividend, taxAmount: Math.round(taxAmount), taxRatePct, taxMethod, bracketLabel, nhi2Amount: Math.round(nhi2Amount), nhi2Countable, ratioPct, taxableBase: Math.round(taxableBase), credit: Math.round(credit), taxBeforeCredit: Math.round(taxBeforeCredit), periodsPerYear };
+    return {
+      totalAssets: total,
+      estimatedDividend,
+      taxAmount: Math.round(taxAmount),
+      taxRatePct,
+      taxMethod,
+      bracketLabel,
+      nhi2Amount: Math.round(nhi2Amount),
+      nhi2Countable,
+      ratioPct,
+      taxableBase: Math.round(taxableBase),
+      credit: Math.round(credit),
+      taxBeforeCredit: Math.round(taxBeforeCredit),
+      periodsPerYear,
+      netPerPeriod: Math.round(net),
+    };
   }, [totalPriceForEstimateStr, computedTotalForEstimate, effectiveAnnualRate, payoutFrequency, taxBracketRate, separateTaxOpen, selectedEtf, etfRatioEstimates]);
 
   /** 依所選 ETF 每股每期股利：約幾股以上需繳所得稅（單期股利 ≥ 2 萬） */
@@ -1261,18 +1300,19 @@ export default function Home() {
     setInitialPrincipal("0");
     setMonthlyContribution("12000");
     setMonthlyExtra("6000");
-    setAnnualReturnRate(7.2);
-    setDividendYieldPct("");
-    setStockDividendPct("");
-    setRateSource(null);
     setTargetQuarterIncome("50000");
     setReinvestRatio(80);
-    handlePayoutFrequencyChange("month");
-    setSelectedEtf("none");
     setTargetYearsToAchieve("20");
     setNthPeriod(1);
     setInitialYearStr(String(new Date().getFullYear()));
     setInitialMonthStr(String(new Date().getMonth() + 1));
+    setEtfCodeFilter("");
+    setSelectedEtf(DEFAULT_SELECTED_ETF_ID);
+    setAnnualReturnRate(DEFAULT_ETF_PRESET.annualReturn);
+    handlePayoutFrequencyChange(DEFAULT_ETF_PRESET.frequency);
+    setDividendYieldPct(DEFAULT_ETF_PRESET.dividendYieldPct ?? "");
+    setStockDividendPct(DEFAULT_ETF_PRESET.stockDividendPct ?? "");
+    setRateSource("dividend");
   }, [handlePayoutFrequencyChange]);
 
   const applyCalculatorSnapshot = useCallback(
@@ -1305,7 +1345,7 @@ export default function Home() {
       setEtfRatioEstimates(
         s.etfRatioEstimates && typeof s.etfRatioEstimates === "object" ? s.etfRatioEstimates : buildDefault54cRatioMap(),
       );
-      setEtfCodeFilter(typeof s.etfCodeFilter === "string" ? s.etfCodeFilter : "");
+      setEtfCodeFilter("");
     },
     [maxNthPeriod],
   );
@@ -2142,7 +2182,7 @@ export default function Home() {
         <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%", maxWidth: 1600, margin: "0 auto", position: "relative", paddingBottom: 4 }}>
           {/* 右上角：上方恢復、下方釘選 */}
           <div style={{ position: "absolute", top: 0, right: 0, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
-            <button type="button" onClick={() => { setInitialPrincipal("0"); setMonthlyContribution("12000"); setMonthlyExtra("6000"); setAnnualReturnRate(7.2); setDividendYieldPct(""); setStockDividendPct(""); setRateSource(null); setTargetQuarterIncome("50000"); setReinvestRatio(80); handlePayoutFrequencyChange("month"); setSelectedEtf("none"); setTargetYearsToAchieve("20"); setNthPeriod(1); setInitialYearStr(String(new Date().getFullYear())); setInitialMonthStr(String(new Date().getMonth() + 1)); }} style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: "1px solid rgba(57,255,20,0.6)", background: "rgba(57,255,20,0.16)", color: "#39ff14", cursor: "pointer" }}>恢復預設</button>
+            <button type="button" onClick={() => { setInitialPrincipal("0"); setMonthlyContribution("12000"); setMonthlyExtra("6000"); setTargetQuarterIncome("50000"); setReinvestRatio(80); setTargetYearsToAchieve("20"); setNthPeriod(1); setInitialYearStr(String(new Date().getFullYear())); setInitialMonthStr(String(new Date().getMonth() + 1)); setEtfCodeFilter(""); setSelectedEtf(DEFAULT_SELECTED_ETF_ID); setAnnualReturnRate(DEFAULT_ETF_PRESET.annualReturn); handlePayoutFrequencyChange(DEFAULT_ETF_PRESET.frequency); setDividendYieldPct(DEFAULT_ETF_PRESET.dividendYieldPct ?? ""); setStockDividendPct(DEFAULT_ETF_PRESET.stockDividendPct ?? ""); setRateSource("dividend"); }} style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: "1px solid rgba(57,255,20,0.6)", background: "rgba(57,255,20,0.16)", color: "#39ff14", cursor: "pointer" }}>恢復預設</button>
             <button type="button" onClick={() => setStickyBarPinned((p) => !p)} title={stickyBarPinned ? "取消釘選" : "釘選"} style={{ padding: "4px 8px", fontSize: 11, borderRadius: 6, border: "1px solid rgba(255,255,255,0.2)", background: stickyBarPinned ? "rgba(57,255,20,0.2)" : "rgba(255,255,255,0.08)", color: stickyBarPinned ? "#39ff14" : "#9ca3af", cursor: "pointer", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 12 }}>📌</span>
               {stickyBarPinned ? "已釘選" : "釘選"}
@@ -2201,16 +2241,24 @@ export default function Home() {
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "nowrap", justifyContent: "flex-start", minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                 <span style={{ fontSize: 11, color: "#9ca3af", whiteSpace: "nowrap" }}>ETF</span>
-                <input type="text" placeholder="篩選" maxLength={5} value={etfCodeFilter} onChange={(e) => handleEtfCodeChange(e.target.value)} style={{ ...inputStyle, width: 52, padding: "4px 6px", fontSize: 11 }} />
+                <input type="text" placeholder="篩選" maxLength={5} value={etfCodeFilter} title={`輸入 1–5 碼縮小清單；刪空可顯示全部 ${TICKER_PRESETS.length} 檔`} onChange={(e) => handleEtfCodeChange(e.target.value)} style={{ ...inputStyle, width: 52, padding: "4px 6px", fontSize: 11 }} />
                 <select value={selectedEtf} onChange={(e) => { const id = e.target.value; setSelectedEtf(id); const preset = TICKER_PRESETS.find((p) => p.id === id); if (preset) { setAnnualReturnRate(preset.annualReturn); handlePayoutFrequencyChange(preset.frequency as PayoutFrequency); setDividendYieldPct(preset.dividendYieldPct ?? ""); setStockDividendPct(preset.stockDividendPct ?? ""); setRateSource("dividend"); } }} style={{ ...inputStyle, padding: "4px 6px", fontSize: 11, minWidth: 110, height: 26 }}>
                   <option value="none">自訂</option>
                   {filteredEtfs.map((etf) => <option key={etf.id} value={etf.id}>{etf.label.split("（")[0]}</option>)}
                 </select>
               </div>
-              <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#d1d5db", cursor: "pointer", whiteSpace: "nowrap", marginLeft: 36 }}>
+              <label className="tax-sticky-desktop-only" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#d1d5db", cursor: "pointer", whiteSpace: "nowrap", marginLeft: 36 }}>
                 <input type="checkbox" checked={applyTaxInTable} onChange={(e) => setApplyTaxInTable(e.target.checked)} style={{ cursor: "pointer" }} />
                 <span>稅金</span>
               </label>
+              {taxSettingsMode === "manual" ? (
+                <label className="tax-sticky-mobile-only" style={{ alignItems: "center", gap: 4, fontSize: 11, color: "#d1d5db", cursor: "pointer", whiteSpace: "nowrap", marginLeft: 36 }}>
+                  <input type="checkbox" checked={applyTaxInTable} onChange={(e) => setApplyTaxInTable(e.target.checked)} style={{ cursor: "pointer" }} />
+                  <span>稅金</span>
+                </label>
+              ) : (
+                <span className="tax-sticky-mobile-only" style={{ fontSize: 11, color: "#6ee7b7", whiteSpace: "nowrap", marginLeft: 36 }}>稅金（自動）</span>
+              )}
             </div>
           </div>
           {/* 第二行：不換行、不顯示卷軸（版面夠寬） */}
@@ -2260,10 +2308,18 @@ export default function Home() {
               <input type="text" inputMode="numeric" value={defaultMonthStr} onChange={(e) => { const v = e.target.value.replace(/\D/g, ""); if (v === "" || v.length <= 2) setDefaultMonthStr(v); }} onBlur={() => { const n = parseInt(defaultMonthStr, 10); if (!Number.isFinite(n) || n < 1) setDefaultMonthStr(String(todayMonth)); else if (n > 12) setDefaultMonthStr("12"); }} style={{ ...inputStyle, width: 36, padding: "4px 6px", fontSize: 11, textAlign: "center" }} />
               <span style={{ fontSize: 10, color: "#9ca3af" }}>月</span>
               <button type="button" onClick={() => { const d = new Date(); setInitialYearStr(String(d.getFullYear())); setInitialMonthStr(String(d.getMonth() + 1)); }} style={{ padding: "4px 8px", fontSize: 10, borderRadius: 6, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.08)", color: "#e5e7eb", cursor: "pointer", flexShrink: 0 }}>恢復</button>
-              <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#d1d5db", cursor: "pointer", whiteSpace: "nowrap" }}>
+              <label className="tax-sticky-desktop-only" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#d1d5db", cursor: "pointer", whiteSpace: "nowrap" }}>
                 <input type="checkbox" checked={applyNhi2InTable} onChange={(e) => setApplyNhi2InTable(e.target.checked)} style={{ cursor: "pointer" }} />
                 <span>二代健保</span>
               </label>
+              {taxSettingsMode === "manual" ? (
+                <label className="tax-sticky-mobile-only" style={{ alignItems: "center", gap: 4, fontSize: 11, color: "#d1d5db", cursor: "pointer", whiteSpace: "nowrap" }}>
+                  <input type="checkbox" checked={applyNhi2InTable} onChange={(e) => setApplyNhi2InTable(e.target.checked)} style={{ cursor: "pointer" }} />
+                  <span>二代健保</span>
+                </label>
+              ) : (
+                <span className="tax-sticky-mobile-only" style={{ fontSize: 11, color: "#6ee7b7", whiteSpace: "nowrap" }}>二代（自動）</span>
+              )}
             </div>
           </div>
         </div>
@@ -2767,12 +2823,15 @@ export default function Home() {
               {/* 二、ETF + 股利發放頻率：左側篩選輸入 + 選擇 ETF 下拉 */}
               <div style={{ display: "flex", flexDirection: "row", gap: 10, alignItems: "flex-start", width: "100%", minWidth: 0, flexWrap: "wrap" }}>
                 <div style={{ flex: "1 1 0%", minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
-                  <label style={{ fontSize: 12, color: "#d1d5db", lineHeight: 1.2 }}>熱門高股息 ETF（輸入 1-5 碼篩選，共 10 檔）</label>
+                  <label style={{ fontSize: 12, color: "#d1d5db", lineHeight: 1.2 }} title={`清單共 ${TICKER_PRESETS.length} 檔（ETF 與股票）；篩選僅縮小選項`}>
+                    標的篩選（1–5 碼，共 {TICKER_PRESETS.length} 檔）
+                  </label>
                   <input
                     type="text"
                     placeholder="例：0050、00919"
                     value={etfCodeFilter}
                     maxLength={5}
+                    title={`刪空篩選可顯示全部 ${TICKER_PRESETS.length} 檔`}
                     onChange={(e) => {
                       const raw = e.target.value;
                       handleEtfCodeChange(raw);
@@ -3221,172 +3280,47 @@ export default function Home() {
           {/* 股金設定與試算 */}
           <div style={{ marginBottom: 0 }}>
             <h2 style={{ fontSize: 24, fontWeight: 600, color: "#e5e7eb", margin: "0 0 8px 0" }}>股金設定與試算</h2>
-            <div style={{ display: "flex", alignItems: "stretch", gap: 12, marginBottom: 0 }}>
-              <div style={{ flex: "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", padding: "10px 12px", background: "rgba(0,0,0,0.45)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10 }}>
-                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12, marginBottom: 8 }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#d1d5db", cursor: "pointer" }}>
-                    <input type="checkbox" checked={applyTaxInTable} onChange={(e) => setApplyTaxInTable(e.target.checked)} />
-                    <span>稅金</span>
-                  </label>
-                  <span style={{ fontSize: 12, color: "#9ca3af" }}>稅金級距</span>
-                  <select
-                    value={taxBracketRate}
-                    onChange={(e) => setTaxBracketRate(Number(e.target.value))}
-                    style={{ fontSize: 11, padding: "4px 8px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.5)", color: "#e5e7eb" }}
-                  >
-                    {TAX_BRACKETS.map((b) => (
-                      <option key={b.value} value={b.value}>{b.label}</option>
-                    ))}
-                  </select>
-                  <span style={{ fontSize: 11, color: "#9ca3af" }}>年收入</span>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <input
-                      type="text"
-                      value={annualIncome}
-                      onChange={(e) => setAnnualIncome(e.target.value)}
-                      placeholder=""
-                      style={{ ...inputStyle, width: 72, boxSizing: "border-box", height: 26, background: "rgba(0,0,0,0.5)", borderColor: "rgba(255,255,255,0.1)" }}
-                    />
-                    <span style={{ fontSize: 11, color: "#9ca3af" }}>萬</span>
-                    {annualIncomeYuan != null && (
-                      <span style={{ fontSize: 10, color: "#6b7280" }}>= {annualIncomeYuan.toLocaleString("zh-TW")} 元</span>
-                    )}
-                  </div>
-                </div>
-                <div style={{ display: "flex", gap: 0, borderTop: "1px dashed rgba(255,255,255,0.15)", paddingTop: 8, background: "rgba(0,0,0,0.25)", borderRadius: 8, padding: "8px 10px", marginTop: -1 }}>
-              <div style={{ flex: "1 1 50%", paddingRight: 16, borderRight: "1px dashed rgba(255,255,255,0.15)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, padding: "6px 8px", background: "rgba(0,0,0,0.35)", borderRadius: 6, opacity: taxBracketRate >= 0.30 ? 1 : 0.5 }}>
-                  <input type="checkbox" checked={mergeTaxOpen} onChange={(e) => { const v = e.target.checked; setMergeTaxOpen(v); if (v) setSeparateTaxOpen(false); }} style={{ cursor: "pointer", accentColor: taxBracketRate >= 0.30 ? "#3b82f6" : "#374151", opacity: taxBracketRate >= 0.30 ? 1 : 0.6 }} />
-                  <span style={{ fontSize: 12, color: taxBracketRate >= 0.30 ? "#d1d5db" : "#4b5563" }}>合併計稅</span>
-                </div>
-                <div style={{ fontSize: 11, lineHeight: 1.6, color: taxBracketRate >= 0.30 ? "#e5e7eb" : "#9ca3af" }}>
-                  <div style={{ fontWeight: 600, marginBottom: 6, display: "flex", alignItems: "center", gap: 6, color: taxBracketRate >= 0.30 ? "#e5e7eb" : "#9ca3af" }}>
-                    合併計稅（適合小資、一般上班族）
-                    <span
-                      onMouseEnter={() => setTooltipWhich("merge")}
-                      onMouseLeave={() => setTooltipWhich(null)}
-                      style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center", width: 14, height: 14, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.4)", color: "#9ca3af", fontSize: 10, cursor: "help" }}
-                    >i
-                      {tooltipWhich === "merge" && (
-                        <span style={{ position: "absolute", left: 0, top: "100%", marginTop: 4, zIndex: 10, padding: "10px 12px", background: "#ffffff", border: "1px solid #e5e7eb", borderRadius: 8, fontSize: 11, color: "#1f2937", lineHeight: 1.65, whiteSpace: "normal", width: 340, boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
-                          <strong>方式A：合併計稅</strong><br />
-                          做法：股利加進總所得一起算稅。應繳稅金＝股利×54C×級距；抵減額＝股利×54C×8.5%，上限 8 萬；實繳＝應繳−抵減。<br />
-                          <strong>舉例：股利 100 萬</strong>（可抵減 8 萬）<br />
-                          <span style={{ color: "#374151" }}>依你的綜所稅率，股利約繳：</span><br />
-                          5% → 5萬−8萬＝退稅（合併）｜分開固定 28萬<br />
-                          12% → 12萬−8萬＝<strong>4萬</strong>（合併）｜分開 28萬<br />
-                          20% → 20萬−8萬＝<strong>12萬</strong>（合併）｜分開 28萬<br />
-                          30% → 30萬−8萬＝<strong>22萬</strong>（合併）｜分開 28萬<br />
-                          40% → 40萬−8萬＝<strong>32萬</strong>（合併）｜分開 <strong>28萬</strong><br />
-                          → 稅率 30%、40% 時分開計稅繳較少。
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                  <ul style={{ margin: 0, paddingLeft: 18 }}>
-                    <li>優點：享有 8.5% 的可抵減稅額，上限 8 萬元（約股利 94 萬以內），小資／一般上班族通常較有利。</li>
-                  </ul>
-                </div>
-              </div>
-              <div style={{ flex: "1 1 50%", paddingLeft: 16 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, padding: "6px 8px", background: "rgba(0,0,0,0.35)", borderRadius: 6, opacity: taxBracketRate >= 0.30 ? 1 : 0.5 }}>
-                  <input type="checkbox" checked={separateTaxOpen} onChange={(e) => { const v = e.target.checked; setSeparateTaxOpen(v); if (v) setMergeTaxOpen(false); }} style={{ cursor: "pointer", accentColor: taxBracketRate >= 0.30 ? "#3b82f6" : "#374151", opacity: taxBracketRate >= 0.30 ? 1 : 0.6 }} />
-                  <span style={{ fontSize: 12, color: taxBracketRate >= 0.30 ? "#d1d5db" : "#4b5563" }}>分開計稅</span>
-                  <span style={{ fontSize: 12, color: taxBracketRate >= 0.30 ? "#39ff14" : "#374151", fontWeight: 600 }}>推薦使用</span>
-                </div>
-                <div style={{ fontSize: 11, lineHeight: 1.6, color: taxBracketRate >= 0.30 ? "#e5e7eb" : "#9ca3af" }}>
-                  <div style={{ fontWeight: 600, marginBottom: 6, display: "flex", alignItems: "center", gap: 6, color: taxBracketRate >= 0.30 ? "#e5e7eb" : "#9ca3af" }}>
-                    分開計稅（單獨列出 28%）
-                    <span
-                      onMouseEnter={() => setTooltipWhich("separate")}
-                      onMouseLeave={() => setTooltipWhich(null)}
-                      style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center", width: 14, height: 14, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.4)", color: "#9ca3af", fontSize: 10, cursor: "help" }}
-                    >i
-                      {tooltipWhich === "separate" && (
-                        <span style={{ position: "absolute", left: 0, top: "100%", marginTop: 4, zIndex: 10, padding: "10px 12px", background: "#ffffff", border: "1px solid #e5e7eb", borderRadius: 8, fontSize: 11, color: "#1f2937", lineHeight: 1.65, whiteSpace: "normal", width: 340, boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
-                          <strong>方式B：分開計稅</strong><br />
-                          做法：股利不併入其他所得，直接 股利×28%＝應納稅額。<br />
-                          <strong>舉例：股利 100 萬</strong> → 固定繳 100×28%＝<strong>28 萬</strong><br />
-                          <span style={{ color: "#374151" }}>與合併計稅對照：</span><br />
-                          稅率 5% → 合併退稅｜分開 28萬<br />
-                          稅率 12% → 合併 4萬｜分開 28萬<br />
-                          稅率 20% → 合併 12萬｜分開 28萬<br />
-                          稅率 30% → 合併 22萬｜分開 <strong>28萬</strong>（分開計稅較省）<br />
-                          稅率 40% → 合併 32萬｜分開 <strong>28萬</strong>（分開計稅較省）<br />
-                          → 稅率 30%、40% 選分開計稅；5%、12% 選合併計稅。
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                  <ul style={{ margin: 0, paddingLeft: 18 }}>
-                    <li>優點：高所得者可用固定 28% 稅率，避免綜合所得被股利推到更高級距。</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            {deductionEstimate && (
-              <div style={{ marginTop: 38, padding: "6px 8px", background: "rgba(0,0,0,0.2)", borderRadius: 8, fontSize: 11, color: "#d1d5db", lineHeight: 1.5, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-                <div style={{ fontWeight: 600, color: "#e5e7eb", marginBottom: 4, fontSize: 12 }}>以目前本金+投入+額外試算</div>
-                <div style={{ display: "grid", gap: 3 }}>
-                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 4 }}>
-                    <span style={{ color: "#9ca3af" }}>年收入級距</span>
-                    <span>{deductionEstimate.bracketLabel}</span>
-                    <span style={{ color: "#6b7280", marginLeft: 8 }}>｜</span>
-                    <span style={{ color: "#9ca3af" }}>稅金依</span>
-                    <strong>{deductionEstimate.taxMethod === "separate" ? "分開計稅" : "合併計稅"}</strong>
-                    <span>{deductionEstimate.taxMethod === "separate" ? "（28%）" : "（級距 " + deductionEstimate.taxRatePct + "%）"}</span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap", padding: "6px 0", borderTop: "1px dashed rgba(255,255,255,0.08)", borderBottom: "1px dashed rgba(255,255,255,0.08)" }}>
-                    <span>總股價</span>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="可輸入算式"
-                      value={totalPriceForEstimateStr}
-                      onChange={(e) => setTotalPriceForEstimateStr(e.target.value)}
-                      onBlur={() => {
-                        const raw = totalPriceForEstimateStr.replace(/,/g, "").trim();
-                        if (raw === "") setTotalPriceForEstimateStr(String(computedTotalForEstimate));
-                        else setTotalPriceForEstimateStr(commitFormula(raw));
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          const raw = totalPriceForEstimateStr.replace(/,/g, "").trim();
-                          if (raw === "") setTotalPriceForEstimateStr(String(computedTotalForEstimate));
-                          else setTotalPriceForEstimateStr(commitFormula(raw));
-                          (e.target as HTMLInputElement).blur();
-                        }
-                      }}
-                      style={{ ...inputStyle, width: 120, boxSizing: "border-box", height: 24 }}
-                    />
-                    <span>元</span>
-                    <span style={{ color: "#9ca3af" }}>→</span>
-                    <span>預估當期股利 <strong>{Math.round(deductionEstimate.estimatedDividend).toLocaleString("zh-TW")}</strong> 元</span>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                    <div>稅金約扣 <strong style={{ color: "#f5c451" }}>{deductionEstimate.taxAmount.toLocaleString("zh-TW")}</strong> 元{deductionEstimate.estimatedDividend < TAX_THRESHOLD ? "（未達 2 萬門檻）" : ""}</div>
-                    {deductionEstimate.taxMethod === "merge" && deductionEstimate.estimatedDividend >= TAX_THRESHOLD && (
-                      <div style={{ fontSize: 10, color: "#9ca3af" }}>公式：股利×54C×級距＝應繳稅金；股利×54C×8.5%＝抵減額（上限 8 萬）｜本例：{Math.round(deductionEstimate.estimatedDividend).toLocaleString("zh-TW")}×{deductionEstimate.ratioPct}%×{deductionEstimate.taxRatePct}%＝{deductionEstimate.taxBeforeCredit?.toLocaleString("zh-TW")} 元應繳；抵減 {deductionEstimate.credit?.toLocaleString("zh-TW")} 元 → 實繳 <strong style={{ color: "#f5c451" }}>{deductionEstimate.taxAmount.toLocaleString("zh-TW")}</strong> 元</div>
-                    )}
-                    {sharesForTaxThreshold != null && selectedEtfInfo && (
-                      <div style={{ fontSize: 10, color: "#9ca3af" }}>約 <strong style={{ color: "#e5e7eb" }}>{sharesForTaxThreshold.toLocaleString("zh-TW")}</strong> 股以上需繳所得稅（{selectedEtfInfo.id}）</div>
-                    )}
-                    {sharesForCreditCap80k != null && deductionEstimate?.taxMethod === "merge" && selectedEtfInfo && (
-                      <div style={{ fontSize: 10, color: "#9ca3af", lineHeight: 1.5 }}>
-                        <div>約 <strong style={{ color: "#39ff14" }}>{sharesForCreditCap80k.shares.toLocaleString("zh-TW")}</strong> 股可達 8 萬抵減上限（{selectedEtfInfo.id}，54C {sharesForCreditCap80k.ratioPct}%）</div>
-                        <div>
-                          <div>整年：{sharesForCreditCap80k.shares.toLocaleString("zh-TW")} 股 × {sharesForCreditCap80k.dividendPerPeriod} 元 × {sharesForCreditCap80k.periodsPerYear} 期 ≈ {sharesForCreditCap80k.annualDividendTotal.toLocaleString("zh-TW")} 元年股息（54C 約 {sharesForCreditCap80k.annual54C.toLocaleString("zh-TW")} 元）</div>
-                          <div>→ {sharesForCreditCap80k.annual54C.toLocaleString("zh-TW")} × 8.5% ＝ 年抵減 8 萬</div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-              </div>
-              <div style={{ flex: "1 1 0", minWidth: 200, display: "flex", flexDirection: "column", padding: "10px 12px", background: "rgba(0,0,0,0.15)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, gap: 2 }}>
+            {/* 桌機：重構前經典稅金版面（與 sticky 勾選一致，不受稅務模式自動同步影響） */}
+            <div id="desktop-tax-settings-row">
+              <TaxSettingsDesktopClassicLeftColumn
+                applyTaxInTable={applyTaxInTable}
+                setApplyTaxInTable={setApplyTaxInTable}
+                taxBracketRate={taxBracketRate}
+                setTaxBracketRate={setTaxBracketRate}
+                annualIncome={annualIncome}
+                setAnnualIncome={setAnnualIncome}
+                annualIncomeYuan={annualIncomeYuan}
+                mergeTaxOpen={mergeTaxOpen}
+                setMergeTaxOpen={setMergeTaxOpen}
+                separateTaxOpen={separateTaxOpen}
+                setSeparateTaxOpen={setSeparateTaxOpen}
+                taxBracketOptions={TAX_BRACKETS}
+                inputStyle={inputStyle}
+                deductionEstimate={deductionEstimate}
+                tooltipWhich={tooltipWhich}
+                setTooltipWhich={setTooltipWhich}
+                totalPriceForEstimateStr={totalPriceForEstimateStr}
+                setTotalPriceForEstimateStr={setTotalPriceForEstimateStr}
+                computedTotalForEstimate={computedTotalForEstimate}
+                commitFormula={commitFormula}
+                sharesForTaxThreshold={sharesForTaxThreshold}
+                sharesForCreditCap80k={sharesForCreditCap80k}
+                selectedEtfInfo={selectedEtfInfo ?? null}
+                taxThreshold={TAX_THRESHOLD}
+              />
+              <div
+                style={{
+                  flex: "1 1 0",
+                  minWidth: 200,
+                  display: "flex",
+                  flexDirection: "column",
+                  padding: "10px 12px",
+                  background: "rgba(0,0,0,0.15)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: 10,
+                  gap: 2,
+                }}
+              >
                 <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#d1d5db", cursor: "pointer" }}>
                   <input type="checkbox" checked={applyNhi2InTable} onChange={(e) => setApplyNhi2InTable(e.target.checked)} />
                   <span>二代健保</span>
@@ -3399,6 +3333,7 @@ export default function Home() {
                       placeholder="例: 0050、00919"
                       value={etfCodeFilter}
                       maxLength={5}
+                      title={`刪空篩選可顯示全部 ${TICKER_PRESETS.length} 檔`}
                       onChange={(e) => {
                         const raw = e.target.value;
                         handleEtfCodeChange(raw);
@@ -3534,6 +3469,209 @@ export default function Home() {
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* 手機：稅務模式 + 簡化／手動 UI（與 ?mobile=1 預覽一致） */}
+            <div id="mobile-tax-settings-row">
+              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "stretch", gap: 12, marginBottom: 0 }}>
+                <div style={{ flex: "1 1 280px", minWidth: 0, display: "flex", flexDirection: "column", padding: "10px 12px", background: "rgba(0,0,0,0.45)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10 }}>
+                  <TaxSettingsLeftPanel
+                    taxSettingsMode={taxSettingsMode}
+                    onTaxSettingsModeChange={setTaxSettingsMode}
+                    applyTaxInTable={applyTaxInTable}
+                    setApplyTaxInTable={setApplyTaxInTable}
+                    taxBracketRate={taxBracketRate}
+                    setTaxBracketRate={setTaxBracketRate}
+                    annualIncome={annualIncome}
+                    setAnnualIncome={setAnnualIncome}
+                    annualIncomeYuan={annualIncomeYuan}
+                    mergeTaxOpen={mergeTaxOpen}
+                    setMergeTaxOpen={setMergeTaxOpen}
+                    separateTaxOpen={separateTaxOpen}
+                    setSeparateTaxOpen={setSeparateTaxOpen}
+                    taxBracketOptions={TAX_BRACKETS}
+                    inputStyle={inputStyle}
+                    deductionEstimate={deductionEstimate}
+                    tooltipWhich={tooltipWhich}
+                    setTooltipWhich={setTooltipWhich}
+                    totalPriceForEstimateStr={totalPriceForEstimateStr}
+                    setTotalPriceForEstimateStr={setTotalPriceForEstimateStr}
+                    computedTotalForEstimate={computedTotalForEstimate}
+                    commitFormula={commitFormula}
+                    sharesForTaxThreshold={sharesForTaxThreshold}
+                    sharesForCreditCap80k={sharesForCreditCap80k}
+                    selectedEtfInfo={selectedEtfInfo ?? null}
+                    taxThreshold={TAX_THRESHOLD}
+                  />
+                </div>
+                <div
+                  style={{
+                    flex: "1 1 280px",
+                    minWidth: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    padding: "10px 12px",
+                    background: taxSettingsMode === "manual" ? "rgba(0,0,0,0.22)" : "rgba(0,0,0,0.15)",
+                    border: taxSettingsMode === "manual" ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 10,
+                    gap: 2,
+                    opacity: taxSettingsMode === "manual" ? 0.92 : 1,
+                  }}
+                >
+                  {taxSettingsMode === "manual" ? (
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#d1d5db", cursor: "pointer" }}>
+                      <input type="checkbox" checked={applyNhi2InTable} onChange={(e) => setApplyNhi2InTable(e.target.checked)} />
+                      <span>二代健保</span>
+                    </label>
+                  ) : (
+                    <div style={{ fontSize: 12, color: "#6ee7b7", fontWeight: 500, paddingBottom: 2 }}>二代健保 · 已納入試算</div>
+                  )}
+                  <div style={{ display: "flex", flexDirection: "row", flexWrap: "nowrap", gap: 8, alignItems: "flex-end" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      <label style={{ fontSize: 11, color: "#9ca3af", lineHeight: 1.3 }}>輸入代碼</label>
+                      <input
+                        type="text"
+                        placeholder="例: 0050、00919"
+                        value={etfCodeFilter}
+                        maxLength={5}
+                        title={`刪空篩選可顯示全部 ${TICKER_PRESETS.length} 檔`}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          handleEtfCodeChange(raw);
+                        }}
+                        style={{ ...inputStyle, width: 72, boxSizing: "border-box", height: 26 }}
+                      />
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      <label style={{ fontSize: 11, color: "#9ca3af", lineHeight: 1.3 }}>選擇 ETF</label>
+                      <select
+                        value={selectedEtf}
+                        onChange={(e) => {
+                          const id = e.target.value;
+                          setSelectedEtf(id);
+                          const preset = TICKER_PRESETS.find((p) => p.id === id);
+                          if (preset) {
+                            setAnnualReturnRate(preset.annualReturn);
+                            handlePayoutFrequencyChange(preset.frequency as PayoutFrequency);
+                            setDividendYieldPct(preset.dividendYieldPct ?? "");
+                            setStockDividendPct(preset.stockDividendPct ?? "");
+                            setRateSource("dividend");
+                          }
+                        }}
+                        style={{ ...inputStyle, paddingRight: 24, width: 260, boxSizing: "border-box", height: 26 }}
+                      >
+                        <option value="none">不使用預設（自行輸入年化）</option>
+                        {filteredEtfs.map((etf) => (
+                          <option key={etf.id} value={etf.id}>{etf.label} 占比 {etfRatioEstimates[etf.id] !== undefined && etfRatioEstimates[etf.id] !== "" ? etfRatioEstimates[etf.id] + "%" : "?"}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      <label style={{ fontSize: 11, color: "#9ca3af", lineHeight: 1.3 }}>54C 占比(手動調整)</label>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <input
+                          type="text"
+                          value={selectedEtf !== "none" ? (etfRatioEstimates[selectedEtf] ?? "") : ""}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            if (selectedEtf !== "none") setEtfRatioEstimates((prev) => ({ ...prev, [selectedEtf]: v }));
+                          }}
+                          placeholder="—"
+                          style={{ ...inputStyle, width: 40, boxSizing: "border-box", height: 26, textAlign: "center" }}
+                        />
+                        <span style={{ fontSize: 11, color: "#9ca3af" }}>%</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 11, lineHeight: 1.5, color: "#9ca3af", marginTop: 2, paddingTop: 2, borderTop: "1px dashed rgba(255,255,255,0.08)" }}>
+                    <span style={{ color: "#d1d5db" }}>單筆股利 &gt; 2 萬按 2.11% 計收；</span>僅「54C 股利」計入，平準金與資本利得免計。
+                    <span
+                      onMouseEnter={() => setTooltipWhich("nhi2")}
+                      onMouseLeave={() => setTooltipWhich(null)}
+                      style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center", width: 14, height: 14, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.4)", color: "#9ca3af", fontSize: 10, cursor: "help", marginLeft: 4, verticalAlign: "middle" }}
+                    >i
+                      {tooltipWhich === "nhi2" && (
+                        <span style={{ position: "absolute", right: 0, bottom: "100%", marginBottom: 6, zIndex: 10, padding: "12px 14px", background: "#ffffff", border: "1px solid #e5e7eb", borderRadius: 8, fontSize: 11, color: "#1f2937", lineHeight: 1.7, whiteSpace: "normal", width: 340, boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}>
+                          <strong>二代健保補充保費怎麼算？</strong><br />
+                          單筆股利超過 2 萬的部分，要繳 2.11% 補充保費。但<strong>不是整筆股利都算</strong>：只有「54C 股利」要計入，收益平準金、資本利得不用算。<br /><br />
+                          <strong>實際例子（數字）</strong><br />
+                          假設這筆領到股利 <strong>10 萬</strong>，54C 占比 <strong>50%</strong>：<br />
+                          · 要計入的金額＝10 萬×50%＝<strong>5 萬</strong><br />
+                          · 5 萬 &gt; 2 萬門檻 → 補充保費＝5 萬×2.11%＝<strong>1,055 元</strong><br /><br />
+                          若誤把整筆 10 萬都算：10 萬×2.11%＝2,110 元，多算了 <strong>1,055 元</strong>。                        所以上面「占比」就是在填 54C 大概占幾成，算出來才不會高估。
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  {nhi2FreeEstimate && selectedEtfInfo ? (
+                    <div style={{ marginTop: 2, padding: "6px 8px", background: "rgba(0,0,0,0.15)", borderRadius: 8, fontSize: 11, color: "#d1d5db", lineHeight: 1.5, border: "1px solid rgba(255,255,255,0.06)" }}>
+                      <div style={{ fontWeight: 600, color: "#e5e7eb", marginBottom: 4, fontSize: 12 }}>{selectedEtf}-{selectedEtfInfo.label.split("（")[0].trim()}</div>
+                      <div>約 <strong style={{ color: "#39ff14" }}>{nhi2FreeEstimate.maxDividend.toLocaleString("zh-TW")}</strong> 元股利以內不用繳（54C {nhi2FreeEstimate.ratioPct}%）</div>
+                      <div style={{ fontSize: 10, color: "#9ca3af", marginTop: 4 }}>試算：2 萬 ÷ {nhi2FreeEstimate.ratioPct}% ＝ {nhi2FreeEstimate.maxDividend.toLocaleString("zh-TW")} 元</div>
+                      {nhi2FreeEstimate.shares != null && nhi2FreeEstimate.price != null && nhi2FreeEstimate.dividendPerPeriod != null && (
+                        <div style={{ marginTop: 4, fontSize: 10, color: "#9ca3af" }}>
+                          約 <strong style={{ color: "#d1d5db" }}>{nhi2FreeEstimate.shares.toLocaleString("zh-TW")}</strong> 股（股價 {nhi2FreeEstimate.price} 元、每股 {nhi2FreeEstimate.dividendPerPeriod} 元/期）
+                          {nhi2FreeEstimate.marketValue != null && <> · 市值約 <strong>{nhi2FreeEstimate.marketValue.toLocaleString("zh-TW")}</strong> 元</>}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{ marginTop: 12, fontSize: 11, color: "#6b7280" }}>請選擇 ETF 並輸入 54C 占比，即可試算。</div>
+                  )}
+                  {taxSettingsMode === "manual" && deductionEstimate && (
+                    <div style={{ marginTop: 2, padding: "6px 8px", background: "rgba(0,0,0,0.2)", borderRadius: 8, fontSize: 11, color: "#d1d5db", lineHeight: 1.5, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+                      <div style={{ fontWeight: 600, color: "#e5e7eb", marginBottom: 4, fontSize: 12 }}>以目前本金+投入+額外試算</div>
+                      <div style={{ display: "grid", gap: 3 }}>
+                        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 4 }}>
+                          <span style={{ color: "#9ca3af" }}>年收入級距</span>
+                          <span>{deductionEstimate.bracketLabel}</span>
+                          <span style={{ color: "#6b7280", marginLeft: 8 }}>｜</span>
+                          <span style={{ color: "#9ca3af" }}>稅金依</span>
+                          <strong>{deductionEstimate.taxMethod === "separate" ? "分開計稅" : "合併計稅"}</strong>
+                          <span>{deductionEstimate.taxMethod === "separate" ? "（28%）" : "（級距 " + deductionEstimate.taxRatePct + "%）"}</span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap", padding: "6px 0", borderTop: "1px dashed rgba(255,255,255,0.08)", borderBottom: "1px dashed rgba(255,255,255,0.08)" }}>
+                          <span>總股價</span>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="可輸入算式"
+                            value={totalPriceForEstimateStr}
+                            onChange={(e) => setTotalPriceForEstimateStr(e.target.value)}
+                            onBlur={() => {
+                              const raw = totalPriceForEstimateStr.replace(/,/g, "").trim();
+                              if (raw === "") setTotalPriceForEstimateStr(String(computedTotalForEstimate));
+                              else setTotalPriceForEstimateStr(commitFormula(raw));
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                const raw = totalPriceForEstimateStr.replace(/,/g, "").trim();
+                                if (raw === "") setTotalPriceForEstimateStr(String(computedTotalForEstimate));
+                                else setTotalPriceForEstimateStr(commitFormula(raw));
+                                (e.target as HTMLInputElement).blur();
+                              }
+                            }}
+                            style={{ ...inputStyle, width: 120, boxSizing: "border-box", height: 24 }}
+                          />
+                          <span>元</span>
+                          <span style={{ color: "#9ca3af" }}>→</span>
+                          <span>預估當期股利 <strong>{Math.round(deductionEstimate.estimatedDividend).toLocaleString("zh-TW")}</strong> 元</span>
+                        </div>
+                        {deductionEstimate.nhi2Countable != null && (
+                          <div style={{ fontSize: 10, color: "#9ca3af" }}>54C 計入約 <strong>{Math.round(deductionEstimate.nhi2Countable).toLocaleString("zh-TW")}</strong> 元（{deductionEstimate.ratioPct}%）</div>
+                        )}
+                        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                          <div>二代健保約扣 <strong style={{ color: "#f5c451" }}>{deductionEstimate.nhi2Amount.toLocaleString("zh-TW")}</strong> 元{deductionEstimate.nhi2Amount === 0 ? "（未達 2 萬門檻）" : "（2.11%）"}</div>
+                          {sharesForNhi2Threshold != null && selectedEtfInfo && (
+                            <div style={{ fontSize: 10, color: "#9ca3af" }}>約 <strong style={{ color: "#e5e7eb" }}>{sharesForNhi2Threshold.toLocaleString("zh-TW")}</strong> 股以上需繳二代健保（{selectedEtfInfo.id}）</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

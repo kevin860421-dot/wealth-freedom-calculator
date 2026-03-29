@@ -43,8 +43,10 @@ export function MobileGoalSettingSection({
 
   const [incomeFlash, setIncomeFlash] = useState(false);
   const [assetsFlash, setAssetsFlash] = useState(false);
+  const [sliderToast, setSliderToast] = useState<string | null>(null);
   const prevIncome = useRef(targetQuarterIncomeNum);
   const prevAssets = useRef(requiredAssetsForTarget);
+  const prevIncomeToast = useRef<number | null>(null);
 
   useEffect(() => {
     if (prevIncome.current !== targetQuarterIncomeNum) {
@@ -53,6 +55,23 @@ export function MobileGoalSettingSection({
       const t = window.setTimeout(() => setIncomeFlash(false), 320);
       return () => window.clearTimeout(t);
     }
+  }, [targetQuarterIncomeNum]);
+
+  useEffect(() => {
+    if (prevIncomeToast.current === null) {
+      prevIncomeToast.current = targetQuarterIncomeNum;
+      return;
+    }
+    const prev = prevIncomeToast.current;
+    if (prev === targetQuarterIncomeNum) return;
+    const d = targetQuarterIncomeNum - prev;
+    prevIncomeToast.current = targetQuarterIncomeNum;
+    if (d === 0) return;
+    setSliderToast(
+      d > 0 ? `每月多 ${Math.abs(d).toLocaleString("zh-TW")} 元` : `每月少 ${Math.abs(d).toLocaleString("zh-TW")} 元`,
+    );
+    const t = window.setTimeout(() => setSliderToast(null), 1000);
+    return () => window.clearTimeout(t);
   }, [targetQuarterIncomeNum]);
 
   useEffect(() => {
@@ -75,11 +94,18 @@ export function MobileGoalSettingSection({
 
       <div className={styles.sliderSection}>
         <p className={styles.sliderLabel}>目標月收入</p>
-        <div className={`${styles.bigNumWrap} ${incomeFlash ? styles.bigNumWrapFlash : ""}`}>
-          <p className={styles.bigNum}>
-            {targetQuarterIncomeNum.toLocaleString("zh-TW")}
-            <span className={styles.bigUnit}>元 / 月</span>
-          </p>
+        <div className={styles.bigNumArea}>
+          {sliderToast ? (
+            <div className={styles.sliderToast} role="status" aria-live="polite">
+              {sliderToast}
+            </div>
+          ) : null}
+          <div className={`${styles.bigNumWrap} ${incomeFlash ? styles.bigNumWrapFlash : ""}`}>
+            <p className={styles.bigNum}>
+              <span className={styles.bigNumDigits}>{targetQuarterIncomeNum.toLocaleString("zh-TW")}</span>
+              <span className={styles.bigUnit}>元 / 月</span>
+            </p>
+          </div>
         </div>
 
         <div className={styles.sliderWrap}>
@@ -102,7 +128,6 @@ export function MobileGoalSettingSection({
         </div>
 
         <div className={styles.manualRow}>
-          <span className={styles.manualLabel}>手動輸入（元／月）</span>
           <input
             type="text"
             inputMode="decimal"
@@ -119,6 +144,7 @@ export function MobileGoalSettingSection({
             className={styles.manualInput}
             aria-label="手動輸入目標月收入"
           />
+          <span className={styles.manualLabel}>手動輸入（元／月）</span>
         </div>
       </div>
 
@@ -195,6 +221,9 @@ export function MobileGoalSettingSection({
             className={`${styles.resultValuePrimary} ${assetsFlash ? styles.resultValuePrimaryFlash : ""}`}
           >
             {requiredAssetsForTarget != null ? `${requiredAssetsForTarget.toLocaleString("zh-TW")} 元` : "—"}
+          </div>
+          <div className={styles.resultYearsHint}>
+            約 {Math.max(0, Math.round(parseFormula(targetYearsToAchieve) || 0))} 年後達成
           </div>
         </div>
         <div className={styles.resultSecondary}>

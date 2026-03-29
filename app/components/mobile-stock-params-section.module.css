@@ -1,7 +1,7 @@
 /* 僅 MobileStockParamsSection（#mobile-stock-params） */
 
 .root {
-  padding: 22px 18px 26px;
+  padding: 14px 18px 26px;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(11, 17, 32, 0.82);
@@ -21,6 +21,7 @@
   align-items: flex-start;
   gap: 12px;
   flex-wrap: wrap;
+  padding-bottom: 14px;
 }
 
 .headActions {
@@ -365,11 +366,12 @@
 
 /* 進階區：視覺降權（較暗、細邊框、無 glow），與基本設定區分層級 */
 .advancedShell {
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.055);
-  background: rgba(0, 0, 0, 0.42);
+  border-radius: 12px;
+  border: 1px solid rgba(52, 211, 153, 0.12);
+  background: linear-gradient(165deg, rgba(15, 23, 42, 0.55), rgba(0, 0, 0, 0.38));
   padding: 10px 10px 12px;
   box-sizing: border-box;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .advancedToggle {
@@ -403,14 +405,14 @@
 }
 
 .advancedToggleSub {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .advancedLead {
-  font-size: 11px;
-  color: #64748b;
+  font-size: 12px;
+  color: #94a3b8;
   line-height: 1.45;
   margin: 8px 0 0;
   padding: 0 0 2px;

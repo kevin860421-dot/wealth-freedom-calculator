@@ -94,3 +94,63 @@ html[data-preview-mobile="true"] #desktop-stock-params {
 html[data-preview-mobile="true"] #mobile-stock-params {
   display: block !important;
 }
+
+/**
+ * 首頁「股金設定與試算」：桌機經典兩欄／手機稅務模式兩欄，與 Hero 相同切換邏輯。
+ */
+#desktop-tax-settings-row {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  margin-bottom: 0;
+  flex-wrap: nowrap;
+}
+
+#mobile-tax-settings-row {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  #desktop-tax-settings-row {
+    display: none !important;
+  }
+
+  #mobile-tax-settings-row {
+    display: block !important;
+  }
+}
+
+html[data-preview-mobile="true"] #desktop-tax-settings-row {
+  display: none !important;
+}
+
+html[data-preview-mobile="true"] #mobile-tax-settings-row {
+  display: block !important;
+}
+
+/** sticky 橫幅：桌機顯示勾選；手機顯示「自動」文案（與手機稅務區一致） */
+.tax-sticky-desktop-only {
+  display: inline-flex;
+}
+
+.tax-sticky-mobile-only {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .tax-sticky-desktop-only {
+    display: none !important;
+  }
+
+  .tax-sticky-mobile-only {
+    display: inline-flex !important;
+  }
+}
+
+html[data-preview-mobile="true"] .tax-sticky-desktop-only {
+  display: none !important;
+}
+
+html[data-preview-mobile="true"] .tax-sticky-mobile-only {
+  display: inline-flex !important;
+}

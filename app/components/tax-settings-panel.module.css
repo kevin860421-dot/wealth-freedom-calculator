@@ -1,0 +1,176 @@
+/* 稅務設定：自動／手動切換與動畫（與 Tailwind 等效之 utility 語意） */
+
+.modeRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.modeLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.radioOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: #d1d5db;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.radioOption input {
+  margin-top: 3px;
+  accent-color: #34d399;
+  cursor: pointer;
+}
+
+.autoCard {
+  border-radius: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(52, 211, 153, 0.45);
+  background: linear-gradient(145deg, rgba(6, 78, 59, 0.35) 0%, rgba(0, 0, 0, 0.35) 100%);
+  box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.12);
+}
+
+.autoLead {
+  font-size: 13px;
+  font-weight: 600;
+  color: #a7f3d0;
+  margin-bottom: 4px;
+}
+
+.autoSub {
+  font-size: 11px;
+  color: #9ca3af;
+  line-height: 1.45;
+  margin-bottom: 10px;
+}
+
+.netBig {
+  font-size: 22px;
+  font-weight: 700;
+  color: #39ff14;
+  letter-spacing: 0.02em;
+  margin-bottom: 8px;
+}
+
+.netLabel {
+  font-size: 11px;
+  color: #9ca3af;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.includedList {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 10px;
+  color: #6b7280;
+  line-height: 1.55;
+}
+
+.manualShell {
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.2);
+  opacity: 0.92;
+}
+
+.panelAnim {
+  display: grid;
+  transition: grid-template-rows 0.38s ease, opacity 0.28s ease;
+}
+
+.panelAnimCollapsed {
+  grid-template-rows: 0fr;
+  opacity: 0.65;
+}
+
+.panelAnimOpen {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.panelAnimInner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panelAnim {
+    transition: none;
+  }
+}
+
+.manualTopRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.twoColTax {
+  display: flex;
+  gap: 0;
+  border-top: 1px dashed rgba(255, 255, 255, 0.15);
+  padding-top: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-top: -1px;
+  flex-direction: column;
+}
+
+@media (min-width: 640px) {
+  .twoColTax {
+    flex-direction: row;
+  }
+}
+
+.twoColTax > div:first-child {
+  flex: 1 1 50%;
+  padding-right: 0;
+  padding-bottom: 12px;
+  border-right: none;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.twoColTax > div:last-child {
+  flex: 1 1 50%;
+  padding-left: 0;
+  padding-top: 8px;
+}
+
+@media (min-width: 640px) {
+  .twoColTax > div:first-child {
+    padding-right: 16px;
+    padding-bottom: 0;
+    border-right: 1px dashed rgba(255, 255, 255, 0.15);
+    border-bottom: none;
+  }
+  .twoColTax > div:last-child {
+    padding-left: 16px;
+    padding-top: 0;
+  }
+}
+
+.estimateBlock {
+  margin-top: 12px;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  font-size: 11px;
+  color: #d1d5db;
+  line-height: 1.5;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.autoEstimateTight {
+  margin-top: 10px;
+}

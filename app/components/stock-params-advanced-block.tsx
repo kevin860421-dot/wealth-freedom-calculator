@@ -6,7 +6,7 @@ import { TICKER_PRESETS } from "../ticker-presets";
 export type PayoutFrequency = "month" | "quarter" | "semiannual" | "year";
 export type RateSource = "annual" | "dividend" | null;
 
-const inputStyle: CSSProperties = {
+const inputStyleBase: CSSProperties = {
   backgroundColor: "rgba(0,0,0,0.4)",
   borderRadius: 6,
   border: "1px solid rgba(255,255,255,0.1)",
@@ -137,26 +137,54 @@ export function StockParamsAdvancedBlock({
   stackEtfRow = false,
   mobileGrouped = false,
 }: StockParamsAdvancedBlockProps) {
-  const mobileGroupBox: CSSProperties = {
-    padding: "10px 10px 12px",
-    borderRadius: 10,
-    background: "rgba(0,0,0,0.38)",
-    border: "1px solid rgba(255,255,255,0.06)",
-    marginBottom: 10,
-  };
-  const mobileSubTitle: CSSProperties = {
-    fontSize: 11,
-    fontWeight: 600,
-    color: "#64748b",
-    letterSpacing: "0.04em",
+  const m = mobileGrouped && stackEtfRow;
+  const inputStyle: CSSProperties = m
+    ? {
+        ...inputStyleBase,
+        fontSize: 13,
+        padding: "8px 10px",
+        borderRadius: 8,
+        border: "1px solid rgba(255,255,255,0.12)",
+      }
+    : inputStyleBase;
+
+  const mobileGroupBox = (accent: string): CSSProperties => ({
+    padding: "8px 10px 10px",
+    borderRadius: 12,
+    background: "linear-gradient(165deg, rgba(15, 23, 42, 0.55), rgba(0, 0, 0, 0.42))",
+    border: "1px solid rgba(255, 255, 255, 0.07)",
+    borderLeft: `3px solid ${accent}`,
+    marginBottom: 8,
+  });
+  const mobileSubTitle = (color: string): CSSProperties => ({
+    fontSize: 13,
+    fontWeight: 700,
+    color,
+    letterSpacing: "0.02em",
     margin: "0 0 6px 0",
-  };
+  });
   const mobileHintLine: CSSProperties = {
-    fontSize: 10,
-    color: "#64748b",
+    fontSize: 11,
+    color: "#94a3b8",
     lineHeight: 1.45,
     margin: "0 0 8px 0",
   };
+  const labelMobile: CSSProperties = {
+    fontSize: 13,
+    fontWeight: 600,
+    color: "#cbd5e1",
+    lineHeight: 1.25,
+  };
+
+  const tickerPresetCount = TICKER_PRESETS.length;
+  const default0050Hint = (() => {
+    const p = TICKER_PRESETS.find((x) => x.id === "0050");
+    if (!p) return "預設標的：0050";
+    const fl =
+      p.frequency === "month" ? "月配" : p.frequency === "quarter" ? "季配" : p.frequency === "semiannual" ? "半年配" : "年配";
+    return `預設標的：0050（${fl}）`;
+  })();
+  const etfFilterTitle = `輸入 1–5 碼篩選標的，清單共 ${tickerPresetCount} 檔（ETF 與股票）`;
 
   const showDividendMonthBadges =
     !!selectedEtfInfo &&
@@ -197,27 +225,41 @@ export function StockParamsAdvancedBlock({
     flexWrap: stackEtfRow ? "nowrap" : "wrap",
   };
 
+  const etfMobileTwoCol: CSSProperties = {
+    display: "grid",
+    gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+    gap: 10,
+    alignItems: "start",
+    width: "100%",
+    minWidth: 0,
+  };
+
+  const fieldH = m ? 42 : stackEtfRow ? 40 : 28;
+  const stepH = m ? 36 : 28;
+
   return (
     <>
       {mobileGrouped && stackEtfRow ? (
         <>
-          <div style={mobileGroupBox}>
-            <p style={mobileSubTitle}>① ETF 設定</p>
-            <p style={mobileHintLine}>預設值：0050 + 月配</p>
-            <div style={etfRowStyle}>
-              <div style={{ flex: stackEtfRow ? "none" : "1 1 0%", minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
-                <label style={{ fontSize: 12, color: "#d1d5db", lineHeight: 1.2 }}>熱門高股息 ETF（輸入 1-5 碼篩選，共 10 檔）</label>
+          <div style={mobileGroupBox("#a78bfa")}>
+            <p style={mobileSubTitle("#e9d5ff")}>① ETF 設定</p>
+            <p style={mobileHintLine}>{default0050Hint}</p>
+            <div style={etfMobileTwoCol}>
+              <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 4 }}>
+                <label style={labelMobile} title={etfFilterTitle}>
+                  ETF 篩選（1–5 碼，共 {tickerPresetCount} 檔）
+                </label>
                 <input
                   type="text"
-                  placeholder="例：0050、00919"
+                  placeholder="例：0050"
                   value={etfCodeFilter}
                   maxLength={5}
                   onChange={(e) => handleEtfCodeChange(e.target.value)}
-                  style={{ ...inputStyle, width: "100%", boxSizing: "border-box", height: stackEtfRow ? 40 : 28 }}
+                  style={{ ...inputStyle, width: "100%", boxSizing: "border-box", height: fieldH }}
                 />
               </div>
-              <div style={{ flex: stackEtfRow ? "none" : "1.2 1 0%", minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
-                <label style={{ fontSize: 12, color: "#d1d5db", lineHeight: 1.2 }}>選擇 ETF</label>
+              <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 4 }}>
+                <label style={labelMobile}>選擇 ETF</label>
                 <select
                   value={selectedEtf}
                   onChange={(e) => {
@@ -232,7 +274,7 @@ export function StockParamsAdvancedBlock({
                       setRateSource("dividend");
                     }
                   }}
-                  style={{ ...inputStyle, paddingRight: 24, width: "100%", boxSizing: "border-box", minWidth: 0, height: stackEtfRow ? 40 : 28 }}
+                  style={{ ...inputStyle, paddingRight: 24, width: "100%", boxSizing: "border-box", minWidth: 0, height: fieldH }}
                 >
                   <option value="none">不使用預設（自行輸入年化）</option>
                   {filteredEtfs.map((etf) => (
@@ -244,35 +286,39 @@ export function StockParamsAdvancedBlock({
               </div>
             </div>
           </div>
-          <div style={mobileGroupBox}>
-            <p style={mobileSubTitle}>② 配息設定</p>
-            <p style={mobileHintLine}>預設值：0050 + 月配</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <label style={{ fontSize: 12, color: "#d1d5db", lineHeight: 1.2 }}>股利發放頻率</label>
-              <select
-                value={payoutFrequency}
-                onChange={(e) => handlePayoutFrequencyChange(e.target.value as PayoutFrequency)}
-                style={{ ...inputStyle, paddingRight: 24, width: "100%", boxSizing: "border-box", height: stackEtfRow ? 40 : 28 }}
-              >
-                <option value="month">月領</option>
-                <option value="quarter">季領</option>
-                <option value="semiannual">半年領</option>
-                <option value="year">年領</option>
-              </select>
-            </div>
-            <div style={{ marginTop: 10 }}>
-              <span style={{ fontSize: 12, color: "#94a3b8", display: "block", marginBottom: 4 }}>投入月份</span>
-              {dividendMonthBadgesEl}
-              {!showDividendMonthBadges ? (
-                <p style={{ fontSize: 11, color: "#64748b", margin: "4px 0 0", lineHeight: 1.45 }}>月配時為每月；非月配時顯示除息月</p>
-              ) : null}
+          <div style={mobileGroupBox("#38bdf8")}>
+            <p style={mobileSubTitle("#bae6fd")}>② 配息設定</p>
+            <p style={mobileHintLine}>{default0050Hint}</p>
+            <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 10, alignItems: "start" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
+                <label style={labelMobile}>股利發放頻率</label>
+                <select
+                  value={payoutFrequency}
+                  onChange={(e) => handlePayoutFrequencyChange(e.target.value as PayoutFrequency)}
+                  style={{ ...inputStyle, paddingRight: 24, width: "100%", boxSizing: "border-box", height: fieldH }}
+                >
+                  <option value="month">月領</option>
+                  <option value="quarter">季領</option>
+                  <option value="semiannual">半年領</option>
+                  <option value="year">年領</option>
+                </select>
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <span style={{ ...labelMobile, display: "block", marginBottom: 4 }}>投入月份</span>
+                {dividendMonthBadgesEl}
+                {!showDividendMonthBadges ? (
+                  <p style={{ fontSize: 11, color: "#94a3b8", margin: "4px 0 0", lineHeight: 1.45 }}>月配為每月；非月配顯示除息月</p>
+                ) : null}
+              </div>
             </div>
           </div>
         </>
       ) : (
         <div style={etfRowStyle}>
           <div style={{ flex: stackEtfRow ? "none" : "1 1 0%", minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
-            <label style={{ fontSize: 12, color: "#d1d5db", lineHeight: 1.2 }}>熱門高股息 ETF（輸入 1-5 碼篩選，共 10 檔）</label>
+            <label style={{ fontSize: 12, color: "#d1d5db", lineHeight: 1.2 }} title={etfFilterTitle}>
+              標的篩選（1–5 碼，共 {tickerPresetCount} 檔）
+            </label>
             <input
               type="text"
               placeholder="例：0050、00919"
@@ -399,24 +445,25 @@ export function StockParamsAdvancedBlock({
         <div
           style={
             mobileGrouped && stackEtfRow
-              ? { ...mobileGroupBox, marginBottom: 0 }
+              ? { ...mobileGroupBox("#f59e0b"), marginBottom: 0 }
               : { display: "contents" }
           }
         >
-          {mobileGrouped && stackEtfRow ? <p style={mobileSubTitle}>③ 時間設定</p> : null}
+          {mobileGrouped && stackEtfRow ? <p style={mobileSubTitle("#fde68a")}>③ 時間設定</p> : null}
           <div
             style={{
-              display: "flex",
-              flexDirection: stackEtfRow ? "column" : "row",
-              gap: 12,
-              alignItems: stackEtfRow ? "stretch" : "flex-end",
-              flexWrap: "wrap",
+              display: m ? "grid" : "flex",
+              gridTemplateColumns: m ? "minmax(0, 1fr) minmax(0, 1fr)" : undefined,
+              flexDirection: m ? undefined : stackEtfRow ? "column" : "row",
+              gap: m ? 10 : 12,
+              alignItems: m ? "stretch" : stackEtfRow ? "stretch" : "flex-end",
+              flexWrap: m ? undefined : "wrap",
               flex: "1 1 auto",
               minWidth: 0,
             }}
           >
-          <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
-            <label style={{ fontSize: 12, color: "#d1d5db", lineHeight: 1.2 }}>初始年月</label>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0, gridColumn: m ? "1" : undefined }}>
+            <label style={m ? labelMobile : { fontSize: 12, color: "#d1d5db", lineHeight: 1.2 }}>初始年月</label>
             <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
               <div style={{ display: "flex", alignItems: "stretch", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden", backgroundColor: "rgba(0,0,0,0.4)" }}>
                 <input
@@ -432,11 +479,11 @@ export function StockParamsAdvancedBlock({
                     if (!Number.isFinite(n) || n < 2000) setInitialYearStr(String(defaultYear));
                     else if (n > 2100) setInitialYearStr("2100");
                   }}
-                  style={{ ...inputStyle, width: 72, height: 28, textAlign: "center", border: "none", borderRadius: 0 }}
+                  style={{ ...inputStyle, width: 72, height: stepH, textAlign: "center", border: "none", borderRadius: 0 }}
                 />
                 <div style={{ display: "flex", flexDirection: "column", width: 22, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
-                  <button type="button" aria-label="年+1" onClick={() => setInitialYearStr(String(Math.min(2100, initialYear + 1)))} style={{ flex: 1, minHeight: 14, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▲</button>
-                  <button type="button" aria-label="年-1" onClick={() => setInitialYearStr(String(Math.max(2000, initialYear - 1)))} style={{ flex: 1, minHeight: 14, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▼</button>
+                  <button type="button" aria-label="年+1" onClick={() => setInitialYearStr(String(Math.min(2100, initialYear + 1)))} style={{ flex: 1, minHeight: m ? 17 : 14, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▲</button>
+                  <button type="button" aria-label="年-1" onClick={() => setInitialYearStr(String(Math.max(2000, initialYear - 1)))} style={{ flex: 1, minHeight: m ? 17 : 14, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▼</button>
                 </div>
               </div>
               <span style={{ fontSize: 13, color: "#9ca3af" }}>年</span>
@@ -454,19 +501,19 @@ export function StockParamsAdvancedBlock({
                     if (!Number.isFinite(n) || n < 1) setInitialMonthStr(String(defaultMonth));
                     else if (n > 12) setInitialMonthStr("12");
                   }}
-                  style={{ ...inputStyle, width: 56, height: 28, textAlign: "center", border: "none", borderRadius: 0 }}
+                  style={{ ...inputStyle, width: 56, height: stepH, textAlign: "center", border: "none", borderRadius: 0 }}
                 />
                 <div style={{ display: "flex", flexDirection: "column", width: 22, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
-                  <button type="button" aria-label="月+1" onClick={() => setInitialMonthStr(String((initialMonth % 12) + 1))} style={{ flex: 1, minHeight: 14, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▲</button>
-                  <button type="button" aria-label="月-1" onClick={() => setInitialMonthStr(String(((initialMonth + 10) % 12) + 1))} style={{ flex: 1, minHeight: 14, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▼</button>
+                  <button type="button" aria-label="月+1" onClick={() => setInitialMonthStr(String((initialMonth % 12) + 1))} style={{ flex: 1, minHeight: m ? 17 : 14, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▲</button>
+                  <button type="button" aria-label="月-1" onClick={() => setInitialMonthStr(String(((initialMonth + 10) % 12) + 1))} style={{ flex: 1, minHeight: m ? 17 : 14, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▼</button>
                 </div>
               </div>
               <span style={{ fontSize: 13, color: "#9ca3af" }}>月</span>
             </div>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
-            <label style={{ fontSize: 12, color: "#d1d5db", lineHeight: 1.2 }}>第幾次投入</label>
-            <div style={{ display: "flex", alignItems: "stretch", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden", backgroundColor: "rgba(0,0,0,0.4)" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0, gridColumn: m ? "2" : undefined }}>
+            <label style={m ? labelMobile : { fontSize: 12, color: "#d1d5db", lineHeight: 1.2 }}>第幾次投入</label>
+            <div style={{ display: "flex", alignItems: "stretch", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden", backgroundColor: "rgba(0,0,0,0.4)", maxWidth: m ? 120 : undefined }}>
               <input
                 type="text"
                 inputMode="numeric"
@@ -482,18 +529,34 @@ export function StockParamsAdvancedBlock({
                 onBlur={() => {
                   if (nthPeriod < 1 || nthPeriod > maxNthPeriod) setNthPeriod(Math.max(1, Math.min(maxNthPeriod, nthPeriod)));
                 }}
-                style={{ ...inputStyle, width: 56, height: 28, textAlign: "center", border: "none", borderRadius: 0 }}
+                style={{ ...inputStyle, width: 56, height: stepH, textAlign: "center", border: "none", borderRadius: 0 }}
               />
               <div style={{ display: "flex", flexDirection: "column", width: 22, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
-                <button type="button" aria-label="次+1" onClick={() => setNthPeriod(Math.min(maxNthPeriod, nthPeriod + 1))} style={{ flex: 1, minHeight: 14, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▲</button>
-                <button type="button" aria-label="次-1" onClick={() => setNthPeriod(Math.max(1, nthPeriod - 1))} style={{ flex: 1, minHeight: 14, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▼</button>
+                <button type="button" aria-label="次+1" onClick={() => setNthPeriod(Math.min(maxNthPeriod, nthPeriod + 1))} style={{ flex: 1, minHeight: m ? 17 : 14, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▲</button>
+                <button type="button" aria-label="次-1" onClick={() => setNthPeriod(Math.max(1, nthPeriod - 1))} style={{ flex: 1, minHeight: m ? 17 : 14, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▼</button>
               </div>
             </div>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <label style={{ fontSize: 12, color: "#d1d5db", lineHeight: 1.2 }}>對應年月</label>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 28 }}>
-              <span style={{ fontSize: 14, color: "#e5e7eb", fontWeight: 500 }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: m ? "row" : "column",
+              justifyContent: m ? "space-between" : undefined,
+              alignItems: m ? "center" : undefined,
+              gap: m ? 8 : 2,
+              gridColumn: m ? "1 / -1" : undefined,
+              padding: m ? "10px 12px" : undefined,
+              borderRadius: m ? 10 : undefined,
+              background: m ? "rgba(245, 158, 11, 0.1)" : undefined,
+              border: m ? "1px solid rgba(245, 158, 11, 0.28)" : undefined,
+            }}
+          >
+            {!m ? <label style={{ fontSize: 12, color: "#d1d5db", lineHeight: 1.2 }}>對應年月</label> : null}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, minHeight: m ? undefined : 28, flex: m ? 1 : undefined, justifyContent: m ? "space-between" : undefined, width: m ? "100%" : undefined }}>
+              {m ? (
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#94a3b8" }}>對應年月</span>
+              ) : null}
+              <span style={{ fontSize: m ? 15 : 14, color: m ? "#fde68a" : "#e5e7eb", fontWeight: m ? 700 : 500 }}>
                 {(() => {
                   const totalMonths = nthPeriod;
                   const targetMonth = ((((initialMonth - 1) + totalMonths) % 12) + 12) % 12 + 1;
@@ -503,8 +566,8 @@ export function StockParamsAdvancedBlock({
               </span>
             </div>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 2, paddingLeft: stackEtfRow ? 0 : 10, borderLeft: stackEtfRow ? "none" : "1px solid rgba(255,255,255,0.1)", minWidth: 0 }}>
-            <label style={{ fontSize: 12, color: "#d1d5db", lineHeight: 1.2 }}>預設年月</label>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, paddingLeft: stackEtfRow ? 0 : 10, borderLeft: stackEtfRow ? "none" : "1px solid rgba(255,255,255,0.1)", minWidth: 0, gridColumn: m ? "1 / -1" : undefined }}>
+            <label style={m ? labelMobile : { fontSize: 12, color: "#d1d5db", lineHeight: 1.2 }}>預設年月</label>
             <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
               <div style={{ display: "flex", alignItems: "stretch", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden", backgroundColor: "rgba(0,0,0,0.4)" }}>
                 <input
@@ -520,11 +583,11 @@ export function StockParamsAdvancedBlock({
                     if (!Number.isFinite(n) || n < 2000) setDefaultYearStr(String(todayYear));
                     else if (n > 2100) setDefaultYearStr("2100");
                   }}
-                  style={{ ...inputStyle, width: 72, height: 28, textAlign: "center", border: "none", borderRadius: 0 }}
+                  style={{ ...inputStyle, width: 72, height: stepH, textAlign: "center", border: "none", borderRadius: 0 }}
                 />
                 <div style={{ display: "flex", flexDirection: "column", width: 22, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
-                  <button type="button" aria-label="年+1" onClick={() => setDefaultYearStr(String(Math.min(2100, defaultYear + 1)))} style={{ flex: 1, minHeight: 14, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▲</button>
-                  <button type="button" aria-label="年-1" onClick={() => setDefaultYearStr(String(Math.max(2000, defaultYear - 1)))} style={{ flex: 1, minHeight: 14, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▼</button>
+                  <button type="button" aria-label="年+1" onClick={() => setDefaultYearStr(String(Math.min(2100, defaultYear + 1)))} style={{ flex: 1, minHeight: m ? 17 : 14, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▲</button>
+                  <button type="button" aria-label="年-1" onClick={() => setDefaultYearStr(String(Math.max(2000, defaultYear - 1)))} style={{ flex: 1, minHeight: m ? 17 : 14, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▼</button>
                 </div>
               </div>
               <span style={{ fontSize: 13, color: "#9ca3af" }}>年</span>
@@ -542,11 +605,11 @@ export function StockParamsAdvancedBlock({
                     if (!Number.isFinite(n) || n < 1) setDefaultMonthStr(String(todayMonth));
                     else if (n > 12) setDefaultMonthStr("12");
                   }}
-                  style={{ ...inputStyle, width: 56, height: 28, textAlign: "center", border: "none", borderRadius: 0 }}
+                  style={{ ...inputStyle, width: 56, height: stepH, textAlign: "center", border: "none", borderRadius: 0 }}
                 />
                 <div style={{ display: "flex", flexDirection: "column", width: 22, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
-                  <button type="button" aria-label="月+1" onClick={() => setDefaultMonthStr(String(((defaultMonth % 12) + 1)))} style={{ flex: 1, minHeight: 14, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▲</button>
-                  <button type="button" aria-label="月-1" onClick={() => setDefaultMonthStr(String(((defaultMonth + 10) % 12) + 1))} style={{ flex: 1, minHeight: 14, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▼</button>
+                  <button type="button" aria-label="月+1" onClick={() => setDefaultMonthStr(String(((defaultMonth % 12) + 1)))} style={{ flex: 1, minHeight: m ? 17 : 14, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▲</button>
+                  <button type="button" aria-label="月-1" onClick={() => setDefaultMonthStr(String(((defaultMonth + 10) % 12) + 1))} style={{ flex: 1, minHeight: m ? 17 : 14, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▼</button>
                 </div>
               </div>
               <span style={{ fontSize: 13, color: "#9ca3af" }}>月</span>
@@ -558,12 +621,13 @@ export function StockParamsAdvancedBlock({
                   setInitialMonthStr(String(d.getMonth() + 1));
                 }}
                 style={{
-                  padding: "6px 14px",
+                  padding: "8px 14px",
                   fontSize: 13,
+                  fontWeight: 600,
                   borderRadius: 8,
-                  border: "1px solid rgba(255,255,255,0.2)",
-                  background: "rgba(255,255,255,0.1)",
-                  color: "#e5e7eb",
+                  border: "1px solid rgba(52, 211, 153, 0.45)",
+                  background: "rgba(52, 211, 153, 0.12)",
+                  color: "#6ee7b7",
                   cursor: "pointer",
                   marginLeft: 4,
                   alignSelf: "flex-end",
@@ -580,14 +644,14 @@ export function StockParamsAdvancedBlock({
       <div
         style={
           mobileGrouped && stackEtfRow
-            ? { ...mobileGroupBox, marginTop: 4, marginBottom: 0 }
+            ? { ...mobileGroupBox("#34d399"), marginTop: 4, marginBottom: 0 }
             : { display: "contents" }
         }
       >
         {mobileGrouped && stackEtfRow ? (
           <>
-            <p style={mobileSubTitle}>④ 試算與再投入</p>
-            <p style={{ fontSize: 10, color: "#64748b", margin: "0 0 10px 0", lineHeight: 1.45 }}>只影響模擬細節</p>
+            <p style={mobileSubTitle("#a7f3d0")}>④ 試算與再投入</p>
+            <p style={{ fontSize: 11, color: "#94a3b8", margin: "0 0 10px 0", lineHeight: 1.45 }}>只影響模擬細節</p>
           </>
         ) : null}
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -653,7 +717,7 @@ export function StockParamsAdvancedBlock({
             )}
           </div>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: stackEtfRow ? "1fr" : "repeat(2, minmax(0, 1fr))", gap: 10 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <label style={{ fontSize: 13, color: "#d1d5db" }}>
               股息 (%)
