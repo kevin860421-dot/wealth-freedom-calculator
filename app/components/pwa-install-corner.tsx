@@ -85,7 +85,7 @@ export function PwaInstallCorner({ embedded = false }: Props) {
   const triggerInstall = useCallback(
     async (kind: "mobile" | "desktop") => {
       // 桌機上「手機 App」：提供可在手機開啟的網址（複製/QR），不是在桌機觸發安裝。
-      if (kind === "mobile" && !embedded && !isMobileUserAgent()) {
+      if (kind === "mobile" && !isMobileUserAgent()) {
         setMobileShareOpen(true);
         setMobileShareCopyState("idle");
         return;
