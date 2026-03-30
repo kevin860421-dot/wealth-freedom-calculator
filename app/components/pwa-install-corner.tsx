@@ -63,7 +63,16 @@ export function PwaInstallCorner({ embedded = false }: Props) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const h = window.location.host;
-    setMobileShareHost(h);
+    // 本機開發時避免預設成 localhost，直接給部署站，方便手機掃碼安裝。
+    const defaultDeployedHost = "wealth-freedom-calculator.vercel.app";
+    const isLocal =
+      h === "localhost" ||
+      h.startsWith("localhost:") ||
+      h === "127.0.0.1" ||
+      h.startsWith("127.0.0.1:") ||
+      h === "[::1]" ||
+      h.startsWith("[::1]:");
+    setMobileShareHost(isLocal ? defaultDeployedHost : h);
   }, []);
 
   useEffect(() => {
