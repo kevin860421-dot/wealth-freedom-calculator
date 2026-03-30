@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { IconDesktopApp, IconPhoneApp } from "./pwa-install-icons";
 import styles from "./pwa-install-corner.module.css";
 
@@ -15,6 +15,12 @@ function isStandalone(): boolean {
     window.matchMedia("(display-mode: standalone)").matches ||
     (window.navigator as Navigator & { standalone?: boolean }).standalone === true
   );
+}
+
+function isMobileUserAgent(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  return /Android/i.test(ua) || /iPad|iPhone|iPod/.test(ua);
 }
 
 /** 無法觸發系統安裝對話框時，依裝置顯示一步驟提示（不開彈窗） */
@@ -45,9 +51,19 @@ export function PwaInstallCorner({ embedded = false }: Props) {
   const [installed, setInstalled] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [fallbackHint, setFallbackHint] = useState<string | null>(null);
+  const [mobileShareOpen, setMobileShareOpen] = useState(false);
+  const [mobileShareHost, setMobileShareHost] = useState<string>("");
+  const [mobileShareQr, setMobileShareQr] = useState<string | null>(null);
+  const [mobileShareCopyState, setMobileShareCopyState] = useState<"idle" | "ok" | "fail">("idle");
 
   useEffect(() => {
     setInstalled(isStandalone());
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const h = window.location.host;
+    setMobileShareHost(h);
   }, []);
 
   useEffect(() => {
@@ -68,6 +84,12 @@ export function PwaInstallCorner({ embedded = false }: Props) {
   /** 優先叫出瀏覽器內建「安裝」對話框；若尚無法觸發，改顯示內聯一步驟（不開說明彈窗） */
   const triggerInstall = useCallback(
     async (kind: "mobile" | "desktop") => {
+      // 桌機上「手機 App」：提供可在手機開啟的網址（複製/QR），不是在桌機觸發安裝。
+      if (kind === "mobile" && !embedded && !isMobileUserAgent()) {
+        setMobileShareOpen(true);
+        setMobileShareCopyState("idle");
+        return;
+      }
       if (deferred) {
         try {
           await deferred.prompt();
@@ -84,6 +106,47 @@ export function PwaInstallCorner({ embedded = false }: Props) {
   );
 
   const wrapClass = embedded ? styles.embeddedWrap : styles.fab;
+
+  const mobileInstallUrl = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    const u = new URL(window.location.href);
+    u.searchParams.delete("mobile");
+    u.hash = "";
+    if (mobileShareHost.trim()) u.host = mobileShareHost.trim();
+    return u.toString();
+  }, [mobileShareHost]);
+
+  useEffect(() => {
+    if (!mobileShareOpen) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { default: QRCode } = await import("qrcode");
+        const dataUrl = await QRCode.toDataURL(mobileInstallUrl, {
+          margin: 1,
+          scale: 6,
+          errorCorrectionLevel: "M",
+          color: { dark: "#0f172a", light: "#ffffff" },
+        });
+        if (!cancelled) setMobileShareQr(dataUrl);
+      } catch {
+        if (!cancelled) setMobileShareQr(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [mobileShareOpen, mobileInstallUrl]);
+
+  const copyMobileUrl = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(mobileInstallUrl);
+      setMobileShareCopyState("ok");
+    } catch {
+      setMobileShareCopyState("fail");
+    }
+    window.setTimeout(() => setMobileShareCopyState("idle"), 2400);
+  }, [mobileInstallUrl]);
 
   if (installed) {
     return (
@@ -222,6 +285,51 @@ export function PwaInstallCorner({ embedded = false }: Props) {
               試算與自選股資料會存在這台裝置；若清除瀏覽器的網站資料會一併刪除。從主畫面或桌面圖示開啟，較不會被當成一般分頁清掉。
             </p>
             <button type="button" className={styles.helpOk} onClick={() => setHelpOpen(false)}>
+              知道了
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {mobileShareOpen ? (
+        <div className={styles.helpOverlay} role="presentation" onClick={() => setMobileShareOpen(false)}>
+          <div className={styles.shareDialog} role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <div className={styles.helpHead}>
+              <h2 className={styles.helpTitle}>手機安裝 App</h2>
+              <button type="button" className={styles.helpClose} onClick={() => setMobileShareOpen(false)} aria-label="關閉">
+                ✕
+              </button>
+            </div>
+            <p className={styles.shareLead}>
+              用手機掃描或開啟下方網址，接著用瀏覽器「加入主畫面 / 安裝應用程式」。資料會儲存在手機本機（同現在的試算與自選股）。
+            </p>
+            <div className={styles.shareGrid}>
+              <div className={styles.qrWrap} aria-label="QR code">
+                {mobileShareQr ? <img src={mobileShareQr} className={styles.qrImg} alt="手機開啟網址 QR code" /> : <div className={styles.qrFallback}>QR 產生中…</div>}
+              </div>
+              <div className={styles.shareRight}>
+                <label className={styles.shareLabel}>
+                  手機要開啟的網址（可改主機）
+                  <input
+                    className={styles.shareHost}
+                    value={mobileShareHost}
+                    onChange={(e) => setMobileShareHost(e.target.value)}
+                    placeholder="例：192.168.10.41:3000"
+                    inputMode="url"
+                  />
+                </label>
+                <div className={styles.shareUrlBox}>
+                  <div className={styles.shareUrlText}>{mobileInstallUrl}</div>
+                  <button type="button" className={styles.shareCopyBtn} onClick={() => void copyMobileUrl()}>
+                    {mobileShareCopyState === "ok" ? "已複製" : mobileShareCopyState === "fail" ? "複製失敗" : "複製連結"}
+                  </button>
+                </div>
+                <p className={styles.shareNote}>
+                  若你現在網址是 <strong>localhost</strong>，手機無法直接連。請把上方主機改成同網路下的電腦 IP（例如終端機顯示的 Network 位址）。
+                </p>
+              </div>
+            </div>
+            <button type="button" className={styles.helpOk} onClick={() => setMobileShareOpen(false)}>
               知道了
             </button>
           </div>

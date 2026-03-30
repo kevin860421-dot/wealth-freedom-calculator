@@ -259,6 +259,137 @@
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
 }
 
+/* 桌機「手機 App」：提供 QR/複製連結（同 overlay 样式） */
+.shareDialog {
+  width: 100%;
+  max-width: 520px;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: #0f172a;
+  padding: 18px 18px 16px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+}
+
+.shareLead {
+  margin: 6px 0 14px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
+.shareGrid {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 14px;
+  align-items: start;
+  margin-bottom: 14px;
+}
+
+.qrWrap {
+  width: 160px;
+  height: 160px;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.qrImg {
+  width: 148px;
+  height: 148px;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.qrFallback {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.shareRight {
+  min-width: 0;
+}
+
+.shareLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11px;
+  color: #94a3b8;
+  margin-bottom: 10px;
+}
+
+.shareHost {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(2, 6, 23, 0.35);
+  padding: 10px 12px;
+  color: #e5e7eb;
+  outline: none;
+  font-size: 12px;
+}
+
+.shareHost:focus-visible {
+  outline: 2px solid rgba(110, 231, 183, 0.55);
+  outline-offset: 2px;
+}
+
+.shareUrlBox {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(52, 211, 153, 0.22);
+  background: rgba(6, 78, 59, 0.16);
+  padding: 12px 12px;
+}
+
+.shareUrlText {
+  word-break: break-all;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #d1fae5;
+}
+
+.shareCopyBtn {
+  width: fit-content;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #022c22;
+  background: linear-gradient(135deg, #34d399 0%, #22c55e 38%, #39ff14 100%);
+}
+
+.shareCopyBtn:active {
+  filter: brightness(0.98);
+}
+
+.shareNote {
+  margin: 10px 0 0;
+  font-size: 11px;
+  line-height: 1.55;
+  color: #94a3b8;
+}
+
+@media (max-width: 520px) {
+  .shareGrid {
+    grid-template-columns: 1fr;
+  }
+  .qrWrap {
+    width: 100%;
+    height: auto;
+    padding: 14px 0;
+  }
+}
+
 .helpHead {
   display: flex;
   justify-content: space-between;

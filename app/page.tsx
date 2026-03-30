@@ -3711,6 +3711,11 @@ export default function Home() {
             selectedEtfInfo={selectedEtfInfo}
             advancedProps={stockAdvancedBlockProps}
           />
+
+          {/* 手機：我的自選股 / PWA 安裝引導（往上移到主流程中） */}
+          <div className="mt-2">
+            <HomeFooterWatchlistSection />
+          </div>
         </div>
 
         {/* 6️⃣ FIRE COUNTDOWN */}
@@ -4329,7 +4334,9 @@ export default function Home() {
             ))}
           </div>
           <FooterStatsStrip />
-          <HomeFooterWatchlistSection />
+          <div className="hidden md:block">
+            <HomeFooterWatchlistSection />
+          </div>
           {/* 廣告預留區（僅佔位，日後可替換為廣告元件） */}
           <div
             role="complementary"
