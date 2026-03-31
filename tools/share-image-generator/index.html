@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>財富自由分享圖生成器（Canvas 預覽）</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b1020;
+        --card: rgba(15, 23, 42, 0.86);
+        --border: rgba(148, 163, 184, 0.16);
+        --text: #e5e7eb;
+        --muted: #94a3b8;
+        --accent: #6ee7b7;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: radial-gradient(1200px 700px at 20% 0%, rgba(110, 231, 183, 0.12), transparent 60%),
+          linear-gradient(180deg, #050816, var(--bg));
+        color: var(--text);
+        font-family: ui-sans-serif, system-ui, -apple-system, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei",
+          sans-serif;
+      }
+      .wrap {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 24px 18px 40px;
+        display: grid;
+        grid-template-columns: 380px 1fr;
+        gap: 18px;
+        align-items: start;
+      }
+      @media (max-width: 920px) {
+        .wrap {
+          grid-template-columns: 1fr;
+        }
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+        padding: 14px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 18px;
+        letter-spacing: 0.02em;
+      }
+      .sub {
+        margin: 0 0 14px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.6;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .row {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+      label {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      input,
+      select {
+        height: 40px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        background: rgba(2, 6, 23, 0.38);
+        color: var(--text);
+        padding: 0 12px;
+        outline: none;
+      }
+      input:focus,
+      select:focus {
+        border-color: rgba(110, 231, 183, 0.55);
+        box-shadow: 0 0 0 4px rgba(110, 231, 183, 0.1);
+      }
+      .btnRow {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+      }
+      button {
+        height: 42px;
+        padding: 0 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        cursor: pointer;
+        font-weight: 700;
+      }
+      button.primary {
+        border-color: rgba(110, 231, 183, 0.35);
+        background: linear-gradient(135deg, rgba(52, 211, 153, 0.26), rgba(15, 23, 42, 0.85));
+      }
+      button:hover {
+        filter: brightness(1.06);
+      }
+      .hint {
+        margin-top: 10px;
+        font-size: 11px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+      .preview {
+        display: grid;
+        gap: 12px;
+      }
+      .canvasWrap {
+        background: rgba(2, 6, 23, 0.35);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        border-radius: 16px;
+        padding: 14px;
+      }
+      .canvasWrap canvas {
+        width: 100%;
+        height: auto;
+        border-radius: 12px;
+        display: block;
+      }
+      .tiny {
+        font-size: 11px;
+        color: var(--muted);
+      }
+      code {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <h1>財富自由分享圖生成器（Canvas）</h1>
+        <p class="sub">
+          這是獨立工具，不會加到計算機頁面。輸出固定 1:1（預設 1080×1080），右下預留 200×200 QR 區。
+        </p>
+
+        <div class="row">
+          <label>風格 style</label>
+          <select id="style">
+            <option value="flex">A. 炫耀版（成就解鎖）</option>
+            <option value="reality">B. 扎心版（現實覺醒）</option>
+            <option value="comic">C. 反差版（跌破眼鏡）</option>
+          </select>
+        </div>
+
+        <div class="grid">
+          <div class="row">
+            <label>currentAge</label>
+            <input id="currentAge" type="number" value="28" />
+          </div>
+          <div class="row">
+            <label>retireAge</label>
+            <input id="retireAge" type="number" value="45" />
+          </div>
+          <div class="row">
+            <label>yearsLeft</label>
+            <input id="yearsLeft" type="number" value="17" />
+          </div>
+          <div class="row">
+            <label>passiveIncomeRate (%)</label>
+            <input id="passiveIncomeRate" type="number" value="62" />
+          </div>
+          <div class="row" style="grid-column: 1 / -1">
+            <label>monthlySalary</label>
+            <input id="monthlySalary" type="number" value="60000" />
+          </div>
+        </div>
+
+        <div class="btnRow">
+          <button id="render" class="primary" type="button">生成預覽</button>
+          <button id="download" type="button">下載 PNG</button>
+        </div>
+
+        <p class="hint">
+          你可以在瀏覽器直接打開這個檔案預覽：<code>tools/share-image-generator/index.html</code><br />
+          之後要串回計算機時，只需要把 <code>generateShareImage</code> 與 <code>downloadShareImage</code> 模組搬進 app
+          端即可。
+        </p>
+      </div>
+
+      <div class="preview">
+        <div class="canvasWrap">
+          <canvas id="cv" width="1080" height="1080"></canvas>
+        </div>
+        <div class="tiny">
+          檔案位置：<code>tools/share-image-generator/share-image.js</code>（核心函數）與
+          <code>tools/share-image-generator/index.html</code>（預覽頁）
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { generateShareImage, downloadShareImage } from "./share-image.js";
+
+      const $ = (id) => document.getElementById(id);
+
+      /** @returns {import("./share-image.js").ShareData} */
+      function readData() {
+        return {
+          currentAge: Number($("currentAge").value),
+          retireAge: Number($("retireAge").value),
+          yearsLeft: Number($("yearsLeft").value),
+          passiveIncomeRate: Number($("passiveIncomeRate").value),
+          monthlySalary: Number($("monthlySalary").value),
+        };
+      }
+
+      let lastCanvas = null;
+      const target = $("cv");
+      const tctx = target.getContext("2d");
+
+      function render() {
+        const data = readData();
+        const style = $("style").value;
+        const res = generateShareImage(data, style, { siteName: "財富自由計算機", qrLabel: "放 QR" });
+        // 畫到預覽 canvas（縮放）
+        target.width = res.canvas.width;
+        target.height = res.canvas.height;
+        tctx.clearRect(0, 0, target.width, target.height);
+        tctx.drawImage(res.canvas, 0, 0);
+        lastCanvas = res.canvas;
+      }
+
+      $("render").addEventListener("click", render);
+      $("download").addEventListener("click", () => {
+        if (!lastCanvas) render();
+        downloadShareImage(lastCanvas, `share-${$("style").value}.png`);
+      });
+
+      render();
+    </script>
+  </body>
+</html>
+

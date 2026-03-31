@@ -49,6 +49,7 @@ type Props = {
 export function PwaInstallCorner({ embedded = false }: Props) {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [installed, setInstalled] = useState(false);
+  const [mobileUa, setMobileUa] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [fallbackHint, setFallbackHint] = useState<string | null>(null);
   const [mobileShareOpen, setMobileShareOpen] = useState(false);
@@ -58,6 +59,8 @@ export function PwaInstallCorner({ embedded = false }: Props) {
 
   useEffect(() => {
     setInstalled(isStandalone());
+    // 避免 SSR/CSR HTML 不一致：UA 判斷只在 client 端設定狀態
+    setMobileUa(isMobileUserAgent());
   }, []);
 
   useEffect(() => {
@@ -109,6 +112,12 @@ export function PwaInstallCorner({ embedded = false }: Props) {
         setFallbackHint(null);
         return;
       }
+      // iOS Safari 不會出現 beforeinstallprompt：改直接開手動步驟，避免提示一閃而過看不到
+      if (kind === "mobile" && typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent)) {
+        setHelpOpen(true);
+        setFallbackHint(null);
+        return;
+      }
       setFallbackHint(getManualInstallHint(kind));
     },
     [deferred],
@@ -118,10 +127,38 @@ export function PwaInstallCorner({ embedded = false }: Props) {
 
   const mobileInstallUrl = useMemo(() => {
     if (typeof window === "undefined") return "";
-    const u = new URL(window.location.href);
-    u.searchParams.delete("mobile");
-    u.hash = "";
-    if (mobileShareHost.trim()) u.host = mobileShareHost.trim();
+    const base = new URL(window.location.href);
+    base.searchParams.delete("mobile");
+    base.hash = "";
+
+    const raw = mobileShareHost.trim();
+    if (!raw) return base.toString();
+
+    // 允許使用者輸入：
+    // - host（例：wealth-freedom-calculator.vercel.app）
+    // - host:port（例：192.168.6.41:3000）
+    // - 完整 URL（例：https://wealth-freedom-calculator.vercel.app/）
+    let u: URL;
+    if (/^https?:\/\//i.test(raw)) {
+      u = new URL(raw);
+      u.pathname = base.pathname;
+      u.search = base.search;
+      u.hash = "";
+    } else {
+      u = new URL(base.toString());
+      u.host = raw;
+    }
+
+    // 部署站（Vercel/Netlify）一律用 https，且不要帶 dev port。
+    const deployed =
+      u.hostname.endsWith(".vercel.app") ||
+      u.hostname.endsWith(".netlify.app") ||
+      u.hostname === "wealth-freedom-calculator.vercel.app";
+    if (deployed) {
+      u.protocol = "https:";
+      u.port = "";
+    }
+
     return u.toString();
   }, [mobileShareHost]);
 
@@ -215,6 +252,13 @@ export function PwaInstallCorner({ embedded = false }: Props) {
       <p className={styles.footerHint}>
         <span aria-hidden>📱</span> 使用 App 可快速開啟，較不易被當一般分頁清掉。
       </p>
+      {mobileUa ? (
+        <p className={styles.quickSteps} role="note">
+          iPhone：Safari「分享」→ 加入主畫面；Android：Chrome「⋮」→ 安裝應用程式 / 加入主畫面。
+          <br />
+          若在 LINE / IG 內建瀏覽器，請改用 Safari / Chrome 開啟再加入。
+        </p>
+      ) : null}
       <div className={styles.footerBtnRow}>
         <button
           type="button"
@@ -225,8 +269,8 @@ export function PwaInstallCorner({ embedded = false }: Props) {
             <IconPhoneApp width={22} height={22} />
           </span>
           <span className={styles.fabBtnTextCol}>
-            <span className={styles.fabBtnTitle}>手機 App</span>
-            <span className={styles.fabBtnSub}>加入主畫面</span>
+            <span className={styles.fabBtnTitle}>加入桌面/主畫面</span>
+            <span className={styles.fabBtnSub}>iPhone 加入主畫面 · Android 安裝</span>
           </span>
         </button>
         <button

@@ -18,6 +18,15 @@ const inputStyleBase: CSSProperties = {
 
 type EtfOption = { id: string; label: string };
 
+function formatEtfOptionLabel(etf: { id: string; label: string }): string {
+  const preset = TICKER_PRESETS.find((p) => p.id === etf.id);
+  if (!preset) return etf.label;
+  const annual = Number.isFinite(preset.annualReturn) ? `${preset.annualReturn}%` : "—";
+  const cash = preset.dividendYieldPct != null && Number.isFinite(preset.dividendYieldPct) ? `${preset.dividendYieldPct}%` : "—";
+  const stock = preset.stockDividendPct != null && Number.isFinite(preset.stockDividendPct) ? `${preset.stockDividendPct}%` : "—";
+  return `${etf.label}｜年化 ${annual}｜股息 ${cash}｜股利 ${stock}`;
+}
+
 type SelectedEtfInfo = {
   price?: number;
   dividendPerPeriod?: number;
@@ -273,7 +282,7 @@ export function StockParamsAdvancedBlock({
                 <option value="none">不使用預設（自行輸入年化）</option>
                 {filteredEtfs.map((etf) => (
                   <option key={etf.id} value={etf.id}>
-                    {etf.label}
+                    {formatEtfOptionLabel(etf)}
                   </option>
                 ))}
               </select>
@@ -340,7 +349,7 @@ export function StockParamsAdvancedBlock({
               <option value="none">不使用預設（自行輸入年化）</option>
               {filteredEtfs.map((etf) => (
                 <option key={etf.id} value={etf.id}>
-                  {etf.label}
+                  {formatEtfOptionLabel(etf)}
                 </option>
               ))}
             </select>

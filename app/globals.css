@@ -71,6 +71,9 @@ a {
 /* 問題回報 · 點選頁面區塊模式 */
 body.cu-issue-picker-active {
   cursor: crosshair !important;
+  /* 手機：避免捲動導致選取失敗 */
+  overflow: hidden;
+  touch-action: none;
 }
 
 body.cu-issue-picker-active [data-issue-picker-hud],

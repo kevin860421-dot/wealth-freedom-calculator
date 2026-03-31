@@ -34,6 +34,18 @@
   text-align: center;
 }
 
+.quickSteps {
+  margin: -2px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(2, 6, 23, 0.28);
+  font-size: 11px;
+  line-height: 1.55;
+  color: #cbd5e1;
+  text-align: center;
+}
+
 .footerBtnRow {
   display: flex;
   flex-wrap: wrap;

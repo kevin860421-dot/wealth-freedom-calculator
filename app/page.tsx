@@ -742,6 +742,21 @@ export default function Home() {
   /** 完成 localStorage 讀取（或確認無存檔）後才允許防抖寫入，避免以預設值覆蓋舊資料 */
   const [storageReady, setStorageReady] = useState(false);
 
+  const formatEtfOptionLabel = useCallback((etf: { id: string; label: string }) => {
+    const preset = TICKER_PRESETS.find((p) => p.id === etf.id);
+    if (!preset) return etf.label;
+    const annual = Number.isFinite(preset.annualReturn) ? `${preset.annualReturn}%` : "—";
+    const cash = preset.dividendYieldPct != null && Number.isFinite(preset.dividendYieldPct) ? `${preset.dividendYieldPct}%` : "—";
+    const stock = preset.stockDividendPct != null && Number.isFinite(preset.stockDividendPct) ? `${preset.stockDividendPct}%` : "—";
+    return `${etf.label}｜年化 ${annual}｜股息 ${cash}｜股利 ${stock}`;
+  }, []);
+
+  const formatEtfOptionLabelCompact = useCallback((etf: { id: string; label: string }) => {
+    // 上方橫幅：維持原本簡潔，只補代號；避免選單太長擠版
+    const short = etf.label.split("（")[0];
+    return `${etf.id} ${short}`;
+  }, []);
+
   const filteredEtfs = useMemo(() => {
     const code = etfCodeFilter.replace(/\s/g, "").slice(0, 5);
     const list = !code
@@ -791,7 +806,8 @@ export default function Home() {
       setEtfRatioEstimates(
         s.etfRatioEstimates && typeof s.etfRatioEstimates === "object" ? s.etfRatioEstimates : buildDefault54cRatioMap(),
       );
-      setEtfCodeFilter(s.selectedEtf === "none" ? "" : s.selectedEtf);
+      // 篩選只用於縮小選項，不應隨「已選標的」鎖死清單；否則會看起來像 100 檔預設消失
+      setEtfCodeFilter("");
     }
     setStorageReady(true);
   }, [clientMounted, maxNthPeriod]);
@@ -926,7 +942,8 @@ export default function Home() {
   /** 從任一處「選擇 ETF」下拉選單變更：同步篩選碼＋套用預設參數，避免手機多區塊代碼／選單不同步 */
   const selectEtfFromMenu = useCallback(
     (id: string) => {
-      setEtfCodeFilter(id === "none" ? "" : id);
+      // 選單變更不改篩選字：避免清單被鎖死只剩 1 檔（看起來像預設消失）
+      if (id === "none") setEtfCodeFilter("");
       setSelectedEtf(id);
       const preset = TICKER_PRESETS.find((p) => p.id === id);
       if (preset) {
@@ -1352,7 +1369,7 @@ export default function Home() {
     setNthPeriod(1);
     setInitialYearStr(String(DEFAULT_SIM_START_YEAR));
     setInitialMonthStr(String(DEFAULT_SIM_START_MONTH));
-    setEtfCodeFilter(DEFAULT_SELECTED_ETF_ID);
+    setEtfCodeFilter("");
     setSelectedEtf(DEFAULT_SELECTED_ETF_ID);
     setAnnualReturnRate(DEFAULT_ETF_PRESET.annualReturn);
     handlePayoutFrequencyChange(DEFAULT_ETF_PRESET.frequency);
@@ -1391,7 +1408,8 @@ export default function Home() {
       setEtfRatioEstimates(
         s.etfRatioEstimates && typeof s.etfRatioEstimates === "object" ? s.etfRatioEstimates : buildDefault54cRatioMap(),
       );
-      setEtfCodeFilter(s.selectedEtf === "none" ? "" : s.selectedEtf);
+      // 還原快照不應鎖死篩選字，否則下拉清單會看起來像只剩一檔/消失
+      setEtfCodeFilter("");
     },
     [maxNthPeriod],
   );
@@ -2662,17 +2680,132 @@ export default function Home() {
           pointerEvents: showStickyBar ? "auto" : "none",
         }}
       >
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%", maxWidth: 1600, margin: "0 auto", position: "relative", paddingBottom: 4 }}>
-          {/* 右上角：上方恢復、下方釘選 */}
-          <div style={{ position: "absolute", top: 0, right: 0, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
-            <button type="button" onClick={() => { setInitialPrincipal("0"); setMonthlyContribution("12000"); setMonthlyExtra("6000"); setTargetQuarterIncome("50000"); setReinvestRatio(80); setTargetYearsToAchieve("20"); setNthPeriod(1); setInitialYearStr(String(DEFAULT_SIM_START_YEAR)); setInitialMonthStr(String(DEFAULT_SIM_START_MONTH)); setEtfCodeFilter(DEFAULT_SELECTED_ETF_ID); setSelectedEtf(DEFAULT_SELECTED_ETF_ID); setAnnualReturnRate(DEFAULT_ETF_PRESET.annualReturn); handlePayoutFrequencyChange(DEFAULT_ETF_PRESET.frequency); setDividendYieldPct(DEFAULT_ETF_PRESET.dividendYieldPct ?? ""); setStockDividendPct(DEFAULT_ETF_PRESET.stockDividendPct ?? ""); setRateSource("dividend"); }} style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: "1px solid rgba(57,255,20,0.6)", background: "rgba(57,255,20,0.16)", color: "#39ff14", cursor: "pointer" }}>恢復預設</button>
-            <button type="button" onClick={() => setStickyBarPinned((p) => !p)} title={stickyBarPinned ? "取消釘選" : "釘選"} style={{ padding: "4px 8px", fontSize: 11, borderRadius: 6, border: "1px solid rgba(255,255,255,0.2)", background: stickyBarPinned ? "rgba(57,255,20,0.2)" : "rgba(255,255,255,0.08)", color: stickyBarPinned ? "#39ff14" : "#9ca3af", cursor: "pointer", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 4 }}>
-              <span style={{ fontSize: 12 }}>📌</span>
-              {stickyBarPinned ? "已釘選" : "釘選"}
-            </button>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+            width: "100%",
+            maxWidth: 1600,
+            margin: "0 auto",
+            position: "relative",
+            paddingBottom: 4,
+            overflow: "hidden",
+          }}
+        >
+          {/* 右上角浮層：固定在最上層，不跟左右滑內容重疊 */}
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              zIndex: 5,
+              width: "auto",
+              display: "flex",
+              justifyContent: "flex-end",
+              pointerEvents: "none",
+            }}
+          >
+            <div
+              style={{
+                width: "fit-content",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+                gap: 4,
+                padding: "0 0 4px 0",
+                pointerEvents: "auto",
+                background: "rgba(14,18,42,0.97)",
+                border: "1px solid rgba(120,140,200,0.12)",
+                borderTop: "none",
+                borderRight: "none",
+                borderRadius: "0 0 0 12px",
+                boxShadow: "-6px 6px 18px rgba(0,0,0,0.22)",
+                paddingLeft: 8,
+                paddingRight: 8,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setInitialPrincipal("0");
+                  setMonthlyContribution("12000");
+                  setMonthlyExtra("6000");
+                  setTargetQuarterIncome("50000");
+                  setReinvestRatio(80);
+                  setTargetYearsToAchieve("20");
+                  setNthPeriod(1);
+                  setInitialYearStr(String(DEFAULT_SIM_START_YEAR));
+                  setInitialMonthStr(String(DEFAULT_SIM_START_MONTH));
+                  setEtfCodeFilter("");
+                  setSelectedEtf(DEFAULT_SELECTED_ETF_ID);
+                  setAnnualReturnRate(DEFAULT_ETF_PRESET.annualReturn);
+                  handlePayoutFrequencyChange(DEFAULT_ETF_PRESET.frequency);
+                  setDividendYieldPct(DEFAULT_ETF_PRESET.dividendYieldPct ?? "");
+                  setStockDividendPct(DEFAULT_ETF_PRESET.stockDividendPct ?? "");
+                  setRateSource("dividend");
+                }}
+                style={{
+                  padding: "4px 10px",
+                  fontSize: 11,
+                  borderRadius: 6,
+                  border: "1px solid rgba(57,255,20,0.6)",
+                  background: "rgba(57,255,20,0.16)",
+                  color: "#39ff14",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                恢復預設
+              </button>
+              <button
+                type="button"
+                onClick={() => setStickyBarPinned((p) => !p)}
+                title={stickyBarPinned ? "取消釘選" : "釘選"}
+                style={{
+                  padding: "4px 8px",
+                  fontSize: 11,
+                  borderRadius: 6,
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  background: stickyBarPinned ? "rgba(57,255,20,0.2)" : "rgba(255,255,255,0.08)",
+                  color: stickyBarPinned ? "#39ff14" : "#9ca3af",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                }}
+              >
+                <span style={{ fontSize: 12 }}>📌</span>
+                {stickyBarPinned ? "已釘選" : "釘選"}
+              </button>
+            </div>
           </div>
-          {/* 第一行：Grid 兩欄 — 左 本金～達成年、右 ETF、稅金 */}
-          <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", alignItems: "center", gap: 10, paddingRight: 180, minWidth: 0 }}>
+
+          {/* 內容區：手機可左右滑（右側保留空間避免被遮住） */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              paddingRight: 182,
+              overflowX: "auto",
+              overflowY: "hidden",
+              WebkitOverflowScrolling: "touch",
+              touchAction: "pan-x",
+              overscrollBehaviorX: "contain",
+            }}
+          >
+            {/* 第一行：Grid 兩欄 — 左 本金～達成年、右 ETF、稅金 */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                flexWrap: "nowrap",
+                width: "max-content",
+              }}
+            >
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "nowrap" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 11, color: "#9ca3af", whiteSpace: "nowrap" }}>本金</span>
@@ -2727,7 +2860,7 @@ export default function Home() {
                 <input type="text" placeholder="篩選" maxLength={5} value={etfCodeFilter} title={`輸入 1–5 碼縮小清單；刪空可顯示全部 ${TICKER_PRESETS.length} 檔`} onChange={(e) => handleEtfCodeChange(e.target.value)} style={{ ...inputStyle, width: 52, padding: "4px 6px", fontSize: 11 }} />
                 <select value={selectedEtf} onChange={(e) => selectEtfFromMenu(e.target.value)} style={{ ...inputStyle, padding: "4px 6px", fontSize: 11, minWidth: 110, height: 26 }}>
                   <option value="none">自訂</option>
-                  {filteredEtfs.map((etf) => <option key={etf.id} value={etf.id}>{etf.label.split("（")[0]}</option>)}
+                  {filteredEtfs.map((etf) => <option key={etf.id} value={etf.id}>{formatEtfOptionLabelCompact(etf)}</option>)}
                 </select>
               </div>
               <label className="tax-sticky-desktop-only" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#d1d5db", cursor: "pointer", whiteSpace: "nowrap", marginLeft: 36 }}>
@@ -2743,9 +2876,18 @@ export default function Home() {
                 <span className="tax-sticky-mobile-only" style={{ fontSize: 11, color: "#6ee7b7", whiteSpace: "nowrap", marginLeft: 36 }}>稅金（自動）</span>
               )}
             </div>
-          </div>
-          {/* 第二行：不換行、不顯示卷軸（版面夠寬） */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "nowrap", overflowX: "hidden", paddingRight: 180, paddingBottom: 4 }}>
+            </div>
+            {/* 第二行：不換行；手機可左右滑 */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                flexWrap: "nowrap",
+                paddingBottom: 4,
+                width: "max-content",
+              }}
+            >
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 11, color: "#9ca3af", whiteSpace: "nowrap" }}>年化%</span>
               <input type="number" min={0} step={0.1} value={annualReturnRate === 0 ? "" : annualReturnRate} onChange={(e) => { const v = e.target.value; setAnnualReturnRate(v === "" ? 0 : Number(v) || 0); setRateSource("annual"); }} style={{ ...inputStyle, width: 52, padding: "4px 6px", fontSize: 11, opacity: rateSource === "dividend" && (dividendYieldPct !== "" || stockDividendPct !== "") ? 0.6 : 1 }} />
@@ -2803,6 +2945,7 @@ export default function Home() {
               ) : (
                 <span className="tax-sticky-mobile-only" style={{ fontSize: 11, color: "#6ee7b7", whiteSpace: "nowrap" }}>二代（自動）</span>
               )}
+            </div>
             </div>
           </div>
         </div>
@@ -3331,7 +3474,7 @@ export default function Home() {
                   >
                     <option value="none">不使用預設（自行輸入年化）</option>
                     {filteredEtfs.map((etf) => (
-                      <option key={etf.id} value={etf.id}>{etf.label}</option>
+                      <option key={etf.id} value={etf.id}>{formatEtfOptionLabel(etf)}</option>
                     ))}
                   </select>
                   {selectedEtfInfo && selectedEtf !== "none" && selectedEtfInfo.dividendMonths && selectedEtfInfo.dividendMonths.length > 0 && selectedEtfInfo.frequency !== "month" && (
@@ -3827,7 +3970,9 @@ export default function Home() {
                     >
                       <option value="none">不使用預設（自行輸入年化）</option>
                       {filteredEtfs.map((etf) => (
-                        <option key={etf.id} value={etf.id}>{etf.label} 占比 {etfRatioEstimates[etf.id] !== undefined && etfRatioEstimates[etf.id] !== "" ? etfRatioEstimates[etf.id] + "%" : "?"}</option>
+                        <option key={etf.id} value={etf.id}>
+                          {formatEtfOptionLabel(etf)}｜54C 占比 {etfRatioEstimates[etf.id] !== undefined && etfRatioEstimates[etf.id] !== "" ? etfRatioEstimates[etf.id] + "%" : "?"}
+                        </option>
                       ))}
                     </select>
                   </div>

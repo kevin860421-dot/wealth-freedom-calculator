@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import styles from "./mobile-nhi2-impact-block.module.css";
 import type { TaxSettingsMode } from "./tax-settings-panel";
+import { TICKER_PRESETS } from "../ticker-presets";
 
 /** 與 app/page.tsx 試算公式一致，僅供說明區舉例（不影響計算） */
 const NHI2_RULE_THRESHOLD = 20000;
@@ -153,7 +154,14 @@ export function MobileNhi2ImpactBlock(props: Props) {
             <option value="none">不使用預設</option>
             {filteredEtfs.map((etf) => (
               <option key={etf.id} value={etf.id}>
-                {etf.label} 占比 {etfRatioEstimates[etf.id] !== undefined && etfRatioEstimates[etf.id] !== "" ? etfRatioEstimates[etf.id] + "%" : "?"}
+                {(() => {
+                  const p = TICKER_PRESETS.find((x) => x.id === etf.id);
+                  const annual = p ? `${p.annualReturn}%` : "—";
+                  const cash = p?.dividendYieldPct != null ? `${p.dividendYieldPct}%` : "—";
+                  const stock = p?.stockDividendPct != null ? `${p.stockDividendPct}%` : "—";
+                  const ratio = etfRatioEstimates[etf.id] !== undefined && etfRatioEstimates[etf.id] !== "" ? etfRatioEstimates[etf.id] + "%" : "?";
+                  return `${etf.label}｜年化 ${annual}｜股息 ${cash}｜股利 ${stock}｜54C 占比 ${ratio}`;
+                })()}
               </option>
             ))}
           </select>
