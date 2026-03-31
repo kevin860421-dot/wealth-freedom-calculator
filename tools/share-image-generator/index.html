@@ -61,6 +61,39 @@
         grid-template-columns: 1fr 1fr;
         gap: 10px;
       }
+      .launchRow {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin: 10px 0 14px;
+      }
+      .linkBtn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        height: 42px;
+        padding: 0 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 800;
+      }
+      .linkBtn.primary {
+        border-color: rgba(110, 231, 183, 0.35);
+        background: linear-gradient(135deg, rgba(52, 211, 153, 0.26), rgba(15, 23, 42, 0.85));
+      }
+      .linkBtn:hover {
+        filter: brightness(1.06);
+      }
+      .mini {
+        font-size: 11px;
+        color: var(--muted);
+        line-height: 1.55;
+        margin: 0;
+      }
       .row {
         display: flex;
         flex-direction: column;
@@ -119,6 +152,44 @@
         display: grid;
         gap: 12px;
       }
+      .cards3 {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+      @media (min-width: 980px) {
+        .cards3 {
+          grid-template-columns: 1fr 1fr 1fr;
+        }
+      }
+      .styleCardHead {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .styleTitle {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: 0.02em;
+        color: #e2e8f0;
+      }
+      .dlBtn {
+        height: 34px;
+        padding: 0 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        cursor: pointer;
+        font-weight: 800;
+        font-size: 12px;
+      }
+      .dlBtn:hover {
+        filter: brightness(1.06);
+      }
       .canvasWrap {
         background: rgba(2, 6, 23, 0.35);
         border: 1px solid rgba(148, 163, 184, 0.18);
@@ -147,6 +218,19 @@
         <p class="sub">
           這是獨立工具，不會加到計算機頁面。輸出固定 1:1（預設 1080×1080），右下預留 200×200 QR 區。
         </p>
+
+        <div class="row">
+          <label>開啟計算機（你已經開了 Cursor / dev server 的前提）</label>
+          <div class="launchRow">
+            <a id="openDesktop" class="linkBtn primary" href="#" target="_blank" rel="noopener noreferrer">開啟電腦版</a>
+            <a id="openMobile" class="linkBtn" href="#" target="_blank" rel="noopener noreferrer">開啟手機版（?mobile=1）</a>
+            <p class="mini">
+              如果按了沒開到，請把下方 URL 改成你目前 Next dev 的位址（例如 <code>http://localhost:3000</code> 或
+              <code>http://192.168.x.x:3000</code>）。
+            </p>
+            <input id="calcBase" type="text" value="http://localhost:3000" />
+          </div>
+        </div>
 
         <div class="row">
           <label>風格 style</label>
@@ -193,8 +277,28 @@
       </div>
 
       <div class="preview">
-        <div class="canvasWrap">
-          <canvas id="cv" width="1080" height="1080"></canvas>
+        <div class="cards3">
+          <div class="canvasWrap">
+            <div class="styleCardHead">
+              <p class="styleTitle">A｜炫耀版（成就解鎖）</p>
+              <button class="dlBtn" id="dlFlex" type="button">下載</button>
+            </div>
+            <canvas id="cvFlex" width="1080" height="1080"></canvas>
+          </div>
+          <div class="canvasWrap">
+            <div class="styleCardHead">
+              <p class="styleTitle">B｜扎心版（現實覺醒）</p>
+              <button class="dlBtn" id="dlReality" type="button">下載</button>
+            </div>
+            <canvas id="cvReality" width="1080" height="1080"></canvas>
+          </div>
+          <div class="canvasWrap">
+            <div class="styleCardHead">
+              <p class="styleTitle">C｜反差版（跌破眼鏡）</p>
+              <button class="dlBtn" id="dlComic" type="button">下載</button>
+            </div>
+            <canvas id="cvComic" width="1080" height="1080"></canvas>
+          </div>
         </div>
         <div class="tiny">
           檔案位置：<code>tools/share-image-generator/share-image.js</code>（核心函數）與
@@ -219,29 +323,70 @@
         };
       }
 
-      let lastCanvas = null;
-      const target = $("cv");
-      const tctx = target.getContext("2d");
+      const cvFlex = $("cvFlex");
+      const cvReality = $("cvReality");
+      const cvComic = $("cvComic");
+      const ctxFlex = cvFlex.getContext("2d");
+      const ctxReality = cvReality.getContext("2d");
+      const ctxComic = cvComic.getContext("2d");
+      let last = { flex: null, reality: null, comic: null };
 
-      function render() {
-        const data = readData();
-        const style = $("style").value;
-        const res = generateShareImage(data, style, { siteName: "財富自由計算機", qrLabel: "放 QR" });
-        // 畫到預覽 canvas（縮放）
-        target.width = res.canvas.width;
-        target.height = res.canvas.height;
-        tctx.clearRect(0, 0, target.width, target.height);
-        tctx.drawImage(res.canvas, 0, 0);
-        lastCanvas = res.canvas;
+      function setCalcLinks() {
+        const base = $("calcBase").value.trim().replace(/\/+$/, "");
+        $("openDesktop").href = `${base}/`;
+        $("openMobile").href = `${base}/?mobile=1`;
       }
 
-      $("render").addEventListener("click", render);
+      function renderAll() {
+        const data = readData();
+        const resFlex = generateShareImage(data, "flex", { siteName: "財富自由計算機", qrLabel: "放 QR" });
+        const resReality = generateShareImage(data, "reality", { siteName: "財富自由計算機", qrLabel: "放 QR" });
+        const resComic = generateShareImage(data, "comic", { siteName: "財富自由計算機", qrLabel: "放 QR" });
+
+        cvFlex.width = resFlex.canvas.width;
+        cvFlex.height = resFlex.canvas.height;
+        ctxFlex.clearRect(0, 0, cvFlex.width, cvFlex.height);
+        ctxFlex.drawImage(resFlex.canvas, 0, 0);
+
+        cvReality.width = resReality.canvas.width;
+        cvReality.height = resReality.canvas.height;
+        ctxReality.clearRect(0, 0, cvReality.width, cvReality.height);
+        ctxReality.drawImage(resReality.canvas, 0, 0);
+
+        cvComic.width = resComic.canvas.width;
+        cvComic.height = resComic.canvas.height;
+        ctxComic.clearRect(0, 0, cvComic.width, cvComic.height);
+        ctxComic.drawImage(resComic.canvas, 0, 0);
+
+        last = { flex: resFlex.canvas, reality: resReality.canvas, comic: resComic.canvas };
+      }
+
+      $("calcBase").addEventListener("input", setCalcLinks);
+      setCalcLinks();
+
+      $("render").addEventListener("click", renderAll);
       $("download").addEventListener("click", () => {
-        if (!lastCanvas) render();
-        downloadShareImage(lastCanvas, `share-${$("style").value}.png`);
+        // 保留舊按鈕：依下拉選擇下載
+        if (!last.flex) renderAll();
+        const style = $("style").value;
+        const cv = last[style];
+        downloadShareImage(cv, `share-${style}.png`);
       });
 
-      render();
+      $("dlFlex").addEventListener("click", () => {
+        if (!last.flex) renderAll();
+        downloadShareImage(last.flex, "share-flex.png");
+      });
+      $("dlReality").addEventListener("click", () => {
+        if (!last.reality) renderAll();
+        downloadShareImage(last.reality, "share-reality.png");
+      });
+      $("dlComic").addEventListener("click", () => {
+        if (!last.comic) renderAll();
+        downloadShareImage(last.comic, "share-comic.png");
+      });
+
+      renderAll();
     </script>
   </body>
 </html>
