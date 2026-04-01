@@ -20,6 +20,46 @@
   z-index: 1;
 }
 
+.highlightMobile {
+  border: 2px solid rgba(250, 204, 21, 0.95);
+  background: rgba(250, 204, 21, 0.12);
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.65),
+    0 0 28px rgba(250, 204, 21, 0.35),
+    0 0 80px rgba(250, 204, 21, 0.18);
+}
+
+.confirmFab {
+  position: fixed;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(250, 204, 21, 0.32);
+  background: rgba(15, 23, 42, 0.88);
+  color: rgba(250, 204, 21, 0.98);
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.confirmFab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .hud {
   position: fixed;
   left: 50%;

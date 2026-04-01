@@ -314,6 +314,10 @@ function detailRefKey(mode: SegmentMode, rowId: string) {
   return `${mode}:${rowId}`;
 }
 
+function areaRefKey(mode: SegmentMode, rowId: string) {
+  return `${mode}:${rowId}`;
+}
+
 /** 剪貼簿較常接受 PNG；JPEG blob 寫入失敗時改用此方式 */
 async function dataUrlToPngBlob(dataUrl: string): Promise<Blob> {
   const img = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -372,6 +376,7 @@ export function ContactUsPanel() {
 
   const emailInputRef = useRef<HTMLInputElement>(null);
   const pickerTargetRef = useRef<{ mode: SegmentMode; rowId: string } | null>(null);
+  const segmentAreaRefs = useRef<Map<string, HTMLInputElement>>(new Map());
   const segmentDetailRefs = useRef<Map<string, HTMLTextAreaElement>>(new Map());
   /** 每筆「常用範本」下拉目前選值（選完即清空，方便重選同一項） */
   const [detailPresetSelect, setDetailPresetSelect] = useState<Record<string, string>>({});
@@ -539,6 +544,17 @@ export function ContactUsPanel() {
     }
     window.setTimeout(() => setToastMessage(null), 5000);
     window.setTimeout(() => {
+      const areaEl = segmentAreaRefs.current.get(areaRefKey(mode, rowId));
+      if (areaEl) {
+        try {
+          areaEl.scrollIntoView({ block: "center", inline: "nearest" });
+        } catch {}
+        areaEl.focus();
+        try {
+          areaEl.setSelectionRange(areaEl.value.length, areaEl.value.length);
+        } catch {}
+        return;
+      }
       segmentDetailRefs.current.get(detailRefKey(mode, rowId))?.focus();
     }, 80);
   }, []);
@@ -1002,6 +1018,11 @@ ${mainBody}
                                 <div className={styles.issueAreaRow}>
                                   <input
                                     id={`cu-seg-area-${segMode}-${row.id}`}
+                                    ref={(el) => {
+                                      const k = areaRefKey(segMode, row.id);
+                                      if (el) segmentAreaRefs.current.set(k, el);
+                                      else segmentAreaRefs.current.delete(k);
+                                    }}
                                     className={`${styles.input} ${styles.issueAreaInput}`}
                                     value={row.area}
                                     onChange={(e) => updateSegmentRow(segMode, row.id, { area: e.target.value })}

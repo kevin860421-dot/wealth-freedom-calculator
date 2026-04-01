@@ -2810,7 +2810,21 @@ export default function Home() {
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 11, color: "#9ca3af", whiteSpace: "nowrap" }}>本金</span>
               <div style={{ display: "flex", alignItems: "stretch", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden", backgroundColor: "rgba(0,0,0,0.4)", width: 88 }}>
-                <input type="text" inputMode="decimal" value={currentPrincipalStr} onChange={(e) => setCurrentPrincipalStr(e.target.value)} onBlur={() => setCurrentPrincipalStr(commitFormulaWithCommas(currentPrincipalStr))} onFocus={(e) => e.target.select()} style={{ ...inputStyle, flex: 1, width: 0, border: "none", borderRadius: 0, padding: "4px 6px", fontSize: 11 }} />
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={currentPrincipalStr}
+                  onChange={(e) => setCurrentPrincipalStr(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key !== "Enter") return;
+                    e.preventDefault();
+                    setCurrentPrincipalStr(commitFormulaWithCommas(currentPrincipalStr));
+                    (e.target as HTMLInputElement).blur();
+                  }}
+                  onBlur={() => setCurrentPrincipalStr(commitFormulaWithCommas(currentPrincipalStr))}
+                  onFocus={(e) => e.target.select()}
+                  style={{ ...inputStyle, flex: 1, width: 0, border: "none", borderRadius: 0, padding: "4px 6px", fontSize: 11 }}
+                />
                 <div style={{ display: "flex", flexDirection: "column", width: 20, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
                   <button type="button" aria-label="+1k" onClick={() => { const n = Math.max(0, parseFormula(currentPrincipalStr) || 0); setCurrentPrincipalStr(Math.floor(n + (n > 100000 ? 5000 : 1000)).toLocaleString("zh-TW")); }} style={{ flex: 1, minHeight: 12, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 9 }}>▲</button>
                   <button type="button" aria-label="-1k" onClick={() => { const n = Math.max(0, parseFormula(currentPrincipalStr) || 0); setCurrentPrincipalStr(Math.floor(Math.max(0, n - (n > 100000 ? 5000 : 1000))).toLocaleString("zh-TW")); }} style={{ flex: 1, minHeight: 12, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 9 }}>▼</button>
@@ -2820,20 +2834,48 @@ export default function Home() {
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 11, color: "#9ca3af", whiteSpace: "nowrap" }}>月投</span>
               <div style={{ display: "flex", alignItems: "stretch", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden", backgroundColor: "rgba(0,0,0,0.4)", width: 72 }}>
-                <input type="text" inputMode="decimal" value={monthlyContribution} onChange={(e) => setMonthlyContribution(e.target.value)} onBlur={() => setMonthlyContribution(commitFormula(monthlyContribution))} onFocus={(e) => e.target.select()} style={{ ...inputStyle, flex: 1, width: 0, border: "none", borderRadius: 0, padding: "4px 6px", fontSize: 11 }} />
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={monthlyContribution}
+                  onChange={(e) => setMonthlyContribution(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key !== "Enter") return;
+                    e.preventDefault();
+                    setMonthlyContribution(commitFormulaWithCommas(monthlyContribution));
+                    (e.target as HTMLInputElement).blur();
+                  }}
+                  onBlur={() => setMonthlyContribution(commitFormulaWithCommas(monthlyContribution))}
+                  onFocus={(e) => e.target.select()}
+                  style={{ ...inputStyle, flex: 1, width: 0, border: "none", borderRadius: 0, padding: "4px 6px", fontSize: 11 }}
+                />
                 <div style={{ display: "flex", flexDirection: "column", width: 20, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
-                  <button type="button" aria-label="+1k" onClick={() => { const n = Math.max(0, parseFormula(monthlyContribution) || 0); setMonthlyContribution(String(n + (n > 100000 ? 5000 : 1000))); }} style={{ flex: 1, minHeight: 12, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 9 }}>▲</button>
-                  <button type="button" aria-label="-1k" onClick={() => { const n = Math.max(0, parseFormula(monthlyContribution) || 0); setMonthlyContribution(String(Math.max(0, n - (n > 100000 ? 5000 : 1000)))); }} style={{ flex: 1, minHeight: 12, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 9 }}>▼</button>
+                  <button type="button" aria-label="+1k" onClick={() => { const n = Math.max(0, parseFormula(monthlyContribution) || 0); setMonthlyContribution(Math.floor(n + (n > 100000 ? 5000 : 1000)).toLocaleString("zh-TW")); }} style={{ flex: 1, minHeight: 12, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 9 }}>▲</button>
+                  <button type="button" aria-label="-1k" onClick={() => { const n = Math.max(0, parseFormula(monthlyContribution) || 0); setMonthlyContribution(Math.floor(Math.max(0, n - (n > 100000 ? 5000 : 1000))).toLocaleString("zh-TW")); }} style={{ flex: 1, minHeight: 12, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 9 }}>▼</button>
                 </div>
               </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 11, color: "#9ca3af", whiteSpace: "nowrap" }}>額外</span>
               <div style={{ display: "flex", alignItems: "stretch", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden", backgroundColor: "rgba(0,0,0,0.4)", width: 64 }}>
-                <input type="text" inputMode="decimal" value={monthlyExtra} onChange={(e) => setMonthlyExtra(e.target.value)} onBlur={() => setMonthlyExtra(commitFormula(monthlyExtra))} onFocus={(e) => e.target.select()} style={{ ...inputStyle, flex: 1, width: 0, border: "none", borderRadius: 0, padding: "4px 6px", fontSize: 11 }} />
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={monthlyExtra}
+                  onChange={(e) => setMonthlyExtra(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key !== "Enter") return;
+                    e.preventDefault();
+                    setMonthlyExtra(commitFormulaWithCommas(monthlyExtra));
+                    (e.target as HTMLInputElement).blur();
+                  }}
+                  onBlur={() => setMonthlyExtra(commitFormulaWithCommas(monthlyExtra))}
+                  onFocus={(e) => e.target.select()}
+                  style={{ ...inputStyle, flex: 1, width: 0, border: "none", borderRadius: 0, padding: "4px 6px", fontSize: 11 }}
+                />
                 <div style={{ display: "flex", flexDirection: "column", width: 20, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
-                  <button type="button" aria-label="+1k" onClick={() => { const n = Math.max(0, parseFormula(monthlyExtra) || 0); setMonthlyExtra(String(n + (n > 100000 ? 5000 : 1000))); }} style={{ flex: 1, minHeight: 12, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 9 }}>▲</button>
-                  <button type="button" aria-label="-1k" onClick={() => { const n = Math.max(0, parseFormula(monthlyExtra) || 0); setMonthlyExtra(String(Math.max(0, n - (n > 100000 ? 5000 : 1000)))); }} style={{ flex: 1, minHeight: 12, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 9 }}>▼</button>
+                  <button type="button" aria-label="+1k" onClick={() => { const n = Math.max(0, parseFormula(monthlyExtra) || 0); setMonthlyExtra(Math.floor(n + (n > 100000 ? 5000 : 1000)).toLocaleString("zh-TW")); }} style={{ flex: 1, minHeight: 12, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 9 }}>▲</button>
+                  <button type="button" aria-label="-1k" onClick={() => { const n = Math.max(0, parseFormula(monthlyExtra) || 0); setMonthlyExtra(Math.floor(Math.max(0, n - (n > 100000 ? 5000 : 1000))).toLocaleString("zh-TW")); }} style={{ flex: 1, minHeight: 12, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 9 }}>▼</button>
                 </div>
               </div>
             </div>
@@ -2843,14 +2885,92 @@ export default function Home() {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 11, color: "#9ca3af", whiteSpace: "nowrap" }}>目標</span>
-              <div style={{ display: "flex", alignItems: "stretch", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden", backgroundColor: "rgba(0,0,0,0.4)", width: 72 }}>
-                <input type="text" inputMode="decimal" value={targetQuarterIncome} onChange={(e) => setTargetQuarterIncome(e.target.value)} onBlur={() => setTargetQuarterIncome(commitFormula(targetQuarterIncome))} onFocus={(e) => e.target.select()} style={{ ...inputStyle, flex: 1, width: 0, border: "none", borderRadius: 0, padding: "4px 6px", fontSize: 11 }} />
+              <div style={{ display: "flex", alignItems: "stretch", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden", backgroundColor: "rgba(0,0,0,0.4)", width: 90 }}>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={targetQuarterIncome}
+                  onChange={(e) => setTargetQuarterIncome(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key !== "Enter") return;
+                    e.preventDefault();
+                    setTargetQuarterIncome(commitFormulaWithCommas(targetQuarterIncome));
+                    (e.target as HTMLInputElement).blur();
+                  }}
+                  onBlur={() => setTargetQuarterIncome(commitFormulaWithCommas(targetQuarterIncome))}
+                  onFocus={(e) => e.target.select()}
+                  style={{ ...inputStyle, flex: 1, width: 0, border: "none", borderRadius: 0, padding: "4px 6px", fontSize: 11 }}
+                />
+                <div style={{ display: "flex", flexDirection: "column", width: 18, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
+                  <button
+                    type="button"
+                    aria-label="目標+"
+                    onClick={() => {
+                      const n = Math.max(0, parseFormula(targetQuarterIncome) || 0);
+                      const step = n > 100000 ? 10000 : 5000;
+                      setTargetQuarterIncome(Math.floor(n + step).toLocaleString("zh-TW"));
+                    }}
+                    style={{ flex: 1, minHeight: 12, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 8 }}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="目標-"
+                    onClick={() => {
+                      const n = Math.max(0, parseFormula(targetQuarterIncome) || 0);
+                      const step = n > 100000 ? 10000 : 5000;
+                      setTargetQuarterIncome(Math.floor(Math.max(0, n - step)).toLocaleString("zh-TW"));
+                    }}
+                    style={{ flex: 1, minHeight: 12, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 8 }}
+                  >
+                    ▼
+                  </button>
+                </div>
               </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 11, color: "#9ca3af", whiteSpace: "nowrap" }}>達成年</span>
-              <div style={{ display: "flex", alignItems: "stretch", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden", backgroundColor: "rgba(0,0,0,0.4)", width: 48 }}>
-                <input type="text" inputMode="numeric" value={targetYearsToAchieve} onChange={(e) => setTargetYearsToAchieve(e.target.value)} onBlur={() => setTargetYearsToAchieve(commitFormula(targetYearsToAchieve))} onFocus={(e) => e.target.select()} style={{ ...inputStyle, flex: 1, width: 0, border: "none", borderRadius: 0, padding: "4px 6px", fontSize: 11, textAlign: "center" }} />
+              <div style={{ display: "flex", alignItems: "stretch", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden", backgroundColor: "rgba(0,0,0,0.4)", width: 66 }}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={targetYearsToAchieve}
+                  onChange={(e) => setTargetYearsToAchieve(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key !== "Enter") return;
+                    e.preventDefault();
+                    setTargetYearsToAchieve(commitFormula(targetYearsToAchieve));
+                    (e.target as HTMLInputElement).blur();
+                  }}
+                  onBlur={() => setTargetYearsToAchieve(commitFormula(targetYearsToAchieve))}
+                  onFocus={(e) => e.target.select()}
+                  style={{ ...inputStyle, flex: 1, width: 0, border: "none", borderRadius: 0, padding: "4px 6px", fontSize: 11, textAlign: "center" }}
+                />
+                <div style={{ display: "flex", flexDirection: "column", width: 18, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
+                  <button
+                    type="button"
+                    aria-label="達成年+1"
+                    onClick={() => {
+                      const n = Math.max(0, Math.round(parseFormula(targetYearsToAchieve) || 0));
+                      setTargetYearsToAchieve(String(Math.min(99, n + 1)));
+                    }}
+                    style={{ flex: 1, minHeight: 12, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 8 }}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="達成年-1"
+                    onClick={() => {
+                      const n = Math.max(0, Math.round(parseFormula(targetYearsToAchieve) || 0));
+                      setTargetYearsToAchieve(String(Math.max(0, n - 1)));
+                    }}
+                    style={{ flex: 1, minHeight: 12, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 8 }}
+                  >
+                    ▼
+                  </button>
+                </div>
               </div>
             </div>
             </div>
@@ -2890,15 +3010,134 @@ export default function Home() {
             >
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 11, color: "#9ca3af", whiteSpace: "nowrap" }}>年化%</span>
-              <input type="number" min={0} step={0.1} value={annualReturnRate === 0 ? "" : annualReturnRate} onChange={(e) => { const v = e.target.value; setAnnualReturnRate(v === "" ? 0 : Number(v) || 0); setRateSource("annual"); }} style={{ ...inputStyle, width: 52, padding: "4px 6px", fontSize: 11, opacity: rateSource === "dividend" && (dividendYieldPct !== "" || stockDividendPct !== "") ? 0.6 : 1 }} />
+              <div style={{ display: "flex", alignItems: "stretch", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden", backgroundColor: "rgba(0,0,0,0.4)", width: 72 }}>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.2}
+                  value={annualReturnRate === 0 ? "" : annualReturnRate}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setAnnualReturnRate(v === "" ? 0 : Number(v) || 0);
+                    setRateSource("annual");
+                  }}
+                  style={{ ...inputStyle, flex: 1, width: 0, border: "none", borderRadius: 0, padding: "4px 6px", fontSize: 11, textAlign: "center", opacity: rateSource === "dividend" && (dividendYieldPct !== "" || stockDividendPct !== "") ? 0.6 : 1 }}
+                />
+                <div style={{ display: "flex", flexDirection: "column", width: 20, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
+                  <button
+                    type="button"
+                    aria-label="年化+0.2"
+                    onClick={() => {
+                      const step = 0.2;
+                      const next = Math.max(0, Number((annualReturnRate + step).toFixed(1)));
+                      setAnnualReturnRate(next);
+                      setRateSource("annual");
+                    }}
+                    style={{ flex: 1, minHeight: 12, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 9 }}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="年化-0.2"
+                    onClick={() => {
+                      const step = 0.2;
+                      const next = Math.max(0, Number((annualReturnRate - step).toFixed(1)));
+                      setAnnualReturnRate(next);
+                      setRateSource("annual");
+                    }}
+                    style={{ flex: 1, minHeight: 12, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 9 }}
+                  >
+                    ▼
+                  </button>
+                </div>
+              </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 11, color: "#9ca3af", whiteSpace: "nowrap" }}>股息%</span>
-              <input type="number" min={0} step={0.1} value={dividendYieldPct === "" ? "" : dividendYieldPct} onChange={(e) => { const v = e.target.value; setDividendYieldPct(v === "" ? "" : (Number(v) || 0)); setRateSource("dividend"); }} style={{ ...inputStyle, width: 44, padding: "4px 6px", fontSize: 11 }} />
+              <div style={{ display: "flex", alignItems: "stretch", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden", backgroundColor: "rgba(0,0,0,0.4)", width: 64 }}>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.1}
+                  value={dividendYieldPct === "" ? "" : dividendYieldPct}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setDividendYieldPct(v === "" ? "" : Number(v) || 0);
+                    setRateSource("dividend");
+                  }}
+                  style={{ ...inputStyle, flex: 1, width: 0, border: "none", borderRadius: 0, padding: "4px 6px", fontSize: 11, textAlign: "center" }}
+                />
+                <div style={{ display: "flex", flexDirection: "column", width: 20, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
+                  <button
+                    type="button"
+                    aria-label="股息+0.1"
+                    onClick={() => {
+                      const cur = dividendYieldPct === "" ? 0 : Number(dividendYieldPct) || 0;
+                      setDividendYieldPct(Number((Math.max(0, cur + 0.1)).toFixed(1)));
+                      setRateSource("dividend");
+                    }}
+                    style={{ flex: 1, minHeight: 12, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 9 }}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="股息-0.1"
+                    onClick={() => {
+                      const cur = dividendYieldPct === "" ? 0 : Number(dividendYieldPct) || 0;
+                      setDividendYieldPct(Number((Math.max(0, cur - 0.1)).toFixed(1)));
+                      setRateSource("dividend");
+                    }}
+                    style={{ flex: 1, minHeight: 12, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 9 }}
+                  >
+                    ▼
+                  </button>
+                </div>
+              </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 11, color: "#9ca3af", whiteSpace: "nowrap" }}>股利%</span>
-              <input type="number" min={0} step={0.1} value={stockDividendPct === "" ? "" : stockDividendPct} onChange={(e) => { const v = e.target.value; setStockDividendPct(v === "" ? "" : (Number(v) || 0)); setRateSource("dividend"); }} style={{ ...inputStyle, width: 44, padding: "4px 6px", fontSize: 11 }} />
+              <div style={{ display: "flex", alignItems: "stretch", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden", backgroundColor: "rgba(0,0,0,0.4)", width: 64 }}>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.1}
+                  value={stockDividendPct === "" ? "" : stockDividendPct}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setStockDividendPct(v === "" ? "" : Number(v) || 0);
+                    setRateSource("dividend");
+                  }}
+                  style={{ ...inputStyle, flex: 1, width: 0, border: "none", borderRadius: 0, padding: "4px 6px", fontSize: 11, textAlign: "center" }}
+                />
+                <div style={{ display: "flex", flexDirection: "column", width: 20, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
+                  <button
+                    type="button"
+                    aria-label="股利+0.1"
+                    onClick={() => {
+                      const cur = stockDividendPct === "" ? 0 : Number(stockDividendPct) || 0;
+                      setStockDividendPct(Number((Math.max(0, cur + 0.1)).toFixed(1)));
+                      setRateSource("dividend");
+                    }}
+                    style={{ flex: 1, minHeight: 12, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 9 }}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="股利-0.1"
+                    onClick={() => {
+                      const cur = stockDividendPct === "" ? 0 : Number(stockDividendPct) || 0;
+                      setStockDividendPct(Number((Math.max(0, cur - 0.1)).toFixed(1)));
+                      setRateSource("dividend");
+                    }}
+                    style={{ flex: 1, minHeight: 12, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 9 }}
+                  >
+                    ▼
+                  </button>
+                </div>
+              </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 11, color: "#9ca3af", whiteSpace: "nowrap" }}>頻率</span>
@@ -2911,9 +3150,77 @@ export default function Home() {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 11, color: "#9ca3af", whiteSpace: "nowrap" }}>起始</span>
-              <input type="text" inputMode="numeric" value={initialYearStr} onChange={(e) => { const v = e.target.value.replace(/\D/g, ""); if (v === "" || (v.length <= 4 && parseInt(v, 10) <= 2100)) setInitialYearStr(v); }} onBlur={() => { const n = parseInt(initialYearStr, 10); if (!Number.isFinite(n) || n < 2000) setInitialYearStr(String(defaultYear)); else if (n > 2100) setInitialYearStr("2100"); }} style={{ ...inputStyle, width: 48, padding: "4px 6px", fontSize: 11, textAlign: "center" }} />
+              <div style={{ display: "flex", alignItems: "stretch", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden", backgroundColor: "rgba(0,0,0,0.4)" }}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={initialYearStr}
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\D/g, "");
+                    if (v === "" || (v.length <= 4 && parseInt(v, 10) <= 2100)) setInitialYearStr(v);
+                  }}
+                  onBlur={() => {
+                    const n = parseInt(initialYearStr, 10);
+                    if (!Number.isFinite(n) || n < 2000) setInitialYearStr(String(defaultYear));
+                    else if (n > 2100) setInitialYearStr("2100");
+                  }}
+                  style={{ ...inputStyle, width: 46, height: 24, padding: "4px 6px", fontSize: 11, textAlign: "center", border: "none", borderRadius: 0 }}
+                />
+                <div style={{ display: "flex", flexDirection: "column", width: 18, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
+                  <button type="button" aria-label="年+1" onClick={() => setInitialYearStr(String(Math.min(2100, initialYear + 1)))} style={{ flex: 1, minHeight: 10, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 8 }}>▲</button>
+                  <button type="button" aria-label="年-1" onClick={() => setInitialYearStr(String(Math.max(2000, initialYear - 1)))} style={{ flex: 1, minHeight: 10, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 8 }}>▼</button>
+                </div>
+              </div>
               <span style={{ fontSize: 10, color: "#9ca3af" }}>年</span>
-              <input type="text" inputMode="numeric" value={initialMonthStr} onChange={(e) => { const v = e.target.value.replace(/\D/g, ""); if (v === "" || v.length <= 2) setInitialMonthStr(v); }} onBlur={() => { const n = parseInt(initialMonthStr, 10); if (!Number.isFinite(n) || n < 1) setInitialMonthStr(String(defaultMonth)); else if (n > 12) setInitialMonthStr("12"); }} style={{ ...inputStyle, width: 36, padding: "4px 6px", fontSize: 11, textAlign: "center" }} />
+              <div style={{ display: "flex", alignItems: "stretch", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden", backgroundColor: "rgba(0,0,0,0.4)" }}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={initialMonthStr}
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\D/g, "");
+                    if (v === "" || v.length <= 2) setInitialMonthStr(v);
+                  }}
+                  onBlur={() => {
+                    const n = parseInt(initialMonthStr, 10);
+                    if (!Number.isFinite(n) || n < 1) setInitialMonthStr(String(defaultMonth));
+                    else if (n > 12) setInitialMonthStr("12");
+                  }}
+                  style={{ ...inputStyle, width: 34, height: 24, padding: "4px 6px", fontSize: 11, textAlign: "center", border: "none", borderRadius: 0 }}
+                />
+                <div style={{ display: "flex", flexDirection: "column", width: 18, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
+                  <button
+                    type="button"
+                    aria-label="月+1"
+                    onClick={() => {
+                      if (initialMonth >= 12) {
+                        setInitialMonthStr("1");
+                        setInitialYearStr(String(Math.min(2100, initialYear + 1)));
+                      } else {
+                        setInitialMonthStr(String(initialMonth + 1));
+                      }
+                    }}
+                    style={{ flex: 1, minHeight: 10, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 8 }}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="月-1"
+                    onClick={() => {
+                      if (initialMonth <= 1) {
+                        setInitialMonthStr("12");
+                        setInitialYearStr(String(Math.max(2000, initialYear - 1)));
+                      } else {
+                        setInitialMonthStr(String(initialMonth - 1));
+                      }
+                    }}
+                    style={{ flex: 1, minHeight: 10, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 8 }}
+                  >
+                    ▼
+                  </button>
+                </div>
+              </div>
               <span style={{ fontSize: 10, color: "#9ca3af" }}>月</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -2928,9 +3235,77 @@ export default function Home() {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "nowrap" }}>
               <span style={{ fontSize: 11, color: "#9ca3af", whiteSpace: "nowrap" }}>預設</span>
-              <input type="text" inputMode="numeric" value={defaultYearStr} onChange={(e) => { const v = e.target.value.replace(/\D/g, ""); if (v === "" || (v.length <= 4 && parseInt(v, 10) <= 2100)) setDefaultYearStr(v); }} onBlur={() => { const n = parseInt(defaultYearStr, 10); if (!Number.isFinite(n) || n < 2000) setDefaultYearStr(String(DEFAULT_SIM_START_YEAR)); else if (n > 2100) setDefaultYearStr("2100"); }} style={{ ...inputStyle, width: 48, padding: "4px 6px", fontSize: 11, textAlign: "center" }} />
+              <div style={{ display: "flex", alignItems: "stretch", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden", backgroundColor: "rgba(0,0,0,0.4)" }}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={defaultYearStr}
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\D/g, "");
+                    if (v === "" || (v.length <= 4 && parseInt(v, 10) <= 2100)) setDefaultYearStr(v);
+                  }}
+                  onBlur={() => {
+                    const n = parseInt(defaultYearStr, 10);
+                    if (!Number.isFinite(n) || n < 2000) setDefaultYearStr(String(DEFAULT_SIM_START_YEAR));
+                    else if (n > 2100) setDefaultYearStr("2100");
+                  }}
+                  style={{ ...inputStyle, width: 46, height: 24, padding: "4px 6px", fontSize: 11, textAlign: "center", border: "none", borderRadius: 0 }}
+                />
+                <div style={{ display: "flex", flexDirection: "column", width: 18, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
+                  <button type="button" aria-label="年+1" onClick={() => setDefaultYearStr(String(Math.min(2100, defaultYear + 1)))} style={{ flex: 1, minHeight: 10, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 8 }}>▲</button>
+                  <button type="button" aria-label="年-1" onClick={() => setDefaultYearStr(String(Math.max(2000, defaultYear - 1)))} style={{ flex: 1, minHeight: 10, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 8 }}>▼</button>
+                </div>
+              </div>
               <span style={{ fontSize: 10, color: "#9ca3af" }}>年</span>
-              <input type="text" inputMode="numeric" value={defaultMonthStr} onChange={(e) => { const v = e.target.value.replace(/\D/g, ""); if (v === "" || v.length <= 2) setDefaultMonthStr(v); }} onBlur={() => { const n = parseInt(defaultMonthStr, 10); if (!Number.isFinite(n) || n < 1) setDefaultMonthStr(String(DEFAULT_SIM_START_MONTH)); else if (n > 12) setDefaultMonthStr("12"); }} style={{ ...inputStyle, width: 36, padding: "4px 6px", fontSize: 11, textAlign: "center" }} />
+              <div style={{ display: "flex", alignItems: "stretch", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden", backgroundColor: "rgba(0,0,0,0.4)" }}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={defaultMonthStr}
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\D/g, "");
+                    if (v === "" || v.length <= 2) setDefaultMonthStr(v);
+                  }}
+                  onBlur={() => {
+                    const n = parseInt(defaultMonthStr, 10);
+                    if (!Number.isFinite(n) || n < 1) setDefaultMonthStr(String(DEFAULT_SIM_START_MONTH));
+                    else if (n > 12) setDefaultMonthStr("12");
+                  }}
+                  style={{ ...inputStyle, width: 34, height: 24, padding: "4px 6px", fontSize: 11, textAlign: "center", border: "none", borderRadius: 0 }}
+                />
+                <div style={{ display: "flex", flexDirection: "column", width: 18, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
+                  <button
+                    type="button"
+                    aria-label="月+1"
+                    onClick={() => {
+                      if (defaultMonth >= 12) {
+                        setDefaultMonthStr("1");
+                        setDefaultYearStr(String(Math.min(2100, defaultYear + 1)));
+                      } else {
+                        setDefaultMonthStr(String(defaultMonth + 1));
+                      }
+                    }}
+                    style={{ flex: 1, minHeight: 10, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 8 }}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="月-1"
+                    onClick={() => {
+                      if (defaultMonth <= 1) {
+                        setDefaultMonthStr("12");
+                        setDefaultYearStr(String(Math.max(2000, defaultYear - 1)));
+                      } else {
+                        setDefaultMonthStr(String(defaultMonth - 1));
+                      }
+                    }}
+                    style={{ flex: 1, minHeight: 10, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 8 }}
+                  >
+                    ▼
+                  </button>
+                </div>
+              </div>
               <span style={{ fontSize: 10, color: "#9ca3af" }}>月</span>
               <button type="button" onClick={() => { const d = new Date(); setInitialYearStr(String(d.getFullYear())); setInitialMonthStr(String(d.getMonth() + 1)); }} style={{ padding: "4px 8px", fontSize: 10, borderRadius: 6, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.08)", color: "#e5e7eb", cursor: "pointer", flexShrink: 0 }}>恢復</button>
               <label className="tax-sticky-desktop-only" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#d1d5db", cursor: "pointer", whiteSpace: "nowrap" }}>
@@ -3158,7 +3533,7 @@ export default function Home() {
                     min={0}
                     value={targetQuarterIncome}
                     onChange={(e) => setTargetQuarterIncome(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); setTargetQuarterIncome(commitFormula(targetQuarterIncome)); (e.target as HTMLInputElement).blur(); } }}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); setTargetQuarterIncome(commitFormulaWithCommas(targetQuarterIncome)); (e.target as HTMLInputElement).blur(); } }}
                     onFocus={(e) => e.target.select()}
                     style={{
                       ...inputStyle,
@@ -3414,7 +3789,7 @@ export default function Home() {
                       inputMode="decimal"
                       value={monthlyContribution}
                       onChange={(e) => setMonthlyContribution(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); setMonthlyContribution(commitFormula(monthlyContribution)); (e.target as HTMLInputElement).blur(); } }}
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); setMonthlyContribution(commitFormulaWithCommas(monthlyContribution)); (e.target as HTMLInputElement).blur(); } }}
                       onFocus={(e) => e.target.select()}
                       style={{ ...inputStyle, flex: 1, border: "none", borderRadius: 0 }}
                       placeholder="例如：12000 或 4000+8000"
@@ -3433,7 +3808,7 @@ export default function Home() {
                       inputMode="decimal"
                       value={monthlyExtra}
                       onChange={(e) => setMonthlyExtra(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); setMonthlyExtra(commitFormula(monthlyExtra)); (e.target as HTMLInputElement).blur(); } }}
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); setMonthlyExtra(commitFormulaWithCommas(monthlyExtra)); (e.target as HTMLInputElement).blur(); } }}
                       onFocus={(e) => e.target.select()}
                       style={{ ...inputStyle, flex: 1, border: "none", borderRadius: 0 }}
                       placeholder="例如：6000 或 3000+3000"
@@ -3566,8 +3941,36 @@ export default function Home() {
                           style={{ ...inputStyle, width: 56, height: 28, textAlign: "center", border: "none", borderRadius: 0 }}
                         />
                         <div style={{ display: "flex", flexDirection: "column", width: 22, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
-                          <button type="button" aria-label="月+1" onClick={() => setInitialMonthStr(String((initialMonth % 12) + 1))} style={{ flex: 1, minHeight: 14, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▲</button>
-                          <button type="button" aria-label="月-1" onClick={() => setInitialMonthStr(String(((initialMonth + 10) % 12) + 1))} style={{ flex: 1, minHeight: 14, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▼</button>
+                          <button
+                            type="button"
+                            aria-label="月+1"
+                            onClick={() => {
+                              if (initialMonth >= 12) {
+                                setInitialMonthStr("1");
+                                setInitialYearStr(String(Math.min(2100, initialYear + 1)));
+                              } else {
+                                setInitialMonthStr(String(initialMonth + 1));
+                              }
+                            }}
+                            style={{ flex: 1, minHeight: 14, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}
+                          >
+                            ▲
+                          </button>
+                          <button
+                            type="button"
+                            aria-label="月-1"
+                            onClick={() => {
+                              if (initialMonth <= 1) {
+                                setInitialMonthStr("12");
+                                setInitialYearStr(String(Math.max(2000, initialYear - 1)));
+                              } else {
+                                setInitialMonthStr(String(initialMonth - 1));
+                              }
+                            }}
+                            style={{ flex: 1, minHeight: 14, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}
+                          >
+                            ▼
+                          </button>
                         </div>
                       </div>
                       <span style={{ fontSize: 13, color: "#9ca3af" }}>月</span>
@@ -3652,8 +4055,36 @@ export default function Home() {
                           style={{ ...inputStyle, width: 56, height: 28, textAlign: "center", border: "none", borderRadius: 0 }}
                         />
                         <div style={{ display: "flex", flexDirection: "column", width: 22, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
-                          <button type="button" aria-label="月+1" onClick={() => setDefaultMonthStr(String(((defaultMonth % 12) + 1)))} style={{ flex: 1, minHeight: 14, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▲</button>
-                          <button type="button" aria-label="月-1" onClick={() => setDefaultMonthStr(String(((defaultMonth + 10) % 12) + 1))} style={{ flex: 1, minHeight: 14, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▼</button>
+                          <button
+                            type="button"
+                            aria-label="月+1"
+                            onClick={() => {
+                              if (defaultMonth >= 12) {
+                                setDefaultMonthStr("1");
+                                setDefaultYearStr(String(Math.min(2100, defaultYear + 1)));
+                              } else {
+                                setDefaultMonthStr(String(defaultMonth + 1));
+                              }
+                            }}
+                            style={{ flex: 1, minHeight: 14, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}
+                          >
+                            ▲
+                          </button>
+                          <button
+                            type="button"
+                            aria-label="月-1"
+                            onClick={() => {
+                              if (defaultMonth <= 1) {
+                                setDefaultMonthStr("12");
+                                setDefaultYearStr(String(Math.max(2000, defaultYear - 1)));
+                              } else {
+                                setDefaultMonthStr(String(defaultMonth - 1));
+                              }
+                            }}
+                            style={{ flex: 1, minHeight: 14, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}
+                          >
+                            ▼
+                          </button>
                         </div>
                       </div>
                       <span style={{ fontSize: 13, color: "#9ca3af" }}>月</span>

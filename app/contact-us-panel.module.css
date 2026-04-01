@@ -484,6 +484,12 @@
   }
 }
 
+@media (max-width: 768px) {
+  .issueDetailTextarea {
+    min-height: 336px;
+  }
+}
+
 .btnAddIssue {
   display: block;
   width: 100%;
