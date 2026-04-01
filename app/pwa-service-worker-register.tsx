@@ -9,7 +9,22 @@ import { useEffect } from "react";
 export function PwaServiceWorkerRegister() {
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
-    if (process.env.NODE_ENV !== "production" && window.location.hostname !== "localhost") return;
+    // 開發環境：不要註冊 SW（會讓你一直看到舊版快取）；若曾註冊過則主動解除。
+    if (process.env.NODE_ENV !== "production") {
+      void (async () => {
+        try {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map((r) => r.unregister()));
+          if ("caches" in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map((k) => caches.delete(k)));
+          }
+        } catch {
+          /* ignore */
+        }
+      })();
+      return;
+    }
 
     const register = () => {
       navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {

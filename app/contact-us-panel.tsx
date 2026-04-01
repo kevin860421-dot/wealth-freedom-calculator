@@ -249,8 +249,20 @@ function stripScreenshotsForStorage(items: IssueItem[]): IssueItem[] {
 
 function readContactDraft(stablePrefix: string): ContactDraftStored | null {
   if (typeof window === "undefined") return null;
-  const defaultIssueRow = (): IssueItem[] => [{ id: `${stablePrefix}-issue-0`, area: "", detail: "" }];
-  const defaultFeatureRow = (): IssueItem[] => [{ id: `${stablePrefix}-feature-0`, area: "", detail: "" }];
+  const defaultIssueRow = (): IssueItem[] => [
+    {
+      id: `${stablePrefix}-issue-0`,
+      area: "",
+      detail: "",
+    },
+  ];
+  const defaultFeatureRow = (): IssueItem[] => [
+    {
+      id: `${stablePrefix}-feature-0`,
+      area: "",
+      detail: "",
+    },
+  ];
   try {
     const raw = window.localStorage.getItem(CONTACT_DRAFT_STORAGE_KEY);
     if (!raw) return null;
@@ -355,10 +367,18 @@ export function ContactUsPanel() {
   const [subjectField, setSubjectField] = useState<string>(() => typeLabel("issue"));
   const [messageBody, setMessageBody] = useState("");
   const [issueItems, setIssueItems] = useState<IssueItem[]>(() => [
-    { id: `${rowIdRoot}-issue-0`, area: "", detail: "" },
+    {
+      id: `${rowIdRoot}-issue-0`,
+      area: "",
+      detail: "",
+    },
   ]);
   const [featureItems, setFeatureItems] = useState<IssueItem[]>(() => [
-    { id: `${rowIdRoot}-feature-0`, area: "", detail: "" },
+    {
+      id: `${rowIdRoot}-feature-0`,
+      area: "",
+      detail: "",
+    },
   ]);
   const [draftHydrated, setDraftHydrated] = useState(false);
 

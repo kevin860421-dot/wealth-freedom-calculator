@@ -780,13 +780,13 @@ export default function Home() {
     if (s) {
       skipTaxSyncFromIncomeRef.current = true;
       setInitialPrincipal(s.initialPrincipal);
-      setMonthlyContribution(s.monthlyContribution);
-      setMonthlyExtra(s.monthlyExtra);
+      setMonthlyContribution(commitFormulaWithCommas(s.monthlyContribution));
+      setMonthlyExtra(commitFormulaWithCommas(s.monthlyExtra));
       setAnnualReturnRate(s.annualReturnRate);
       setDividendYieldPct(s.dividendYieldPct === null ? "" : s.dividendYieldPct);
       setStockDividendPct(s.stockDividendPct === null ? "" : s.stockDividendPct);
       setRateSource(s.rateSource);
-      setTargetQuarterIncome(s.targetQuarterIncome);
+      setTargetQuarterIncome(commitFormulaWithCommas(s.targetQuarterIncome));
       setReinvestRatio(s.reinvestRatio);
       setPayoutFrequency(s.payoutFrequency as PayoutFrequency);
       setSelectedEtf(s.selectedEtf);
@@ -808,6 +808,11 @@ export default function Home() {
       );
       // 篩選只用於縮小選項，不應隨「已選標的」鎖死清單；否則會看起來像 100 檔預設消失
       setEtfCodeFilter("");
+    } else {
+      // 無存檔時也先把預設值套千分位（避免一開始顯示 12000/50000 這種）
+      setMonthlyContribution((v) => commitFormulaWithCommas(v));
+      setMonthlyExtra((v) => commitFormulaWithCommas(v));
+      setTargetQuarterIncome((v) => commitFormulaWithCommas(v));
     }
     setStorageReady(true);
   }, [clientMounted, maxNthPeriod]);
@@ -1382,13 +1387,13 @@ export default function Home() {
     (s: CalculatorSnapshotV1) => {
       skipTaxSyncFromIncomeRef.current = true;
       setInitialPrincipal(s.initialPrincipal);
-      setMonthlyContribution(s.monthlyContribution);
-      setMonthlyExtra(s.monthlyExtra);
+      setMonthlyContribution(commitFormulaWithCommas(s.monthlyContribution));
+      setMonthlyExtra(commitFormulaWithCommas(s.monthlyExtra));
       setAnnualReturnRate(s.annualReturnRate);
       setDividendYieldPct(s.dividendYieldPct === null ? "" : s.dividendYieldPct);
       setStockDividendPct(s.stockDividendPct === null ? "" : s.stockDividendPct);
       setRateSource(s.rateSource);
-      setTargetQuarterIncome(s.targetQuarterIncome);
+      setTargetQuarterIncome(commitFormulaWithCommas(s.targetQuarterIncome));
       setReinvestRatio(s.reinvestRatio);
       setPayoutFrequency(s.payoutFrequency as PayoutFrequency);
       setSelectedEtf(s.selectedEtf);
@@ -3548,8 +3553,8 @@ export default function Home() {
                     placeholder="50,000"
                   />
                   <div style={{ display: "flex", flexDirection: "column", width: 26, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.12)" }}>
-                    <button type="button" aria-label="增加" onClick={() => { const n = Math.max(0, parseFormula(targetQuarterIncome) || 0); const step = n > 100000 ? 5000 : 1000; setTargetQuarterIncome(String(n + step)); }} style={{ flex: 1, minHeight: 14, padding: 0, border: "none", background: "rgba(255,255,255,0.08)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▲</button>
-                    <button type="button" aria-label="減少" onClick={() => { const n = Math.max(0, parseFormula(targetQuarterIncome) || 0); const step = n > 100000 ? 5000 : 1000; setTargetQuarterIncome(String(Math.max(0, n - step))); }} style={{ flex: 1, minHeight: 14, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.08)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▼</button>
+                    <button type="button" aria-label="增加" onClick={() => { const n = Math.max(0, parseFormula(targetQuarterIncome) || 0); const step = n > 100000 ? 5000 : 1000; setTargetQuarterIncome(Math.floor(n + step).toLocaleString("zh-TW")); }} style={{ flex: 1, minHeight: 14, padding: 0, border: "none", background: "rgba(255,255,255,0.08)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▲</button>
+                    <button type="button" aria-label="減少" onClick={() => { const n = Math.max(0, parseFormula(targetQuarterIncome) || 0); const step = n > 100000 ? 5000 : 1000; setTargetQuarterIncome(Math.floor(Math.max(0, n - step)).toLocaleString("zh-TW")); }} style={{ flex: 1, minHeight: 14, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.08)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▼</button>
                   </div>
                 </div>
               </div>
@@ -3795,8 +3800,8 @@ export default function Home() {
                       placeholder="例如：12000 或 4000+8000"
                     />
                     <div style={{ display: "flex", flexDirection: "column", width: 28, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
-                      <button type="button" aria-label="增加" onClick={() => { const n = Math.max(0, parseFormula(monthlyContribution) || 0); const step = n > 100000 ? 5000 : 1000; setMonthlyContribution(String(n + step)); }} style={{ flex: 1, minHeight: 16, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▲</button>
-                      <button type="button" aria-label="減少" onClick={() => { const n = Math.max(0, parseFormula(monthlyContribution) || 0); const step = n > 100000 ? 5000 : 1000; setMonthlyContribution(String(Math.max(0, n - step))); }} style={{ flex: 1, minHeight: 16, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▼</button>
+                      <button type="button" aria-label="增加" onClick={() => { const n = Math.max(0, parseFormula(monthlyContribution) || 0); const step = n > 100000 ? 5000 : 1000; setMonthlyContribution(Math.floor(n + step).toLocaleString("zh-TW")); }} style={{ flex: 1, minHeight: 16, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▲</button>
+                      <button type="button" aria-label="減少" onClick={() => { const n = Math.max(0, parseFormula(monthlyContribution) || 0); const step = n > 100000 ? 5000 : 1000; setMonthlyContribution(Math.floor(Math.max(0, n - step)).toLocaleString("zh-TW")); }} style={{ flex: 1, minHeight: 16, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▼</button>
                     </div>
                   </div>
                 </div>
@@ -3814,8 +3819,8 @@ export default function Home() {
                       placeholder="例如：6000 或 3000+3000"
                     />
                     <div style={{ display: "flex", flexDirection: "column", width: 28, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
-                      <button type="button" aria-label="增加" onClick={() => { const n = Math.max(0, parseFormula(monthlyExtra) || 0); const step = n > 100000 ? 5000 : 1000; setMonthlyExtra(String(n + step)); }} style={{ flex: 1, minHeight: 16, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▲</button>
-                      <button type="button" aria-label="減少" onClick={() => { const n = Math.max(0, parseFormula(monthlyExtra) || 0); const step = n > 100000 ? 5000 : 1000; setMonthlyExtra(String(Math.max(0, n - step))); }} style={{ flex: 1, minHeight: 16, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▼</button>
+                      <button type="button" aria-label="增加" onClick={() => { const n = Math.max(0, parseFormula(monthlyExtra) || 0); const step = n > 100000 ? 5000 : 1000; setMonthlyExtra(Math.floor(n + step).toLocaleString("zh-TW")); }} style={{ flex: 1, minHeight: 16, padding: 0, border: "none", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▲</button>
+                      <button type="button" aria-label="減少" onClick={() => { const n = Math.max(0, parseFormula(monthlyExtra) || 0); const step = n > 100000 ? 5000 : 1000; setMonthlyExtra(Math.floor(Math.max(0, n - step)).toLocaleString("zh-TW")); }} style={{ flex: 1, minHeight: 16, padding: 0, border: "none", borderTop: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#e5e7eb", cursor: "pointer", fontSize: 10 }}>▼</button>
                     </div>
                   </div>
                 </div>

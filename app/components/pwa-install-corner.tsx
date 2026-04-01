@@ -222,7 +222,7 @@ export function PwaInstallCorner({ embedded = false }: Props) {
           </span>
           <span className={styles.fabBtnTextCol}>
             <span className={styles.fabBtnTitle}>手機 App</span>
-            <span className={styles.fabBtnSub}>加入主畫面 · 快速開啟</span>
+            <span className={styles.fabBtnSub} />
           </span>
         </button>
         <button
@@ -235,7 +235,7 @@ export function PwaInstallCorner({ embedded = false }: Props) {
           </span>
           <span className={styles.fabBtnTextCol}>
             <span className={styles.fabBtnTitle}>電腦 App</span>
-            <span className={styles.fabBtnSub}>安裝為應用程式 · 獨立視窗</span>
+            <span className={styles.fabBtnSub} />
           </span>
         </button>
       </div>
@@ -249,16 +249,6 @@ export function PwaInstallCorner({ embedded = false }: Props) {
 
   const embeddedFooter = (
     <div className={styles.embeddedFooter}>
-      <p className={styles.footerHint}>
-        <span aria-hidden>📱</span> 使用 App 可快速開啟，較不易被當一般分頁清掉。
-      </p>
-      {mobileUa ? (
-        <p className={styles.quickSteps} role="note">
-          iPhone：Safari「分享」→ 加入主畫面；Android：Chrome「⋮」→ 安裝應用程式 / 加入主畫面。
-          <br />
-          若在 LINE / IG 內建瀏覽器，請改用 Safari / Chrome 開啟再加入。
-        </p>
-      ) : null}
       <div className={styles.footerBtnRow}>
         <button
           type="button"
@@ -270,7 +260,7 @@ export function PwaInstallCorner({ embedded = false }: Props) {
           </span>
           <span className={styles.fabBtnTextCol}>
             <span className={styles.fabBtnTitle}>加入桌面/主畫面</span>
-            <span className={styles.fabBtnSub}>iPhone 加入主畫面 · Android 安裝</span>
+            <span className={styles.fabBtnSub} />
           </span>
         </button>
         <button
@@ -283,7 +273,7 @@ export function PwaInstallCorner({ embedded = false }: Props) {
           </span>
           <span className={styles.fabBtnTextCol}>
             <span className={styles.fabBtnTitle}>電腦 App</span>
-            <span className={styles.fabBtnSub}>獨立視窗</span>
+            <span className={styles.fabBtnSub} />
           </span>
         </button>
       </div>
