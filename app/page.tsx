@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { FooterStatsStrip } from "./footer-stats-strip";
-import { FreedomCelebrationModal } from "./freedom-celebration-modal";
 import {
   buildSnapshotFromInputs,
   getDefaultCalculatorRepository,
@@ -517,8 +516,6 @@ export default function Home() {
       };
     }
   }, []);
-  /** 達成財富自由目標時顯示祝賀彈窗（關閉後需先「未達成」再達成才會再出現） */
-  const [freedomCelebrationOpen, setFreedomCelebrationOpen] = useState(false);
   const [saveTargetModalOpen, setSaveTargetModalOpen] = useState(false);
   const [loadTargetModalOpen, setLoadTargetModalOpen] = useState(false);
   useEffect(() => {
@@ -526,7 +523,6 @@ export default function Home() {
     window.addEventListener(OPEN_LOAD_TARGET_MODAL_EVENT, onOpenLoad);
     return () => window.removeEventListener(OPEN_LOAD_TARGET_MODAL_EVENT, onOpenLoad);
   }, []);
-  const prevFreedomAchievedRef = useRef(false);
   const lastScrollYRef = useRef(0);
   const goalSettingCardRef = useRef<HTMLDivElement | null>(null);
   const wasPastHeroRef = useRef(false);
@@ -2246,13 +2242,6 @@ export default function Home() {
     simulation.monthsToUserTarget != null &&
     simulation.monthsToUserTarget <= 12;
   const freedomAchieved = achievementPercent >= 100 || freedomAchievedBySim;
-
-  useEffect(() => {
-    if (freedomAchieved && !prevFreedomAchievedRef.current) {
-      setFreedomCelebrationOpen(true);
-    }
-    prevFreedomAchievedRef.current = freedomAchieved;
-  }, [freedomAchieved]);
 
   const renderCountdown = (
     title: string,
@@ -5101,10 +5090,6 @@ export default function Home() {
       </div>
       {clientMounted ? (
         <>
-          <FreedomCelebrationModal
-            open={freedomCelebrationOpen}
-            onClose={() => setFreedomCelebrationOpen(false)}
-          />
           <SaveTargetModal
             open={saveTargetModalOpen}
             onClose={() => setSaveTargetModalOpen(false)}

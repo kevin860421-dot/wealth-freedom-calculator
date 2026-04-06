@@ -1,6 +1,9 @@
 @echo off
-REM Open previews - do not put non-ANSI comments here (fixes mojibake on double-click)
-cd /d "%~dp0"
+setlocal EnableExtensions
+REM Paths with spaces / Chinese: use cd "%~dp0." so trailing \ does not break quotes
+cd /d "%~dp0."
+
+set "ROOT=%CD%"
 title Open previews (press Enter)
 
 echo.
@@ -16,16 +19,13 @@ for /f "delims=" %%I in ('where chrome 2^>nul') do (
 )
 :chrome_found
 
-REM Start Next dev server in a new window
-start "Next Dev" cmd /k "cd /d \"%~dp0\" && npm run dev -- --webpack"
+REM /D sets working directory - avoids nested "cd ..." quotes breaking on non-ASCII paths
+start "Next Dev" /D "%ROOT%" cmd /k npm run dev -- --webpack
 
-REM Start share-image preview server in a new window
-start "Share Image (5179)" cmd /k "cd /d \"%~dp0\" && npx serve \"tools/share-image-generator\" -p 5179"
+start "Share Image 5179" /D "%ROOT%" cmd /k npx serve "tools\share-image-generator" -p 5179
 
-REM Give servers a moment to start
 timeout /t 3 /nobreak >nul
 
-REM Detect which Next dev port is alive (prefer 3000, fallback to 3001/3002)
 set "CALC_PORT=3000"
 for %%P in (3000 3001 3002) do (
   powershell -NoProfile -Command "exit([int](-not (Test-NetConnection -ComputerName localhost -Port %%P -InformationLevel Quiet)))" >nul 2>nul
@@ -41,7 +41,6 @@ set "URL_MOBILE=http://localhost:%CALC_PORT%/?mobile=1"
 set "URL_SHARE=http://localhost:5179/index.html"
 
 if defined CHROME_EXE (
-  REM Open all three in ONE Chrome window (3 tabs)
   start "" "%CHROME_EXE%" --new-window "%URL_DESKTOP%" "%URL_MOBILE%" "%URL_SHARE%"
 ) else (
   start "" "%URL_DESKTOP%"
@@ -59,4 +58,3 @@ echo If a page doesn't open, check server windows.
 echo.
 pause
 exit /b 0
-
