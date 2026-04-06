@@ -4887,6 +4887,12 @@ export default function Home() {
             <Link href="/blog" target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#9ca3af" }}>
               部落格
             </Link>
+            <span style={{ color: "#4b5563", margin: "0 10px" }} aria-hidden>
+              ·
+            </span>
+            <Link href="/privacy.txt" target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#9ca3af" }}>
+              隱私權政策
+            </Link>
             {homeFooterBlogPosts.map((post) => (
               <span key={post.slug}>
                 <span style={{ color: "#4b5563", margin: "0 10px" }} aria-hidden>
