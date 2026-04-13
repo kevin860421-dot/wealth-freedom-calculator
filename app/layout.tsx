@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { Geist, Geist_Mono, Noto_Sans_TC } from "next/font/google";
+import Script from "next/script";
 import "./desktop-mobile-isolation.css";
 import "./globals.css";
 import { getPublicStatsSnapshot } from "@/lib/stats-store";
@@ -57,6 +58,21 @@ export default async function RootLayout({
 
   return (
     <html lang="zh-TW">
+      <head>
+        <Script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-BG3PNZVNJW"
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-gtag" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-BG3PNZVNJW');
+          `}
+        </Script>
+      </head>
       <body
         className={`${notoSansTc.variable} ${geistSans.variable} ${geistMono.variable}`}
         style={{ position: "relative" }}

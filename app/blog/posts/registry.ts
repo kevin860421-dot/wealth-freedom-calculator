@@ -43,6 +43,131 @@ export type BlogPostRegistryEntry = {
 };
 
 export const BLOG_POST_REGISTRY: BlogPostRegistryEntry[] = [
+  // ─────────────────────────────────────────────────────────
+  // 痛點短評（6）～（12）：短篇、焦慮點拆解（買不起房／勞保／中年失業）
+  // ─────────────────────────────────────────────────────────
+  {
+    slug: "painpoint-12-stop-playing-pretend",
+    publishAtIso: "2026-04-30T09:00:00+08:00",
+    listTitle: "痛點短評（17）｜別再假裝「沒事」",
+    listDescription: "焦慮不是問題；不敢算清楚才是。把風險攤開，你才有選擇權。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "痛點短評（17）",
+  },
+  {
+    slug: "painpoint-18-parent-care-cost",
+    publishAtIso: "2026-05-02T09:00:00+08:00",
+    listTitle: "痛點短評（18）｜長照費用最殘酷的是「不確定」",
+    listDescription: "不是每月多少錢最可怕，是你不知道要燒多久。把成本與期間寫成區間，才有選擇權。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "痛點短評（18）",
+  },
+  {
+    slug: "painpoint-11-middle-age-job-loss",
+    publishAtIso: "2026-04-28T09:30:00+08:00",
+    listTitle: "痛點短評（16）｜中年失業最殘酷的不是收入歸零",
+    listDescription: "是現金流斷掉時，你才發現自己沒有『可延展』的備案。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "痛點短評（16）",
+  },
+  {
+    slug: "painpoint-10-labor-insurance-collapse",
+    publishAtIso: "2026-04-25T09:00:00+08:00",
+    listTitle: "痛點短評（15）｜勞保破產焦慮：你該做的不是轉發貼文",
+    listDescription: "先把『缺口』量出來：你要補的是錢、時間，還是風險承受度？",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "痛點短評（15）",
+  },
+  {
+    slug: "painpoint-9-cant-afford-house",
+    publishAtIso: "2026-04-23T09:30:00+08:00",
+    listTitle: "痛點短評（14）｜買不起房不是你不努力",
+    listDescription: "但你更不能用『我先不算』來逃避：時間一過，成本只會更硬。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "痛點短評（14）",
+  },
+  {
+    slug: "painpoint-8-inflation-is-silent-tax",
+    publishAtIso: "2026-04-21T09:00:00+08:00",
+    listTitle: "痛點短評（13）｜通膨是最安靜的稅",
+    listDescription: "你以為你存得很穩，其實購買力在慢慢掉。焦慮感通常來自這裡。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "痛點短評（13）",
+  },
+  {
+    slug: "painpoint-7-no-buffer-is-real-risk",
+    publishAtIso: "2026-04-18T09:00:00+08:00",
+    listTitle: "痛點短評（12）｜真正的風險不是下跌",
+    listDescription: "是你沒有緩衝：一個意外，就讓你被迫在最差的時點做決策。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "痛點短評（12）",
+  },
+  {
+    slug: "painpoint-6-anxiety-about-retirement",
+    publishAtIso: "2026-04-16T09:30:00+08:00",
+    listTitle: "痛點短評（11）｜退休焦慮其實是一種「未知成本」",
+    listDescription: "你不是怕努力沒回報，你是怕『扣完還剩多少』永遠沒人講清楚。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "痛點短評（11）",
+  },
+  {
+    slug: "dividend-tax-return-filing-check",
+    /**（6）密集但不每天：週一 4/20 */
+    publishAtIso: "2026-04-20T09:00:00+08:00",
+    listTitle: "存股節稅（10）｜報稅前最後一張清單",
+    listDescription: "把今年的股利、54C、抵減與二代健保，用一張表對齊到「稅後實拿」。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "報稅清單（10）",
+  },
+  {
+    slug: "dividend-tax-credit-cap-and-timing",
+    /**（9）週五 */
+    publishAtIso: "2026-04-17T09:30:00+08:00",
+    listTitle: "存股節稅（9）｜8.5% 抵減上限怎麼影響你",
+    listDescription: "不是每一塊股利都能抵滿 8 萬；先懂上限與級距，才知道該不該糾結。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "抵減上限（9）",
+  },
+  {
+    slug: "dividend-tax-54c-ratio-why-it-matters",
+    /**（8）週三 */
+    publishAtIso: "2026-04-15T09:00:00+08:00",
+    listTitle: "存股節稅（8）｜54C 占比：你以為的股利，不一定都算進去",
+    listDescription: "ETF 平準金、資本利得與 54C 占比，會改寫你的二代健保門檻與稅後再投入。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "54C 占比（8）",
+  },
+  {
+    slug: "dividend-tax-nhi2-threshold-strategy",
+    /**（7）週六（避開連兩天） */
+    publishAtIso: "2026-04-12T09:30:00+08:00",
+    listTitle: "存股節稅（7）｜二代健保 2 萬門檻：你該在意的是「哪一筆」",
+    listDescription: "同樣年股利，按次數入帳會差很多：先找出你最容易踩線的那筆。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "二代健保（7）",
+  },
+  {
+    slug: "dividend-tax-merge-vs-separate-decision",
+    /**（6）週四 */
+    publishAtIso: "2026-04-09T09:00:00+08:00",
+    listTitle: "存股節稅（6）｜合併 vs 分離：用三個問題做決策",
+    listDescription: "不用背法條：先用邊際稅率、抵減上限、二代健保把方向選對。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "合併/分離（6）",
+  },
   {
     slug: "household-dividend-tax-checklist",
     /** 清明連假 4/3–4/6 後首個上班日（週二）；與（4）隔 5 日（中間為連假） */
