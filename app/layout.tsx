@@ -42,6 +42,23 @@ export const metadata: Metadata = {
   title: "財富自由計算機",
   description:
     "財富自由計算機：台股 ETF、定期定額、股利再投入、稅負與二代健保試算，結果僅供參考。",
+  openGraph: {
+    title: "財富自由計算機｜你離退休還有幾年？",
+    description:
+      "台股 ETF 定期定額、股利再投入、二代健保與稅負一次試算，掃碼立即算出你的退休年期。",
+    url: "https://wealth-freedom-calculator.vercel.app/",
+    siteName: "財富自由計算機",
+    images: [
+      {
+        url: "https://wealth-freedom-calculator.vercel.app/og-share.png",
+        width: 1024,
+        height: 1024,
+        alt: "財富自由計算機 — 我的退休時間縮短了",
+      },
+    ],
+    locale: "zh_TW",
+    type: "website",
+  },
 };
 
 export const viewport: Viewport = {

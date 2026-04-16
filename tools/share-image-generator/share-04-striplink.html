@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Share 04 strip link text</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #000;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+    <script>
+      const img = new Image();
+      img.src = "assets/share_04.png";
+      img.onload = () => {
+        const canvas = document.getElementById("c");
+        const ctx = canvas.getContext("2d", { alpha: false });
+        const w = img.naturalWidth || img.width;
+        const h = img.naturalHeight || img.height;
+        canvas.width = w;
+        canvas.height = h;
+
+        // draw original
+        ctx.drawImage(img, 0, 0, w, h);
+
+        // cover the bottom "link instruction" text line area only
+        // (keep everything else unchanged)
+        // NOTE: to truly remove text, we must cover it with an (almost) opaque band.
+        const y0 = Math.floor(h * 0.745);
+        const y1 = Math.floor(h * 0.855);
+        const g = ctx.createLinearGradient(0, y0, w, y1);
+        g.addColorStop(0, "rgba(6,18,26,0.96)");
+        g.addColorStop(1, "rgba(6,18,26,0.96)");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, y0, w, y1 - y0);
+
+        // feather edges a little so it doesn't look like a sticker
+        const fade = 22;
+        const g2 = ctx.createLinearGradient(0, y0 - fade, 0, y0);
+        g2.addColorStop(0, "rgba(6,18,26,0.00)");
+        g2.addColorStop(1, "rgba(6,18,26,0.96)");
+        ctx.fillStyle = g2;
+        ctx.fillRect(0, y0 - fade, w, fade);
+
+        const g3 = ctx.createLinearGradient(0, y1, 0, y1 + fade);
+        g3.addColorStop(0, "rgba(6,18,26,0.96)");
+        g3.addColorStop(1, "rgba(6,18,26,0.00)");
+        ctx.fillStyle = g3;
+        ctx.fillRect(0, y1, w, fade);
+
+        window.__READY__ = true;
+      };
+      img.onerror = () => {
+        window.__READY__ = false;
+      };
+    </script>
+  </body>
+</html>
+
