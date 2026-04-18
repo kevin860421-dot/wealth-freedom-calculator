@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { CSSProperties } from "react";
+import heroGold from "./hero-gold-title.module.css";
 import type { BlogPostRegistryEntry } from "../blog/posts/registry";
 
 export type HomeDesktopHeroKpiProps = {
@@ -43,7 +44,21 @@ export function HomeDesktopHeroKpi({
           <div style={{ fontSize: 11, color: "#39ff14", textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>
             WEALTH FREEDOM
           </div>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: "#e5e7eb", margin: 0 }}>財富自由計算機</h1>
+          <h1 className={heroGold.desktopH1}>財富自由計算機</h1>
+          <div>
+            <p className={heroGold.desktopTagline}>
+              自由
+              <br />
+              從面對數字開始
+            </p>
+            <a
+              href="/hero-tagline-freedom-from-numbers.png"
+              download="hero-tagline-freedom-from-numbers.png"
+              className={heroGold.heroAssetDownload}
+            >
+              下載主視覺 PNG
+            </a>
+          </div>
           <p style={{ fontSize: 13, color: "#9ca3af", marginTop: 8, marginBottom: 0 }}>
             月領 {targetQuarterIncomeNum.toLocaleString("zh-TW")}，不是夢，是複利紀律。
           </p>

@@ -1,0 +1,32 @@
+/* 模擬 Blogger 文章區：內文由 dangerouslySetInnerHTML 注入，子代用 :global */
+.preview {
+  box-sizing: border-box;
+  color: #333333;
+  font-size: 17px;
+  line-height: 1.8;
+  max-width: 850px;
+  font-family: "PingFang TC", "Microsoft JhengHei", ui-sans-serif, system-ui, sans-serif;
+}
+
+.preview :global(img) {
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
+}
+
+.preview :global(table) {
+  max-width: 100%;
+  overflow-x: auto;
+  display: block;
+}
+
+.preview :global(a) {
+  color: #1a73e8;
+  text-decoration: underline;
+}
+
+.preview :global(pre),
+.preview :global(code) {
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 0.9em;
+}

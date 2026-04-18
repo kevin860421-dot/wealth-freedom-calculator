@@ -1,0 +1,13 @@
+---
+description: PostFlow「截點 1」基準；改動 library 前先對照 docs/POSTFLOW-CHECKPOINT-1.md
+globs: app/postflow/**/*
+alwaysApply: false
+---
+
+# PostFlow 截點 1
+
+編輯 `app/postflow/**`（尤其 `library/page.tsx`）時：
+
+1. **先讀** `docs/POSTFLOW-CHECKPOINT-1.md`，了解使用者鎖定的基準與禁止擅自改動的 UI（例如「全部交由 AI 完成」首版樣式、左右欄在截點 1 的版面選擇）。
+2. **未經使用者明講**，不要重做一次「左右欄強制統一版面」或改動該 AI 按鈕的莫蘭迪首版規格。
+3. 需要新行為時，在對話中**另立截點或開 branch**，避免覆寫截點 1 的約定。
