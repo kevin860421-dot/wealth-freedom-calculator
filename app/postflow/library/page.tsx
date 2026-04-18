@@ -6,7 +6,7 @@ import {
   ArrowLeft, Save, Send, Link2, Copy, Check, Tag, Calendar,
   AlertTriangle, Image as ImageIcon, ChevronDown, ChevronRight as ChevronR,
   LayoutDashboard, Library, CalendarClock, Settings, Zap, Eye, EyeOff, Sparkles,
-  FileText, ClipboardPaste,
+  FileText, ClipboardPaste, Bold, Heading2, Heading3, List, Eraser,
 } from "lucide-react";
 import { ShareAssetModal } from "../components/share-asset-modal";
 import type { ShareAssetKind } from "../share-assets";
@@ -251,6 +251,8 @@ interface Article {
   id: number; title: string; status: Status;
   tags: string[]; date: string; content: string;
   sample: string; publishedOn: string[];
+  /** Blogger 精選圖片／首圖 URL，預覽即時顯示 */
+  featuredImageUrl: string;
 }
 
 function isStatusValue(s: unknown): s is Status {
@@ -271,8 +273,32 @@ function isArticleRecord(x: unknown): x is Article {
     && typeof o.sample === "string"
     && Array.isArray(o.publishedOn)
     && o.publishedOn.every((p) => typeof p === "string")
+    && (o.featuredImageUrl === undefined || typeof o.featuredImageUrl === "string")
   );
 }
+
+function normalizeArticleFromStorage(a: Article): Article {
+  const fi = (a as Article & { featuredImageUrl?: string }).featuredImageUrl;
+  return { ...a, featuredImageUrl: typeof fi === "string" ? fi : "" };
+}
+
+/** 供精選圖 src 與預覽 URL 顯示 */
+function escapeAttr(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "").replace(/>/g, "");
+}
+
+function slugPreviewPath(title: string): string {
+  const slug = title
+    .replace(/·.*$/u, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w\u4e00-\u9fff-]+/gi, "")
+    .slice(0, 48) || "post";
+  return `/post/${encodeURIComponent(slug)}`;
+}
+
+/** WordPress 風側欄／懸浮列背景 */
+const WP_PANEL_BG = "#121212";
 
 /** 母版 20 篇：重整後仍保留；清除瀏覽資料即還原預設 */
 const LIBRARY_ARTICLES_LOCAL_KEY = "postflow-library-articles-v1";
@@ -288,7 +314,7 @@ function loadLibraryArticles(): Article[] | null {
     for (let i = 0; i < 20; i++) {
       if ((parsed[i] as Article).id !== i + 1) return null;
     }
-    return parsed as Article[];
+    return (parsed as Article[]).map(normalizeArticleFromStorage);
   } catch {
     return null;
   }
@@ -328,6 +354,7 @@ function mkArticle(id: number): Article {
     content: id === 1 ? BLOGGER_CH1_HTML : id === 2 ? BLOGGER_CH2_HTML : "",
     sample: id === 1 ? BLOGGER_CH1_HTML : id === 2 ? BLOGGER_CH2_HTML : "",
     publishedOn: id === 1 ? pf.slice(0, 4) : id === 2 ? pf.slice(0, 2) : [],
+    featuredImageUrl: "",
   };
 }
 
@@ -1379,6 +1406,27 @@ function SampleEditor({ article, onChange }: { article: Article; onChange: (a: A
 /* ═══════════════════════════════════════════════════════════
    PUBLISH META  (title + tags + platforms + JSON I/O)
 ═══════════════════════════════════════════════════════════ */
+
+function WpDarkAccordion({ title, defaultOpen = true, children }: {
+  title: string; defaultOpen?: boolean; children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left transition-colors"
+        style={{ color: "#f8fafc", background: open ? "rgba(255,255,255,0.05)" : "transparent" }}
+      >
+        <span className="text-[13px] font-semibold tracking-wide">{title}</span>
+        {open ? <ChevronDown className="h-4 w-4 shrink-0 opacity-60" style={{ color: "#94a3b8" }} />
+          : <ChevronR className="h-4 w-4 shrink-0 opacity-60" style={{ color: "#94a3b8" }} />}
+      </button>
+      {open && <div className="space-y-2 px-3 pb-3">{children}</div>}
+    </div>
+  );
+}
 
 function getTs() {
   const n = new Date();

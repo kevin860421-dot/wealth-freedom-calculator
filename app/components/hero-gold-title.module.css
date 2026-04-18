@@ -1,48 +1,16 @@
-/* 首頁 Hero：主標／副標共用金黃金屬漸層（與深色底對比） */
-
-.goldClip {
-  background-image: linear-gradient(
-    180deg,
-    #fceabb 0%,
-    #fccd4d 22%,
-    #f8b500 55%,
-    #b45309 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  /* 立體感：多層陰影堆疊，不使用描邊（-webkit-text-stroke） */
-  text-shadow:
-    0 1px 0 rgba(180, 110, 15, 0.55),
-    0 2px 0 rgba(130, 75, 5, 0.42),
-    0 3px 1px rgba(0, 0, 0, 0.5),
-    0 5px 10px rgba(0, 0, 0, 0.42),
-    0 0 22px rgba(251, 191, 36, 0.2);
-  /* 與 clip 文字並用時，補強立體深度（柔和投影，非描邊） */
-  filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.48));
-}
+/* 首頁 Hero：主標為金黃色（平面字，無金屬 3D）；不含副標、不含下載連結 */
 
 .desktopH1 {
-  composes: goldClip;
   font-size: 28px;
   font-weight: 700;
   margin: 0;
   line-height: 1.2;
   letter-spacing: -0.02em;
-}
-
-.desktopTagline {
-  composes: goldClip;
-  font-size: 15px;
-  font-weight: 700;
-  margin: 10px 0 0;
-  line-height: 1.45;
-  letter-spacing: 0.03em;
+  color: #fcd34d;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 .mobileH1 {
-  composes: goldClip;
   font-size: clamp(1.55rem, 7.25vw, 2.125rem);
   font-weight: 700;
   margin: 0;
@@ -51,34 +19,6 @@
   max-width: 100%;
   overflow-wrap: break-word;
   word-break: break-word;
-}
-
-.mobileTagline {
-  composes: goldClip;
-  font-size: clamp(0.95rem, 4.2vw, 1.125rem);
-  font-weight: 700;
-  margin: 12px 0 0;
-  line-height: 1.5;
-  letter-spacing: 0.04em;
-}
-
-/* 副標兩行：請用單一 <p> + <br />，勿拆多個 block，否則 background-clip:text 子元素常變透明 */
-.taglineMobileCenter {
-  text-align: center;
-}
-
-/* 主視覺 PNG 下載（非金屬字，一般連結字色） */
-.heroAssetDownload {
-  display: inline-block;
-  margin-top: 8px;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: rgba(148, 163, 184, 0.95);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.heroAssetDownload:hover {
   color: #fcd34d;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }

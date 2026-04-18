@@ -3411,20 +3411,6 @@ export default function Home() {
               WEALTH FREEDOM
             </div>
             <h1 className={heroGold.desktopH1}>財富自由計算機</h1>
-            <div>
-              <p className={heroGold.desktopTagline}>
-                自由
-                <br />
-                從面對數字開始
-              </p>
-              <a
-                href="/hero-tagline-freedom-from-numbers.png"
-                download="hero-tagline-freedom-from-numbers.png"
-                className={heroGold.heroAssetDownload}
-              >
-                下載主視覺 PNG
-              </a>
-            </div>
             <p style={{ fontSize: 13, color: "#9ca3af", marginTop: 8, marginBottom: 0 }}>
               月領 {targetQuarterIncomeNum.toLocaleString("zh-TW")}，不是夢，是複利紀律。
             </p>

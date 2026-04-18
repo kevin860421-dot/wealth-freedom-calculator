@@ -51,21 +51,6 @@ export function MobileHeroSection({
       <header className={styles.titleBlock}>
         <p className={styles.eyebrow}>WEALTH FREEDOM</p>
         <h1 className={heroGold.mobileH1}>財富自由計算機</h1>
-        <div>
-          <p className={`${heroGold.mobileTagline} ${heroGold.taglineMobileCenter}`}>
-            自由
-            <br />
-            從面對數字開始
-          </p>
-          <a
-            href="/hero-tagline-freedom-from-numbers.png"
-            download="hero-tagline-freedom-from-numbers.png"
-            className={heroGold.heroAssetDownload}
-            style={{ display: "block", textAlign: "center" }}
-          >
-            下載主視覺 PNG
-          </a>
-        </div>
       </header>
 
       {/* 2️⃣ 預估達成時間 */}
