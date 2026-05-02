@@ -44,6 +44,118 @@ export type BlogPostRegistryEntry = {
 
 export const BLOG_POST_REGISTRY: BlogPostRegistryEntry[] = [
   // ─────────────────────────────────────────────────────────
+  // 實戰對決（19）～（30）：消費／投資／崩盤／退休路徑
+  // ─────────────────────────────────────────────────────────
+  {
+    slug: "delay-gratification-retirement-speed",
+    publishAtIso: "2026-05-02T21:00:00+08:00",
+    listTitle: "實戰對決（30）｜延遲享樂不是苦行，是加速退休自由",
+    listDescription: "你少買的不是快樂，而是把現金流換成未來更大的選擇權。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "實戰對決（30）",
+  },
+  {
+    slug: "emergency-fund-vs-invest-order",
+    publishAtIso: "2026-05-02T20:00:00+08:00",
+    listTitle: "實戰對決（29）｜先存緊急預備金，還是先全力投資？",
+    listDescription: "沒有安全墊的投資，通常在第一個意外來時就中斷。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "實戰對決（29）",
+  },
+  {
+    slug: "split-payment-illusion-cost",
+    publishAtIso: "2026-05-02T19:00:00+08:00",
+    listTitle: "實戰對決（28）｜分期讓你比較敢買，還是比較敢忽略成本？",
+    listDescription: "每月看起來不痛，但總成本與機會成本常比你想像更高。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "實戰對決（28）",
+  },
+  {
+    slug: "retire-by-40-starting-25",
+    publishAtIso: "2026-05-02T18:00:00+08:00",
+    listTitle: "實戰對決（27）｜25 歲開始，40 歲退休真的可行嗎？",
+    listDescription: "可行與否取決於投入率、現金流紀律與你能否熬過崩盤。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "實戰對決（27）",
+  },
+  {
+    slug: "downpayment-vs-all-in-index",
+    publishAtIso: "2026-05-02T17:00:00+08:00",
+    listTitle: "實戰對決（26）｜頭期款先留著，還是全數投入大盤？",
+    listDescription: "當資金有明確時程，流動性常比報酬率更重要。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "實戰對決（26）",
+  },
+  {
+    slug: "monthly-10000-after-10-years",
+    publishAtIso: "2026-05-02T16:00:00+08:00",
+    listTitle: "實戰對決（25）｜每個月存一萬，十年後到底差多少？",
+    listDescription: "答案不只看年化，還要把稅費、扣除與手續費算進去。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "實戰對決（25）",
+  },
+  {
+    slug: "buy-now-pay-later-vs-etf",
+    publishAtIso: "2026-05-02T15:00:00+08:00",
+    listTitle: "實戰對決（24）｜買東西用分期很聰明？先看你少掉多少 ETF 部位",
+    listDescription: "分期不一定錯，但它會先綁住你的資金機動性。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "實戰對決（24）",
+  },
+  {
+    slug: "small-spending-800-compound",
+    publishAtIso: "2026-05-02T14:00:00+08:00",
+    listTitle: "實戰對決（23）｜小資族的 800 元剁手術：從手搖到複利",
+    listDescription: "每天 800 看似不痛，拉到長期就是退休速度的差距。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "實戰對決（23）",
+  },
+  {
+    slug: "rent-vs-buy-asset-truth",
+    publishAtIso: "2026-05-02T13:00:00+08:00",
+    listTitle: "實戰對決（22）｜不買房真的會比較有錢？數據告訴你真相",
+    listDescription: "租屋與買房不是立場戰，核心是現金流壓力與流動性。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "實戰對決（22）",
+  },
+  {
+    slug: "market-crash-20000-bankrupt",
+    publishAtIso: "2026-05-02T12:00:00+08:00",
+    listTitle: "實戰對決（21）｜如果大盤跌回兩萬點，我會破產嗎？",
+    listDescription: "先看每期扣除後還剩多少，再談你扛不扛得住崩盤。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "實戰對決（21）",
+  },
+  {
+    slug: "mercedes-monthly-10000-cost",
+    publishAtIso: "2026-05-02T11:00:00+08:00",
+    listTitle: "實戰對決（20）｜學弟的賓士夢：月付一萬的背後是千萬代價",
+    listDescription: "每月一萬看起來不重，拉到二十年會變成巨大的機會成本。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "實戰對決（20）",
+  },
+  {
+    slug: "duel-iphone15-buy-or-invest",
+    publishAtIso: "2026-05-02T10:00:00+08:00",
+    listTitle: "實戰對決（19）｜【對決】換 iPhone 15 是痛還是致命？",
+    listDescription: "用分期與定投對照，四年後差距不是感覺，是資產數字。",
+    featureHomeHero: false,
+    featureHomeFooter: true,
+    homeFooterLabel: "實戰對決（19）",
+  },
+
+  // ─────────────────────────────────────────────────────────
   // 痛點短評（6）～（12）：短篇、焦慮點拆解（買不起房／勞保／中年失業）
   // ─────────────────────────────────────────────────────────
   {

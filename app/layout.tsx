@@ -42,6 +42,9 @@ export const metadata: Metadata = {
   title: "財富自由計算機",
   description:
     "財富自由計算機：台股 ETF、定期定額、股利再投入、稅負與二代健保試算，結果僅供參考。",
+  verification: {
+    google: "Xa8A6x-OcpVpIvDDdGXEPfjtcPZEpUHdykRg3SuwShQ",
+  },
   openGraph: {
     title: "財富自由計算機｜你離退休還有幾年？",
     description:

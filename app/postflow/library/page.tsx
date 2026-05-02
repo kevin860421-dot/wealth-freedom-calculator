@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
   ArrowLeft, Save, Send, Link2, Copy, Check, Tag, Calendar,
   AlertTriangle, Image as ImageIcon, ChevronDown, ChevronRight as ChevronR,
@@ -302,11 +302,13 @@ const WP_PANEL_BG = "#121212";
 
 /** 母版 20 篇：重整後仍保留；清除瀏覽資料即還原預設 */
 const LIBRARY_ARTICLES_LOCAL_KEY = "postflow-library-articles-v1";
+/** Mobile01 母版：獨立一份本機草稿，不影響原母版內容庫 */
+const LIBRARY_ARTICLES_MOBILE01_LOCAL_KEY = "postflow-library-articles-mobile01-v1";
 
-function loadLibraryArticles(): Article[] | null {
+function loadLibraryArticles(storageKey: string): Article[] | null {
   if (typeof localStorage === "undefined") return null;
   try {
-    const raw = localStorage.getItem(LIBRARY_ARTICLES_LOCAL_KEY);
+    const raw = localStorage.getItem(storageKey);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed) || parsed.length !== 20) return null;
@@ -320,9 +322,9 @@ function loadLibraryArticles(): Article[] | null {
   }
 }
 
-function saveLibraryArticles(articles: Article[]) {
+function saveLibraryArticles(storageKey: string, articles: Article[]) {
   try {
-    localStorage.setItem(LIBRARY_ARTICLES_LOCAL_KEY, JSON.stringify(articles));
+    localStorage.setItem(storageKey, JSON.stringify(articles));
   } catch {
     /* 配額／私密模式 */
   }
@@ -354,6 +356,200 @@ function mkArticle(id: number): Article {
     content: id === 1 ? BLOGGER_CH1_HTML : id === 2 ? BLOGGER_CH2_HTML : "",
     sample: id === 1 ? BLOGGER_CH1_HTML : id === 2 ? BLOGGER_CH2_HTML : "",
     publishedOn: id === 1 ? pf.slice(0, 4) : id === 2 ? pf.slice(0, 2) : [],
+    featuredImageUrl: "",
+  };
+}
+
+function mkMobile01Article(id: number): Article {
+  const MOBILE01_CH1_HTML = `各位 Mobile01 的鄉民大家好，
+
+
+這是一篇感觸文。
+
+
+身為工程師，我對數字算敏感。
+
+直到最近幫學弟算了一筆帳，
+徹底顛覆了我的看法。
+
+
+
+上個月跟一個學弟喝咖啡，
+
+他興奮分享剛訂了一台新車。
+
+
+他跟我說：
+
+<strong>「每個月分期不到 8,000 元，」</strong>
+<strong>「完全無痛啊！」</strong>
+
+
+聽完這句「無痛」，
+
+我心裡突然抽動了一下。
+
+
+
+<img src="https://attach.mobile01.com/attach/202604/mobile01-9f80382a127843affcec80040286a3a3.png">
+
+<hr> 
+我當下沒反駁，
+
+只是隨手拿了一張紙，
+幫他算了這筆錢的 <strong>「真實代價」</strong>。
+
+
+我跟他說：
+
+「學弟，這 8,000 如果不是給銀行，」
+「而是放在年化 7% 的大盤裡，」
+「20 年後是多少你知道嗎？」
+
+
+學弟笑著回我：
+
+「頂多一百多萬吧？買個夢想還好啦！」
+
+
+
+<center><strong>「是 150 多萬。」</strong></center> 
+
+
+
+我接著說：
+
+「你現在買的是車，」
+「但你實際握著的，」
+「是一棟房子的頭期款。」
+
+
+那晚，我們兩個人沉默很久。
+
+他原本要拍訂單限動的手，
+也收了回去。
+
+
+<hr> 
+這件事對我衝擊很大。
+
+原來我們常被 <strong>「月付小額」</strong> 給吸乾了。
+
+
+後來我開始幫身邊的朋友算，
+
+才發現這種案例多到數不完。
+
+
+我不打算說教，
+
+但數字攤開來真的會讓人清醒：
+
+<strong>「沒感覺的小錢，在時間加持下，代價高得嚇人。」</strong>
+
+
+
+最近整理了一些不同的診斷案例，
+
+之後有空再慢慢分享上來給大家參考。
+
+
+
+<center><strong>如果是各位，你會為了現在的帥氣，</strong></center> 
+
+<center><strong>放棄 20 年後的 150 萬嗎？</strong></center> 
+
+
+<hr> 
+<strong>2026/04/27 21:00 補充說明：</strong>
+<strong>【關於「5年分期」與「20年落差」】</strong>
+
+
+看到樓下許多大大專業的指教，
+
+真的獲益良多！
+
+
+關於大家提到「車貸沒人在貸 20 年」，
+
+這點確實是我在故事中，
+為了簡化邏輯而沒說清楚的地方。
+
+
+其實我當初幫學弟算的，
+
+是在對比 <strong>「投資起跑點」</strong> 的殘酷差異：
+
+
+<strong>● 方案 A（買車分期）：</strong>
+前 5 年現金流被分期占用，
+這 5 年投資額完全是 0。
+等到第 6 年貸款還完，
+才開始每月投 8,000 入股市。
+
+
+<strong>● 方案 B（不買車）：</strong>
+從第 1 個月就開始投 8,000，
+持續投滿 20 年。
+
+
+雖然兩者最後都是月存 8,000，
+
+但僅僅是因為方案 A <strong>「晚了 5 年開始」</strong>，
+在年化 7% 的複利滾動下，
+20 年後的資產落差就高達 <strong>150 萬以上</strong>。
+
+
+這就是我想表達的：
+
+
+<center><strong>「複利最貴的成本，</strong></center> 
+<center><strong>是被分期偷走的頭幾年。」</strong></center> 
+
+
+舉個更有感的例子：
+
+
+很多人覺得 iPhone 分期 24 期很輕鬆，
+
+但如果你這兩年是先拿這筆錢投大盤，
+
+尤其是今天的台積電。
+
+
+20 年後這支手機的真實代價，
+
+不是 4 萬，
+
+而是 <strong>15 萬</strong>。
+
+
+
+你買的是現在的開箱喜悅，
+
+但賠掉的是未來翻倍的資產規模。
+
+
+
+再次感謝大家的熱烈討論，
+
+理財情境真的很多種。
+
+
+我也正在整理其他不同期數、
+
+不同情境（如小額訂閱、精緻窮）的案例，
+
+之後有空再慢慢分享上來跟大家交流！`;
+  return {
+    id,
+    title: `Mobile01 閒聊趣味 ${String(id).padStart(2, "0")}`,
+    status: "空白",
+    tags: [],
+    date: "",
+    content: id === 1 ? MOBILE01_CH1_HTML : "",
+    sample: id === 1 ? MOBILE01_CH1_HTML : "",
+    publishedOn: [],
     featuredImageUrl: "",
   };
 }
@@ -445,6 +641,34 @@ function Sidebar({ articles, selId, onSel, width, onResize }: {
 }) {
   const router   = useRouter();
   const pathname = usePathname();
+  const [platformExpanded, setPlatformExpanded] = useState(true);
+  const [mobile01Expanded, setMobile01Expanded] = useState(true);
+
+  const platformItems = useMemo(
+    () => [
+      { label: "Threads", key: "threads" },
+      { label: "Facebook", key: "fb" },
+      { label: "Instagram", key: "ig" },
+      { label: "Dcard", key: "dcard" },
+      { label: "方格子", key: "vocus" },
+      { label: "痞客邦", key: "pixnet" },
+      { label: "Blogger", key: "blogger" },
+      { label: "Medium", key: "medium" },
+    ],
+    [],
+  );
+
+  const mobile01Items = useMemo(
+    () => [
+      { label: "Mobile01 閒聊趣味", key: "view=mobile01-master" },
+      { label: "Mobile01 理財", key: "mobile01=finance" },
+      { label: "Mobile01 職場甘苦談", key: "mobile01=career" },
+      { label: "Mobile01 創業夢想家", key: "mobile01=startup" },
+      { label: "Mobile01 其他應用軟體", key: "mobile01=apps" },
+      { label: "Mobile01 AI 人工智慧", key: "mobile01=ai" },
+    ],
+    [],
+  );
 
   const startDrag = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -492,6 +716,97 @@ function Sidebar({ articles, selId, onSel, width, onResize }: {
           );
         })}
       </nav>
+
+      {/* Under "母版內容庫" add expandable "各平台" */}
+      {pathname.startsWith("/postflow/library") && (
+        <div className="px-2 shrink-0 -mt-1">
+          <button
+            type="button"
+            onClick={() => setPlatformExpanded((v) => !v)}
+            className="w-full flex items-center gap-2.5 rounded-md px-3 text-[13px] font-semibold text-left transition-all"
+            style={{ height: "40px", background: "transparent", color: T3 }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "transparent";
+            }}
+          >
+            <span className="flex-1">各平台</span>
+            {platformExpanded ? (
+              <ChevronDown className="h-4 w-4 shrink-0" style={{ color: T4 }} />
+            ) : (
+              <ChevronR className="h-4 w-4 shrink-0" style={{ color: T4 }} />
+            )}
+          </button>
+
+          {platformExpanded && (
+            <div className="pl-4 pr-2 pb-1 -mt-1 space-y-1">
+              {platformItems.map((p) => (
+                <button
+                  key={p.key}
+                  type="button"
+                  onClick={() => router.push(`/postflow/library?platform=${encodeURIComponent(p.key)}`)}
+                  className="w-full rounded-md px-3 py-2 text-left text-[12px] font-semibold transition-colors"
+                  style={{ color: T3 }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.background = "transparent";
+                  }}
+                >
+                  {p.label}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => setMobile01Expanded((v) => !v)}
+                className="w-full rounded-md px-3 py-2 text-left text-[12px] font-semibold transition-colors"
+                style={{ color: T3 }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.background = "transparent";
+                }}
+              >
+                <span className="flex items-center justify-between">
+                  <span>Mobile01</span>
+                  {mobile01Expanded ? (
+                    <ChevronDown className="h-4 w-4 shrink-0" style={{ color: T4 }} />
+                  ) : (
+                    <ChevronR className="h-4 w-4 shrink-0" style={{ color: T4 }} />
+                  )}
+                </span>
+              </button>
+
+              {mobile01Expanded && (
+                <div className="space-y-1 pl-3">
+                  {mobile01Items.map((it) => (
+                    <button
+                      key={it.key}
+                      type="button"
+                      onClick={() => router.push(`/postflow/library?${it.key}`)}
+                      className="w-full rounded-md px-3 py-2 text-left text-[12px] font-semibold transition-colors"
+                      style={{ color: T4 }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)";
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLElement).style.background = "transparent";
+                      }}
+                    >
+                      {it.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Topic list */}
       <div className="mt-3 shrink-0 px-4 py-2" style={{ borderTop: `1px solid ${DIV}` }}>
@@ -1839,12 +2154,18 @@ const CH2_TEMPLATE_STORAGE_KEY = "postflow-library-ch2-rev";
 /** 第 3–5 篇僅標籤等預設改版時 bump（與 ch1/ch2 HTML 版號分開） */
 const LIBRARY_ARTICLES_3_5_TAG_REVISION = "2026-04-22-ch345-five-tags";
 const CH345_TAG_STORAGE_KEY = "postflow-library-ch345-tags-rev";
+/** Mobile01 閒聊趣味：預設第 01 篇改版時 bump（避免 localStorage 舊稿覆寫看不到） */
+const MOBILE01_CH1_TEMPLATE_REVISION = "2026-04-27-mobile01-ch1-story-v1";
+const MOBILE01_CH1_TEMPLATE_STORAGE_KEY = "postflow-library-mobile01-ch1-rev";
 
 export default function LibraryPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isMobile01Master = searchParams?.get("view") === "mobile01-master";
+  const libraryStorageKey = isMobile01Master ? LIBRARY_ARTICLES_MOBILE01_LOCAL_KEY : LIBRARY_ARTICLES_LOCAL_KEY;
   /** 勿在 initializer 讀 localStorage：SSR 無法存取，會與客戶端首屏不一致 → dangerouslySetInnerHTML hydration 錯誤 */
   const [articles,     setArticles]     = useState<Article[]>(() =>
-    Array.from({ length: 20 }, (_, i) => mkArticle(i + 1)),
+    Array.from({ length: 20 }, (_, i) => (isMobile01Master ? mkMobile01Article(i + 1) : mkArticle(i + 1))),
   );
   const [selectedId,   setSelectedId]   = useState(1);
   const [saved,        setSaved]        = useState(false);
@@ -1860,10 +2181,13 @@ export default function LibraryPage() {
    * 合併為單一 effect，避免兩次 setArticles 在 batch 中順序不確定；且不可在 useState 讀 localStorage（SSR 無 storage → hydration 錯誤）。
    */
   useEffect(() => {
-    const base = loadLibraryArticles() ?? Array.from({ length: 20 }, (_, i) => mkArticle(i + 1));
+    const base =
+      loadLibraryArticles(libraryStorageKey) ??
+      Array.from({ length: 20 }, (_, i) => (isMobile01Master ? mkMobile01Article(i + 1) : mkArticle(i + 1)));
     let reload1 = false;
     let reload2 = false;
     let reload345 = false;
+    let reloadMobile01Ch1 = false;
     try {
       if (typeof sessionStorage !== "undefined") {
         reload1 = sessionStorage.getItem(CH1_TEMPLATE_STORAGE_KEY) !== BLOGGER_CH1_TEMPLATE_REVISION;
@@ -1872,9 +2196,29 @@ export default function LibraryPage() {
         if (reload1) sessionStorage.setItem(CH1_TEMPLATE_STORAGE_KEY, BLOGGER_CH1_TEMPLATE_REVISION);
         if (reload2) sessionStorage.setItem(CH2_TEMPLATE_STORAGE_KEY, BLOGGER_CH2_TEMPLATE_REVISION);
         if (reload345) sessionStorage.setItem(CH345_TAG_STORAGE_KEY, LIBRARY_ARTICLES_3_5_TAG_REVISION);
+        if (isMobile01Master) {
+          reloadMobile01Ch1 =
+            sessionStorage.getItem(MOBILE01_CH1_TEMPLATE_STORAGE_KEY) !== MOBILE01_CH1_TEMPLATE_REVISION;
+          if (reloadMobile01Ch1) {
+            sessionStorage.setItem(MOBILE01_CH1_TEMPLATE_STORAGE_KEY, MOBILE01_CH1_TEMPLATE_REVISION);
+          }
+        }
       }
     } catch {
       /* session 不可用時仍套用本機存檔 */
+    }
+    if (isMobile01Master) {
+      if (!reloadMobile01Ch1) {
+        setArticles(base);
+        return;
+      }
+      setArticles(
+        base.map((a) => {
+          if (a.id === 1) return mkMobile01Article(1);
+          return a;
+        }),
+      );
+      return;
     }
     if (!reload1 && !reload2 && !reload345) {
       setArticles(base);
@@ -1888,7 +2232,7 @@ export default function LibraryPage() {
         return a;
       }),
     );
-  }, []);
+  }, [isMobile01Master, libraryStorageKey]);
 
   /** 編輯內容後寫入本機，重整仍保留（與頂部「儲存」同一資料） */
   const persistDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1896,20 +2240,20 @@ export default function LibraryPage() {
     if (persistDebounceRef.current) clearTimeout(persistDebounceRef.current);
     persistDebounceRef.current = setTimeout(() => {
       persistDebounceRef.current = null;
-      saveLibraryArticles(articles);
+      saveLibraryArticles(libraryStorageKey, articles);
     }, 450);
     return () => {
       if (persistDebounceRef.current) clearTimeout(persistDebounceRef.current);
     };
-  }, [articles]);
+  }, [articles, libraryStorageKey]);
 
   const article    = articles.find(a => a.id === selectedId) ?? articles[0];
   const handleChange = useCallback((u: Article) => setArticles(p => p.map(a => a.id === u.id ? u : a)), []);
   const handleSave = useCallback(() => {
-    saveLibraryArticles(articlesRef.current);
+    saveLibraryArticles(libraryStorageKey, articlesRef.current);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
-  }, []);
+  }, [libraryStorageKey]);
 
   return (
     <div

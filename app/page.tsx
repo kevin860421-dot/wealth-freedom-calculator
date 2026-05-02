@@ -17,9 +17,8 @@ import {
 } from "./ticker-presets";
 import {
   blogPostPath,
-  getBlogPostBySlug,
+  getPublishedBlogPosts,
   getHomeFooterBlogPosts,
-  isBlogPostPublished,
 } from "./blog/posts/registry";
 import { HomeFooterWatchlistSection } from "./components/home-footer-watchlist-section";
 import { MobileGoalSettingSection } from "./components/mobile-goal-setting-section";
@@ -49,13 +48,16 @@ import * as XLSX from "xlsx";
 /** 頁尾「版權說明」版本號（請與 package.json 的 version 對齊） */
 const APP_VERSION = "0.1.0";
 
-const homeFooterBlogPosts = getHomeFooterBlogPosts();
+const HOME_FOOTER_RECENT_BLOG_LIMIT = 4;
+const homeFooterBlogPosts = [...getHomeFooterBlogPosts()]
+  .sort((a, b) => new Date(b.publishAtIso).getTime() - new Date(a.publishAtIso).getTime())
+  .slice(0, HOME_FOOTER_RECENT_BLOG_LIMIT);
 
-/** 首頁 Hero：專欄「第一篇」slug；僅已達公開時間時顯示一條文字超連結（非按鈕） */
-const HOME_HERO_FIRST_SLUG = "2026-dividend-tax-guide" as const;
-const homeHeroFirstEntry = getBlogPostBySlug(HOME_HERO_FIRST_SLUG);
-const showHomeHeroFirstLink =
-  homeHeroFirstEntry != null && isBlogPostPublished(homeHeroFirstEntry.publishAtIso);
+/** 首頁 Hero：顯示最近發布的一篇部落格文章 */
+const homeHeroFirstEntry = [...getPublishedBlogPosts()].sort(
+  (a, b) => new Date(b.publishAtIso).getTime() - new Date(a.publishAtIso).getTime(),
+)[0];
+const showHomeHeroFirstLink = homeHeroFirstEntry != null;
 
 const MONTHS = 40 * 12; // 模擬 40 年
 const TARGET_Q1 = 30000; // 每季 3 萬
@@ -2645,7 +2647,7 @@ export default function Home() {
             </table>
   );
 
-  const homeHeroBlogHref = blogPostPath(HOME_HERO_FIRST_SLUG);
+  const homeHeroBlogHref = homeHeroFirstEntry ? blogPostPath(homeHeroFirstEntry.slug) : "/blog";
 
   return (
     <main
@@ -3417,7 +3419,7 @@ export default function Home() {
             {showHomeHeroFirstLink && homeHeroFirstEntry ? (
               <p style={{ marginTop: 10, marginBottom: 0 }}>
                 <Link
-                  href={blogPostPath(HOME_HERO_FIRST_SLUG)}
+                  href={homeHeroBlogHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
@@ -3428,7 +3430,7 @@ export default function Home() {
                     transition: "none",
                   }}
                 >
-                  {homeHeroFirstEntry.homeHeroLabel ?? homeHeroFirstEntry.listTitle}
+                  最近發佈的部落格 →
                 </Link>
               </p>
             ) : null}
@@ -4882,7 +4884,15 @@ export default function Home() {
 
         {/* 9️⃣ 法律聲明 / FOOTER */}
         <footer style={{ padding: "20px 0 24px", borderTop: "1px solid rgba(255,255,255,0.12)" }}>
-          <div style={{ textAlign: "center", marginBottom: 18 }}>
+          <div
+            style={{
+              textAlign: "center",
+              marginBottom: 18,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
             <Link href="/blog" target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#9ca3af" }}>
               部落格
             </Link>

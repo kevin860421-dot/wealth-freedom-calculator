@@ -62,7 +62,7 @@ export function HomeDesktopHeroKpi({
                   transition: "none",
                 }}
               >
-                {homeHeroFirstEntry.homeHeroLabel ?? homeHeroFirstEntry.listTitle}
+                最近發佈的部落格 →
               </Link>
             </p>
           ) : null}
