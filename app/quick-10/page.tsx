@@ -91,9 +91,9 @@ export default function QuickCalculator10Page() {
   const evalInput = (raw: string, current: number, min: number, max: number, integer = false) => {
     const hasOps = /[+\-*/()]/.test(raw);
     const plain = raw.replace(/,/g, "").trim();
-    const v = hasOps ? evalCalcInputToNumber(raw) : plain === "" ? null : Number(plain);
-    if (!Number.isFinite(v)) return current;
-    const clamped = clampNum(v, min, max);
+    const parsed: number | null = hasOps ? evalCalcInputToNumber(raw) : plain === "" ? null : Number(plain);
+    if (parsed === null || !Number.isFinite(parsed)) return current;
+    const clamped = clampNum(parsed, min, max);
     return integer ? Math.round(clamped) : clamped;
   };
 
