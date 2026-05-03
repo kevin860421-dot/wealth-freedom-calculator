@@ -15,7 +15,7 @@ function quickCalculatorLabel(n: number): string {
   if (n === 1) return "第1台｜存股複利計算機";
   if (n === 2) return "第2台｜財富自由倒數計時器";
   if (n === 3) return "第3台｜夢想月領試算器";
-  if (n === 4) return "第4台｜ETF 月領試算器";
+  if (n === 4) return "第4台｜ETF 領息夢想模擬器";
   if (n === 5) return "第5台｜雪球效應：本金 vs 複利";
   if (n === 6) return "第6台｜槓桿抉擇：房產 vs 全球股市";
   if (n === 7) return "第7台｜槓桿抉擇：房貸 vs 全球股市";

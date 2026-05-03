@@ -51,7 +51,7 @@ export default async function MiniBlogPostPage({ params }: PageProps) {
       : post.calculatorRoute === "/quick-3"
         ? "夢想月領試算器"
         : post.calculatorRoute === "/quick-4"
-          ? "ETF 月領試算器"
+          ? "ETF 領息夢想模擬器"
           : post.calculatorRoute === "/quick-5"
             ? "雪球效應：本金 vs 複利"
             : post.calculatorRoute === "/quick-6"
