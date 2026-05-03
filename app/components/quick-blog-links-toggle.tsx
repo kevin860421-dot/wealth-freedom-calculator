@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { getQuick1ExclusivePostBySlug, isQuick1ExclusivePostPublished } from "../mini-blog/posts/quick1-exclusive";
 
 type QuickRoute = "/quick-1" | "/quick-2" | "/quick-3" | "/quick-4" | "/quick-5" | "/quick-6" | "/quick-7" | "/quick-8" | "/quick-9" | "/quick-10";
 
@@ -1033,7 +1034,12 @@ const QUICK_ROUTE_LINKS: Record<QuickRoute, readonly { href: string; title: stri
 };
 
 export function QuickBlogLinksToggle({ quickRoute, title = "📚 本台小計算機延伸文章（點我展開）" }: QuickBlogLinksToggleProps) {
-  const links = QUICK_ROUTE_LINKS[quickRoute];
+  const links = QUICK_ROUTE_LINKS[quickRoute].filter((item) => {
+    const slug = item.href.replace(/^\/mini-blog\//, "");
+    const post = getQuick1ExclusivePostBySlug(slug);
+    if (!post) return false;
+    return isQuick1ExclusivePostPublished(post.publishAtIso);
+  });
   return (
     <details
       className="quick-blog-links-toggle"
@@ -1046,6 +1052,11 @@ export function QuickBlogLinksToggle({ quickRoute, title = "📚 本台小計算
     >
       <summary style={{ cursor: "pointer", fontSize: 15, fontWeight: 900, color: "rgba(226,232,240,0.98)" }}>{title}</summary>
       <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
+        {links.length === 0 ? (
+          <div style={{ borderRadius: 10, border: "1px dashed rgba(148,163,184,0.35)", padding: "10px 12px", color: "rgba(191,219,254,0.92)", fontSize: 12 }}>
+            文章排程中，尚未到公開時間。
+          </div>
+        ) : null}
         {links.map((item) => (
           <Link
             key={item.href}

@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { QUICK1_EXCLUSIVE_POSTS } from "./posts/quick1-exclusive";
+import { getPublishedQuick1ExclusivePosts } from "./posts/quick1-exclusive";
 import styles from "../blog/blog.module.css";
+
+const publishedPosts = getPublishedQuick1ExclusivePosts();
 
 export const metadata: Metadata = {
   title: "小計算機專屬文章｜小計算機專區",
-  description: `小計算機專屬文章列表：${QUICK1_EXCLUSIVE_POSTS.length} 篇主題，涵蓋 quick-1 ~ quick-10 的試算情境與規劃。`,
+  description: `小計算機專屬文章列表：已公開 ${publishedPosts.length} 篇，涵蓋 quick-1 ~ quick-10 的試算情境與規劃。`,
 };
 
 export default function MiniBlogIndexPage() {
@@ -15,10 +17,10 @@ export default function MiniBlogIndexPage() {
         ← 回到存股複利計算機
       </Link>
       <h1 className={styles.title}>小計算機專屬文章</h1>
-      <p className={styles.subtitle}>這裡只放小計算機延伸內容（共 {QUICK1_EXCLUSIVE_POSTS.length} 篇），不與主部落格混在一起。</p>
+      <p className={styles.subtitle}>這裡只放小計算機延伸內容（已公開 {publishedPosts.length} 篇），不與主部落格混在一起。</p>
 
       <ul className={styles.listIndex}>
-        {QUICK1_EXCLUSIVE_POSTS.map((post, idx) => (
+        {publishedPosts.map((post, idx) => (
           <li key={post.slug}>
             <Link href={`/mini-blog/${post.slug}`} prefetch={false} style={{ color: "var(--morandi-accent, #c4b5a3)", fontSize: "1rem" }}>
               {idx + 1}. {post.title}

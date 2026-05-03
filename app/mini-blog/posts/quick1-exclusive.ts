@@ -3106,15 +3106,55 @@ function buildSections(seed: TopicSeed, calculatorName: string): Quick1Exclusive
   ];
 }
 
+const SERIES_START_BY_ROUTE: Record<NonNullable<TopicSeed["calculatorRoute"]>, string> = {
+  "/quick-1": "2026-05-04T09:00:00+08:00",
+  "/quick-2": "2026-05-05T09:00:00+08:00",
+  "/quick-3": "2026-05-06T09:00:00+08:00",
+  "/quick-4": "2026-05-07T09:00:00+08:00",
+  "/quick-5": "2026-05-08T09:00:00+08:00",
+  "/quick-6": "2026-05-09T09:00:00+08:00",
+  "/quick-7": "2026-05-10T09:00:00+08:00",
+  "/quick-8": "2026-05-11T09:00:00+08:00",
+  "/quick-9": "2026-05-12T09:00:00+08:00",
+  "/quick-10": "2026-05-13T09:00:00+08:00",
+};
+
+const SERIES_PUBLISH_INTERVAL_DAYS = 13;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function formatPublishIsoFromBase(baseIso: string, offsetDays: number): string {
+  const baseMs = Date.parse(baseIso);
+  const isoDate = new Date(baseMs + offsetDays * DAY_MS).toISOString().slice(0, 10);
+  return `${isoDate}T09:00:00+08:00`;
+}
+
+const ROUTE_TO_SEED_INDEX_MAP = TOPIC_SEEDS.reduce((acc, seed) => {
+  const route = seed.calculatorRoute ?? "/quick-1";
+  const routeMap = acc.get(route) ?? new Map<string, number>();
+  routeMap.set(seed.slug, routeMap.size);
+  acc.set(route, routeMap);
+  return acc;
+}, new Map<NonNullable<TopicSeed["calculatorRoute"]>, Map<string, number>>());
+
+function getReorderedPublishAt(route: NonNullable<TopicSeed["calculatorRoute"]>, slug: string): string | null {
+  const routeMap = ROUTE_TO_SEED_INDEX_MAP.get(route);
+  if (!routeMap) return null;
+  const idxInRoute = routeMap.get(slug);
+  if (idxInRoute == null) return null;
+  const baseIso = SERIES_START_BY_ROUTE[route];
+  return formatPublishIsoFromBase(baseIso, idxInRoute * SERIES_PUBLISH_INTERVAL_DAYS);
+}
+
 export const QUICK1_EXCLUSIVE_POSTS: Quick1ExclusivePost[] = TOPIC_SEEDS.map((seed, idx) => {
   const calculatorRoute = seed.calculatorRoute ?? "/quick-1";
   const calculatorName = seed.calculatorName ?? "存股複利計算機";
+  const reorderedPublishAt = getReorderedPublishAt(calculatorRoute, seed.slug);
   const fallbackDate = PUBLISH_DATES[idx] ?? (() => {
     const baseMs = Date.parse("2026-05-04T01:00:00.000Z");
     const isoDate = new Date(baseMs + Math.max(0, idx) * 12 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     return `${isoDate}T09:00:00+08:00`;
   })();
-  const scheduledAt =
+  const scheduledAt = reorderedPublishAt ?? (
     calculatorRoute === "/quick-2"
       ? (QUICK2_PUBLISH_DATES[seed.slug] ?? fallbackDate)
       : calculatorRoute === "/quick-3"
@@ -3133,7 +3173,8 @@ export const QUICK1_EXCLUSIVE_POSTS: Quick1ExclusivePost[] = TOPIC_SEEDS.map((se
                   ? (QUICK9_PUBLISH_DATES[seed.slug] ?? fallbackDate)
                   : calculatorRoute === "/quick-10"
                     ? (QUICK10_PUBLISH_DATES[seed.slug] ?? fallbackDate)
-          : fallbackDate;
+          : fallbackDate
+  );
   return {
     slug: seed.slug,
     title: seed.title,
@@ -3152,4 +3193,22 @@ export const QUICK1_EXCLUSIVE_POSTS: Quick1ExclusivePost[] = TOPIC_SEEDS.map((se
 
 export function getQuick1ExclusivePostBySlug(slug: string): Quick1ExclusivePost | undefined {
   return QUICK1_EXCLUSIVE_POSTS.find((post) => post.slug === slug);
+}
+
+/** 開發模式可用 NEXT_PUBLIC_BLOG_PREVIEW_ALL=true 暫時略過排程 */
+function isSchedulePreviewBypassed(): boolean {
+  if (process.env.NODE_ENV !== "development") return false;
+  const v = process.env.NEXT_PUBLIC_BLOG_PREVIEW_ALL;
+  return v === "1" || v === "true";
+}
+
+export function isQuick1ExclusivePostPublished(publishAtIso: string, now: Date = new Date()): boolean {
+  if (isSchedulePreviewBypassed()) return true;
+  const t = new Date(publishAtIso);
+  if (Number.isNaN(t.getTime())) return true;
+  return now >= t;
+}
+
+export function getPublishedQuick1ExclusivePosts(now: Date = new Date()): Quick1ExclusivePost[] {
+  return QUICK1_EXCLUSIVE_POSTS.filter((post) => isQuick1ExclusivePostPublished(post.publishAtIso, now));
 }

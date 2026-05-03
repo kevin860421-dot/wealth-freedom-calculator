@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BlogMiniCalculatorEmbed } from "../../blog/blog-mini-calculator-embed";
+import { BlogScheduledPlaceholder } from "../../blog/blog-scheduled-placeholder";
 import {
   getQuick1ExclusivePostBySlug,
+  isQuick1ExclusivePostPublished,
   QUICK1_EXCLUSIVE_POSTS,
   type Quick1ExclusivePost,
 } from "../posts/quick1-exclusive";
@@ -21,6 +23,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const post = resolvePost(slug);
   if (!post) return {};
+  if (!isQuick1ExclusivePostPublished(post.publishAtIso)) {
+    return {
+      title: "文章準備中｜財富自由計算機",
+      description: "本篇將於指定時間公開，敬請期待。",
+      robots: { index: false, follow: false },
+    };
+  }
   return {
     title: post.seoTitle,
     description: post.metaDescription,
@@ -45,6 +54,9 @@ export default async function MiniBlogPostPage({ params }: PageProps) {
   const { slug } = await params;
   const post = resolvePost(slug);
   if (!post) notFound();
+  if (!isQuick1ExclusivePostPublished(post.publishAtIso)) {
+    return <BlogScheduledPlaceholder publishAtIso={post.publishAtIso} />;
+  }
   const calculatorLabel =
     post.calculatorRoute === "/quick-2"
       ? "財富自由倒數計時器"
