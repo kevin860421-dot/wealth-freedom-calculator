@@ -11,7 +11,7 @@ export type Quick1ExclusivePost = {
   seoTitle: string;
   metaDescription: string;
   publishAtIso: string;
-  calculatorRoute: "/quick-1" | "/quick-2" | "/quick-3";
+  calculatorRoute: "/quick-1" | "/quick-2" | "/quick-3" | "/quick-4" | "/quick-5" | "/quick-6" | "/quick-7" | "/quick-8" | "/quick-9" | "/quick-10";
   calculatorTitle: string;
   calculatorNote: string;
   sections: Quick1ExclusiveSection[];
@@ -30,7 +30,7 @@ type TopicSeed = {
   keywordB: string;
   keywordC: string;
   closeQuestion: string;
-  calculatorRoute?: "/quick-1" | "/quick-2" | "/quick-3";
+  calculatorRoute?: "/quick-1" | "/quick-2" | "/quick-3" | "/quick-4" | "/quick-5" | "/quick-6" | "/quick-7" | "/quick-8" | "/quick-9" | "/quick-10";
   calculatorName?: string;
   calculatorNote?: string;
 };
@@ -58,6 +58,13 @@ const PUBLISH_DATES = [
   "2026-12-18T09:00:00+08:00",
   "2026-12-30T09:00:00+08:00",
   "2027-01-11T09:00:00+08:00",
+  "2027-01-23T09:00:00+08:00",
+  "2027-02-04T09:00:00+08:00",
+  "2027-02-16T09:00:00+08:00",
+  "2027-02-28T09:00:00+08:00",
+  "2027-03-12T09:00:00+08:00",
+  "2027-03-24T09:00:00+08:00",
+  "2027-04-05T09:00:00+08:00",
 ] as const;
 
 const TOPIC_SEEDS: TopicSeed[] = [
@@ -332,6 +339,118 @@ const TOPIC_SEEDS: TopicSeed[] = [
     calculatorRoute: "/quick-3",
     calculatorName: "夢想月領試算器",
     calculatorNote: "先填希望月領，再選預計年數，直接看建議月投。先求能執行，再求更漂亮。",
+  },
+  {
+    slug: "quick4-etf-monthly-income-simulator-guide",
+    title: "💣 ETF 月領試算器：先算現金流，再決定 ETF 配置",
+    subtitle: "不是配息越高越好，先看你每月實際想領多少。",
+    seoTitle: "ETF 月領試算器教學：目標月領倒推資產與投入策略",
+    metaDescription:
+      "用第四台 ETF 月領試算器，先從目標月領反推資產需求，再回頭校正投入節奏，打造較穩定的退休現金流計畫。",
+    focus: "ETF 月領試算器",
+    keywordA: "ETF月領試算器怎麼用",
+    keywordB: "ETF月領要準備多少資產",
+    keywordC: "ETF退休現金流規劃",
+    closeQuestion: "你現在的 ETF 目標，是在追高配息，還是在追可持續月領？",
+    calculatorRoute: "/quick-4",
+    calculatorName: "ETF 月領試算器",
+    calculatorNote: "先填目標月領，再看反推資產與投入。先求穩定，再追效率。",
+  },
+  {
+    slug: "quick5-principal-vs-compound-reality",
+    title: "💣 本金複利對照試算器：你以為在存錢，其實在買時間",
+    subtitle: "本金成長看起來慢，複利成長常在後段突然拉開。",
+    seoTitle: "本金複利對照試算器：同月投下本金與複利差距有多大",
+    metaDescription:
+      "透過第五台本金複利對照試算器，直觀看見同一投入在不同時間軸的差距，幫你建立長期投入耐心。",
+    focus: "本金複利對照試算器",
+    keywordA: "本金複利差距有多大",
+    keywordB: "複利什麼時候會明顯",
+    keywordC: "定期定額複利對照",
+    closeQuestion: "你現在放棄的是一時的焦慮，還是後段最關鍵的複利區間？",
+    calculatorRoute: "/quick-5",
+    calculatorName: "本金複利對照試算器",
+    calculatorNote: "看同一筆月投在本金線與複利線的分岔。先理解時間價值，再談報酬率。",
+  },
+  {
+    slug: "quick6-house-vs-invest-decision-map",
+    title: "💣 買房跟投資試算器：你不是二選一，是在選現金流壓力",
+    subtitle: "同樣都叫資產，現金流體感可能完全不同。",
+    seoTitle: "買房跟投資試算器：房貸路線與投資路線如何比較",
+    metaDescription:
+      "用第六台買房跟投資試算器，比較不同房貸支出與投資投入的長期結果，幫你做更貼近生活的配置判斷。",
+    focus: "買房跟投資試算器",
+    keywordA: "買房跟投資怎麼選",
+    keywordB: "房貸與投資比較",
+    keywordC: "現金流壓力試算",
+    closeQuestion: "你現在最需要的是資產增值，還是先把每月壓力降到可持續？",
+    calculatorRoute: "/quick-6",
+    calculatorName: "買房跟投資試算器",
+    calculatorNote: "把房貸與投資放進同一張時間軸看。先看壓力，再看收益。",
+  },
+  {
+    slug: "quick7-car-vs-invest-decision-map",
+    title: "💣 買車跟投資試算器：這筆車款，十年後可能是另一筆自由",
+    subtitle: "不是不能買車，而是先看它換走了多少未來選擇權。",
+    seoTitle: "買車跟投資試算器：車貸支出與長期投資差距一次看懂",
+    metaDescription:
+      "第七台買車跟投資試算器可比較車貸支出與投資投入的長期資產差，協助你判斷當下消費與未來自由的取捨。",
+    focus: "買車跟投資試算器",
+    keywordA: "買車跟投資怎麼選",
+    keywordB: "車貸機會成本",
+    keywordC: "延後消費試算",
+    closeQuestion: "這台車帶來的是必要便利，還是其實只是短期情緒補償？",
+    calculatorRoute: "/quick-7",
+    calculatorName: "買車跟投資試算器",
+    calculatorNote: "先輸入車貸相關支出，再看同期間投資路線差距。先看現實，再做決定。",
+  },
+  {
+    slug: "quick8-delay-gratification-simulator-guide",
+    title: "💣 延遲享樂模擬器：晚一點花，真的會差很多嗎？",
+    subtitle: "你不是在犧牲快樂，而是在買更大的選擇權。",
+    seoTitle: "延遲享樂模擬器教學：分期支出 vs 可投資金額長期差距",
+    metaDescription:
+      "使用第八台延遲享樂模擬器，觀察分期支出與可投資金額變化如何影響長期資產，讓消費決策更有依據。",
+    focus: "延遲享樂模擬器",
+    keywordA: "延遲享樂有用嗎",
+    keywordB: "分期對投資影響",
+    keywordC: "可投資金額試算",
+    closeQuestion: "你願意把哪一筆當下想要，換成未來更穩的底氣？",
+    calculatorRoute: "/quick-8",
+    calculatorName: "延遲享樂模擬器",
+    calculatorNote: "先調整分期支出，再看可投資金額與曲線差距。你會很快看懂代價。",
+  },
+  {
+    slug: "quick9-delay-spending-value-calculator-guide",
+    title: "💣 延遲消費價值計算機：晚買不是忍耐，是重新定價",
+    subtitle: "同一筆錢，時間不同，價值真的不同。",
+    seoTitle: "延遲消費價值計算機：3年5年10年切換看差距",
+    metaDescription:
+      "透過第九台延遲消費價值計算機，以 3/5/10 年幅度比較延後消費的資產差，幫你做更聰明的消費節奏。",
+    focus: "延遲消費價值計算機",
+    keywordA: "延遲消費價值怎麼算",
+    keywordB: "晚買真的划算嗎",
+    keywordC: "消費延後試算",
+    closeQuestion: "你現在的每一次刷卡，真的符合你想要的長期生活版本嗎？",
+    calculatorRoute: "/quick-9",
+    calculatorName: "延遲消費價值計算機",
+    calculatorNote: "切換 3/5/10 年視角看差距，別只看當下價格，先看長期機會成本。",
+  },
+  {
+    slug: "quick10-asset-stress-test-simulator-guide",
+    title: "💣 資產抗壓模擬器：如果遇到壓力，你的計畫撐得住嗎？",
+    subtitle: "真正穩定的計畫，不是最漂亮，是跌倒後還能走。",
+    seoTitle: "資產抗壓模擬器教學：壓力情境下的財務韌性怎麼看",
+    metaDescription:
+      "第十台資產抗壓模擬器可測試不同壓力情境對資產路徑影響，幫你提前找出脆弱點，優化長期理財策略。",
+    focus: "資產抗壓模擬器",
+    keywordA: "資產抗壓怎麼測試",
+    keywordB: "投資壓力情境試算",
+    keywordC: "財務韌性規劃",
+    closeQuestion: "你的計畫是只在順風有效，還是逆風也能繼續走？",
+    calculatorRoute: "/quick-10",
+    calculatorName: "資產抗壓模擬器",
+    calculatorNote: "先測壓力情境，再調參數，找出你真正撐得住的版本。",
   },
 ];
 

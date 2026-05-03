@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
+import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { buildPrincipalVsCompoundSeries } from "@/lib/quick-chart-series";
 import { clampNum, estimatedMonthlyPayoutFromBalance, fvMonthly } from "@/lib/quick-calculator-math";
@@ -337,41 +338,7 @@ export default function QuickCalculator1View({ showArticleToggle = true }: Quick
               <span style={{ lineHeight: 1.4, letterSpacing: "0.12em" }}>🔍 進入財富自由計算機</span>
             </Link>
 
-            {showArticleToggle ? (
-              <details
-                style={{
-                  borderRadius: 12,
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  background: "rgba(0,0,0,0.16)",
-                  padding: 12,
-                }}
-              >
-                <summary style={{ cursor: "pointer", fontSize: 15, fontWeight: 900, color: "rgba(226,232,240,0.98)" }}>
-                  📚 存股複利計算機延伸文章（點我展開）
-                </summary>
-                <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
-                  {QUICK1_BLOG_LINKS.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        borderRadius: 10,
-                        border: "1px solid rgba(148,163,184,0.35)",
-                        background: "rgba(15,23,42,0.55)",
-                        padding: "10px 12px",
-                        textDecoration: "none",
-                        color: "#e8eefc",
-                      }}
-                    >
-                      <div style={{ fontSize: 14, fontWeight: 900, lineHeight: 1.45 }}>{item.title}</div>
-                      <div style={{ marginTop: 4, fontSize: 12, color: "rgba(191,219,254,0.92)", lineHeight: 1.45 }}>{item.description}</div>
-                    </Link>
-                  ))}
-                </div>
-              </details>
-            ) : null}
+            {showArticleToggle ? <QuickBlogLinksToggle quickRoute="/quick-1" /> : null}
             <QuickSeoArticle id={1} />
           </div>
         </section>
@@ -425,20 +392,3 @@ const cardStyle: CSSProperties = {
   padding: 12,
 };
 
-const QUICK1_BLOG_LINKS = [
-  {
-    href: "/mini-blog/quick1-monthly-20000-compound-playbook",
-    title: "每月投入兩萬，20 年後真的會自由嗎？",
-    description: "從月投與年數出發，看清「想像自由」與「可執行自由」的差距。",
-  },
-  {
-    href: "/mini-blog/quick1-first-million-discipline-map",
-    title: "第一個一百萬，靠的是高報酬還是高紀律？",
-    description: "不是你不會算，是你需要一套可以長期做到的投入節奏。",
-  },
-  {
-    href: "/mini-blog/quick1-retirement-monthly-cashflow-baseline",
-    title: "退休月領怎麼抓？先用存股複利計算機把底線算出來",
-    description: "先看月領底線，再調月投入與年數，退休規劃才不會只剩口號。",
-  },
-] as const;

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
+import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
 import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { buildPrincipalVsCompoundSeries } from "@/lib/quick-chart-series";
@@ -397,6 +398,7 @@ export default function QuickCalculator5View() {
             >
               🔍 進入財富自由計算機
             </Link>
+            <QuickBlogLinksToggle quickRoute="/quick-5" />
             <QuickSeoArticle id={5} />
           </div>
         </section>

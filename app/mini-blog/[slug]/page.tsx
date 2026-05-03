@@ -50,15 +50,29 @@ export default async function MiniBlogPostPage({ params }: PageProps) {
       ? "財富自由倒數計時器"
       : post.calculatorRoute === "/quick-3"
         ? "夢想月領試算器"
+        : post.calculatorRoute === "/quick-4"
+          ? "ETF 月領試算器"
+          : post.calculatorRoute === "/quick-5"
+            ? "本金複利對照試算器"
+            : post.calculatorRoute === "/quick-6"
+              ? "買房跟投資試算器"
+              : post.calculatorRoute === "/quick-7"
+                ? "買車跟投資試算器"
+                : post.calculatorRoute === "/quick-8"
+                  ? "延遲享樂模擬器"
+                  : post.calculatorRoute === "/quick-9"
+                    ? "延遲消費價值計算機"
+                    : post.calculatorRoute === "/quick-10"
+                      ? "資產抗壓模擬器"
         : "存股複利計算機";
 
   return (
     <article className={styles.wrap}>
       <div className={styles.postMetaRow}>
-        <Link href="/mini-blog" className={styles.back}>
-          ← 存股複利計算機專屬文章列表
+        <Link href="/mini-blog" className={styles.back} prefetch={false}>
+          ← 小計算機專屬文章列表
         </Link>
-        <span className={styles.seriesPill}>小計算機專區 · 存股複利計算機</span>
+        <span className={styles.seriesPill}>小計算機專區 · 專屬文章</span>
       </div>
       <p style={{ marginTop: 8, marginBottom: 4, fontSize: 13, opacity: 0.8 }}>
         預計發布：{post.publishAtIso.slice(0, 10).replaceAll("-", "/")}
@@ -94,7 +108,7 @@ export default async function MiniBlogPostPage({ params }: PageProps) {
           </section>
         ))}
 
-        <Link href={post.calculatorRoute} className={styles.cta} target="_blank" rel="noopener noreferrer">
+        <Link href={post.calculatorRoute} className={styles.cta} target="_blank" rel="noopener noreferrer" prefetch={false}>
           回到{calculatorLabel}（另開分頁）→
         </Link>
 
