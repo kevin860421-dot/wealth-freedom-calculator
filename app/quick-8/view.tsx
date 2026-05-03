@@ -35,12 +35,12 @@ export function QuickCalculator8View() {
   const [totalPriceText, setTotalPriceText] = useState<string>(formatTwd(20000));
 
   // monthly installment expense (counts as spending)
-  const [monthlyInstallment, setMonthlyInstallment] = useState<number>(12000);
-  const [monthlyInstallmentText, setMonthlyInstallmentText] = useState<string>(formatTwd(12000));
+  const [monthlyInstallment, setMonthlyInstallment] = useState<number>(0);
+  const [monthlyInstallmentText, setMonthlyInstallmentText] = useState<string>(formatTwd(0));
 
   // investable cashflow per month (paired with installment; sums to totalPrice)
-  const [monthlyInvest, setMonthlyInvest] = useState<number>(8000);
-  const [monthlyInvestText, setMonthlyInvestText] = useState<string>(formatTwd(8000));
+  const [monthlyInvest, setMonthlyInvest] = useState<number>(20000);
+  const [monthlyInvestText, setMonthlyInvestText] = useState<string>(formatTwd(20000));
 
   const [years, setYears] = useState<number>(20);
   const [yearsText, setYearsText] = useState<string>("20");

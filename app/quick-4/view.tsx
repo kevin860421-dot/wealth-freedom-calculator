@@ -29,8 +29,8 @@ import {
 
 export default function QuickCalculator4View() {
   const [shareState, setShareState] = useState<"idle" | "copied">("idle");
-  const [monthlyInvest, setMonthlyInvest] = useState(30000);
-  const [monthlyInvestText, setMonthlyInvestText] = useState(formatTwd(30000));
+  const [monthlyInvest, setMonthlyInvest] = useState(20000);
+  const [monthlyInvestText, setMonthlyInvestText] = useState(formatTwd(20000));
   const [years, setYears] = useState(20);
   const [yearsText, setYearsText] = useState("20");
   const [etfCodeInput, setEtfCodeInput] = useState("0050");

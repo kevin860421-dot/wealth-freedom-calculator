@@ -22,11 +22,11 @@ export function QuickCalculator9View() {
   const [totalBudget, setTotalBudget] = useState<number>(20000);
   const [totalBudgetText, setTotalBudgetText] = useState<string>(formatTwd(20000));
 
-  const [monthlyInstallment, setMonthlyInstallment] = useState<number>(12000);
-  const [monthlyInstallmentText, setMonthlyInstallmentText] = useState<string>(formatTwd(12000));
+  const [monthlyInstallment, setMonthlyInstallment] = useState<number>(0);
+  const [monthlyInstallmentText, setMonthlyInstallmentText] = useState<string>(formatTwd(0));
 
-  const [investmentBase, setInvestmentBase] = useState<number>(8000);
-  const [investmentBaseText, setInvestmentBaseText] = useState<string>(formatTwd(8000));
+  const [investmentBase, setInvestmentBase] = useState<number>(20000);
+  const [investmentBaseText, setInvestmentBaseText] = useState<string>(formatTwd(20000));
 
   const [installmentYears, setInstallmentYears] = useState<number>(2);
   const [delayYears, setDelayYears] = useState<number>(2);

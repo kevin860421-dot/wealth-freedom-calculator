@@ -12,8 +12,8 @@ export default function QuickCalculator2View() {
   const [shareState, setShareState] = useState<"idle" | "copied">("idle");
   const [targetMonthly, setTargetMonthly] = useState(50000);
   const [targetMonthlyText, setTargetMonthlyText] = useState(formatTwd(50000));
-  const [monthlyInvest, setMonthlyInvest] = useState(30000);
-  const [monthlyInvestText, setMonthlyInvestText] = useState(formatTwd(30000));
+  const [monthlyInvest, setMonthlyInvest] = useState(20000);
+  const [monthlyInvestText, setMonthlyInvestText] = useState(formatTwd(20000));
 
   const commitTargetMonthly = () => {
     const next = commitMoney(targetMonthlyText, targetMonthly);

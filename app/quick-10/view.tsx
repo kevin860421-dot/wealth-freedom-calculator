@@ -19,8 +19,8 @@ import {
 
 export function QuickCalculator10View() {
   const [shareState, setShareState] = useState<"idle" | "copied">("idle");
-  const [monthly, setMonthly] = useState(10000);
-  const [monthlyText, setMonthlyText] = useState(formatTwd(10000));
+  const [monthly, setMonthly] = useState(20000);
+  const [monthlyText, setMonthlyText] = useState(formatTwd(20000));
 
   const [years, setYears] = useState(10);
   const [yearsText, setYearsText] = useState("10");

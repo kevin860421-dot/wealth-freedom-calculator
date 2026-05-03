@@ -27,8 +27,8 @@ import {
 
 export function QuickCalculator7View() {
   const [shareState, setShareState] = useState<"idle" | "copied">("idle");
-  const [monthlyInvest, setMonthlyInvest] = useState(30_000);
-  const [monthlyInvestText, setMonthlyInvestText] = useState(formatTwd(30_000));
+  const [monthlyInvest, setMonthlyInvest] = useState(20_000);
+  const [monthlyInvestText, setMonthlyInvestText] = useState(formatTwd(20_000));
   const [years, setYears] = useState(5);
   const [yearsText, setYearsText] = useState("5");
 
