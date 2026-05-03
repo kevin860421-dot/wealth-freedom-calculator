@@ -68,6 +68,34 @@ a {
   text-decoration: none;
 }
 
+@keyframes quickBrandGoldSweep {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+.quick-brand-gold-shimmer {
+  background: linear-gradient(
+    105deg,
+    #ffd84d 0%,
+    #ffef9a 22%,
+    #fff9d6 38%,
+    #fff3b0 50%,
+    #ffea7a 64%,
+    #ffd84d 100%
+  ) !important;
+  background-size: 220% 100% !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  text-shadow: 0 0 10px rgba(255, 215, 77, 0.4);
+  animation: quickBrandGoldSweep var(--quick-brand-duration, 2.4s) linear infinite !important;
+}
+
 /* 問題回報 · 點選頁面區塊模式 */
 body.cu-issue-picker-active {
   cursor: crosshair !important;

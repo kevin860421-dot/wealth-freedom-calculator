@@ -1,0 +1,59 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+import { useMemo } from "react";
+import { QUICK_SEO_BLOCKS } from "@/lib/quick-seo-data";
+
+function siteOrigin(): string {
+  return (
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://wealth-freedom-calculator.vercel.app"
+  );
+}
+
+/**
+ * 不在畫面上顯示 SEO 長文；僅插入 Article JSON-LD，供搜尋引擎解析。
+ * （頁面 title/description 仍由各 quick-N/layout 的 metadata 負責。）
+ */
+export function QuickSeoArticle({ id }: { id: number }) {
+  const pathname = usePathname();
+  const block = QUICK_SEO_BLOCKS[id];
+
+  const jsonLdString = useMemo(() => {
+    if (!block) return null;
+    const origin = siteOrigin();
+    const path = pathname && pathname !== "" ? pathname : `/quick-${id}`;
+    const pageUrl = `${origin}${path.startsWith("/") ? path : `/${path}`}`;
+    const articleBody = [
+      ...block.paragraphs,
+      "若需與首頁相同的台股 ETF／自訂標的、股利課稅、二代健保補充保費、手續費與每期須扣除等長軸試算，請前往財富自由計算機完整版：https://wealth-freedom-calculator.vercel.app/",
+      "* 情境試算僅供教育與自我檢視；個案仍以法令、契約與實際報酬為準。",
+    ].join("\n\n");
+
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: block.h2,
+      description: block.metaDescription,
+      articleBody,
+      inLanguage: "zh-Hant",
+      isAccessibleForFree: true,
+      url: pageUrl,
+      mainEntityOfPage: {
+        "@type": "WebPage",
+        "@id": pageUrl,
+      },
+    };
+
+    return JSON.stringify(jsonLd);
+  }, [block, id, pathname]);
+
+  if (!jsonLdString) return null;
+
+  return (
+    <script
+      type="application/ld+json"
+      // eslint-disable-next-line react/no-danger -- JSON-LD 標準寫法
+      dangerouslySetInnerHTML={{ __html: jsonLdString }}
+    />
+  );
+}

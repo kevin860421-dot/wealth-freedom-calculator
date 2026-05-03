@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ContactUsPanel } from "./contact-us-panel";
 import { useStats } from "./stats-provider";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -8,6 +9,21 @@ import styles from "./footer-stats-strip.module.css";
 const SHARE_TITLE = "財富自由計算機";
 const SHARE_DESC = "財富自由計算機：台股 ETF、定期定額、股利與稅負試算（僅供參考）";
 const PROD_URL = "https://wealth-freedom-calculator.vercel.app/";
+const AVAILABLE_QUICK_CALCULATORS = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+function quickCalculatorLabel(n: number): string {
+  if (n === 1) return "第1台｜月投累積試算";
+  if (n === 2) return "第2台｜目標幾年達成";
+  if (n === 3) return "第3台｜希望月領→月投";
+  if (n === 4) return "第4台｜ETF 月領試算器";
+  if (n === 5) return "第5台｜本金／複利對照";
+  if (n === 6) return "第6台｜房貸 VS 股市";
+  if (n === 7) return "第7台｜車貸 VS 股市";
+  if (n === 8) return "第8台｜延遲享樂模擬器";
+  if (n === 9) return "第9台｜延遲消費價值計算機";
+  if (n === 10) return "第10台｜資產抗壓模擬器";
+  return `第${n}台｜小計算機（建置中）`;
+}
 
 function fmt(n: number) {
   return Math.max(0, Math.floor(n)).toLocaleString("zh-TW");
@@ -59,28 +75,68 @@ export function FooterStatsStrip() {
     <div className={styles.wrap}>
       <div className={styles.row}>
         {/* 欄 1：造訪統計 */}
-        <aside className={`${styles.card} ${styles.cardStats}`} aria-label="造訪統計">
-          <div className={styles.cardHead}>
-            <span className={styles.cardIcon} aria-hidden>
-              ◎
-            </span>
-            <div className={styles.cardTitles}>
-              <div className={styles.cardTitleZh}>造訪概況</div>
-              <div className={styles.cardTitleEn}>Snapshot</div>
+        <div className={styles.leftStack}>
+          <aside className={`${styles.card} ${styles.cardStats}`} aria-label="造訪統計">
+            <div className={styles.cardHead}>
+              <span className={styles.cardIcon} aria-hidden>
+                ◎
+              </span>
+              <div className={styles.cardTitles}>
+                <div className={styles.cardTitleZh}>造訪概況</div>
+                <div className={styles.cardTitleEn}>Snapshot</div>
+              </div>
             </div>
-          </div>
-          <div className={`${styles.cardBody} ${styles.statsInner}`}>
-            <div className={styles.statBlock}>
-              <span className={styles.statLabel}>月瀏覽</span>
-              <span className={styles.statNum}>{fmt(stats.monthPageViews)}</span>
+            <div className={`${styles.cardBody} ${styles.statsInner}`}>
+              <div className={styles.statBlock}>
+                <span className={styles.statLabel}>月瀏覽</span>
+                <span className={styles.statNum}>{fmt(stats.monthPageViews)}</span>
+              </div>
+              <div className={styles.statBlock}>
+                <span className={styles.statLabel}>有效互動</span>
+                <span className={`${styles.statNum} ${styles.statNumAccent}`}>{fmt(stats.monthEngagement)}</span>
+              </div>
             </div>
-            <div className={styles.statBlock}>
-              <span className={styles.statLabel}>有效互動</span>
-              <span className={`${styles.statNum} ${styles.statNumAccent}`}>{fmt(stats.monthEngagement)}</span>
+            <div className={styles.cardSlot} aria-hidden />
+          </aside>
+
+          <section className={`${styles.card} ${styles.quickHub}`} aria-label="小計算機捷徑">
+            <div className={styles.quickHubHead}>
+              <div className={styles.quickHubTitle}>小計算機 1 - 10</div>
+              <div className={styles.quickHubHint}>可用按鈕會以新分頁開啟</div>
             </div>
-          </div>
-          <div className={styles.cardSlot} aria-hidden />
-        </aside>
+            <div className={styles.quickSection}>
+              <div className={styles.quickSectionTitle}>建置中</div>
+              <div className={styles.quickGrid}>
+                {Array.from({ length: 10 }, (_, idx) => idx + 1)
+                  .filter((n) => !AVAILABLE_QUICK_CALCULATORS.has(n))
+                  .map((n) => (
+                  <button key={n} type="button" className={`${styles.quickBtn} ${styles.quickBtnDisabled}`} disabled>
+                    {quickCalculatorLabel(n)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className={styles.quickSection}>
+              <div className={styles.quickSectionTitle}>可使用</div>
+              <div className={styles.quickGrid}>
+                {Array.from({ length: 10 }, (_, idx) => idx + 1)
+                  .filter((n) => AVAILABLE_QUICK_CALCULATORS.has(n))
+                  .sort((a, b) => a - b)
+                  .map((n) => (
+                    <Link
+                      key={n}
+                      href={`/quick-${n}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.quickBtn}
+                    >
+                      {quickCalculatorLabel(n)}
+                    </Link>
+                  ))}
+              </div>
+            </div>
+          </section>
+        </div>
 
         {/* 欄 2：聯絡我們（獨立面板 UI） */}
         <ContactUsPanel />
@@ -95,6 +151,7 @@ export function FooterStatsStrip() {
               <div className={styles.cardTitleZh}>分享此頁</div>
               <div className={styles.cardTitleEn}>Share</div>
             </div>
+
           </div>
           <div className={`${styles.cardBody} ${styles.shareBody}`}>
             <p className={styles.shareHint}>轉傳給也在規劃退休與被動收入的朋友。</p>
@@ -164,6 +221,7 @@ export function FooterStatsStrip() {
           </div>
         </div>
       </div>
+
     </div>
 
       {/* Toast 提示 */}
