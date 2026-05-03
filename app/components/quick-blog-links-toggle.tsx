@@ -118,12 +118,202 @@ const QUICK_ROUTE_LINKS: Record<QuickRoute, readonly { href: string; title: stri
       title: "財富自由倒數計時器怎麼用？",
       description: "目標月領與月投入，如何對齊時間壓力。",
     },
+    {
+      href: "/mini-blog/quick2-monthly-40000-countdown",
+      title: "月領 4 萬倒數怎麼抓？",
+      description: "先看幾年達標，再談加碼。",
+    },
+    {
+      href: "/mini-blog/quick2-monthly-50000-countdown",
+      title: "目標月領 5 萬，年數為何差這麼多？",
+      description: "同樣努力，不同起跑值。",
+    },
+    {
+      href: "/mini-blog/quick2-monthly-60000-countdown",
+      title: "月領 6 萬能追嗎？先看交換條件",
+      description: "時間、投入、壓力要平衡。",
+    },
+    {
+      href: "/mini-blog/quick2-raise-invest-or-extend-years",
+      title: "該加碼還是延長年數？",
+      description: "倒數計時器一看就懂。",
+    },
+    {
+      href: "/mini-blog/quick2-first-10-years-gap",
+      title: "前 10 年最容易放棄怎麼辦？",
+      description: "先做可執行版本。",
+    },
+    {
+      href: "/mini-blog/quick2-salary-plateau-countdown",
+      title: "薪水卡住時怎麼重排路線？",
+      description: "收入不變更要配好節奏。",
+    },
+    {
+      href: "/mini-blog/quick2-double-income-household-target",
+      title: "雙薪家庭如何定目標月領？",
+      description: "先對齊共同時間軸。",
+    },
+    {
+      href: "/mini-blog/quick2-single-income-pressure-map",
+      title: "單薪壓力大？先找不爆表版本",
+      description: "先活得下去，才走得下去。",
+    },
+    {
+      href: "/mini-blog/quick2-bonus-allocation-countdown",
+      title: "有獎金時怎麼縮短倒數最有感？",
+      description: "一次加碼要放對位置。",
+    },
+    {
+      href: "/mini-blog/quick2-lifestyle-upgrade-warning",
+      title: "生活升級前，先看倒數會不會變遠",
+      description: "收入增不一定更接近自由。",
+    },
+    {
+      href: "/mini-blog/quick2-early-retire-vs-slower-path",
+      title: "提早退休還是慢慢退？",
+      description: "不只選年份，也在選節奏。",
+    },
+    {
+      href: "/mini-blog/quick2-bear-market-delay-check",
+      title: "市場下跌會讓倒數延長嗎？",
+      description: "先把心理預期校正。",
+    },
+    {
+      href: "/mini-blog/quick2-annual-review-reset-plan",
+      title: "每年重算一次倒數，為何重要？",
+      description: "不重算，計畫會過期。",
+    },
+    {
+      href: "/mini-blog/quick2-40000-to-60000-upgrade-roadmap",
+      title: "目標從 4 萬升到 6 萬怎麼調？",
+      description: "升級目標也要升級節奏。",
+    },
+    {
+      href: "/mini-blog/quick2-starting-late-with-high-goal",
+      title: "晚開始又高目標，怎麼追？",
+      description: "你需要策略，不是自責。",
+    },
+    {
+      href: "/mini-blog/quick2-stress-free-monthly-input",
+      title: "月投入要痛還是無痛？",
+      description: "重點是長期平衡。",
+    },
+    {
+      href: "/mini-blog/quick2-housing-cost-impact-countdown",
+      title: "房租變動會影響退休倒數嗎？",
+      description: "固定支出一變，整條軸會動。",
+    },
+    {
+      href: "/mini-blog/quick2-family-support-pressure",
+      title: "要支援家人時，倒數怎麼調？",
+      description: "守責任也能守未來。",
+    },
+    {
+      href: "/mini-blog/quick2-side-income-accelerator",
+      title: "副業收入怎麼用最能縮短倒數？",
+      description: "最怕額外收入只是額外花掉。",
+    },
   ],
   "/quick-3": [
     {
       href: "/mini-blog/quick3-dream-monthly-income-simulator",
       title: "夢想月領試算器：先算再追夢",
       description: "先反推月投，再決定要調目標還是調年數。",
+    },
+    {
+      href: "/mini-blog/quick3-monthly-30000-reverse-plan",
+      title: "夢想月領 3 萬怎麼反推？",
+      description: "先算月投，再談速度。",
+    },
+    {
+      href: "/mini-blog/quick3-monthly-40000-reverse-plan",
+      title: "夢想月領 4 萬：最常算錯哪裡？",
+      description: "避免設定太理想。",
+    },
+    {
+      href: "/mini-blog/quick3-monthly-50000-reverse-plan",
+      title: "月領 5 萬反推後壓力有多大？",
+      description: "先看可承受度。",
+    },
+    {
+      href: "/mini-blog/quick3-monthly-60000-reverse-plan",
+      title: "月領 6 萬可以追，但要先看代價",
+      description: "時間、投入、壓力要平衡。",
+    },
+    {
+      href: "/mini-blog/quick3-how-much-per-month-for-15-years",
+      title: "15 年內達標要月投多少？",
+      description: "縮短時間會提高投入。",
+    },
+    {
+      href: "/mini-blog/quick3-how-much-per-month-for-20-years",
+      title: "20 年反推：怎麼做才不自欺？",
+      description: "先求可持續。",
+    },
+    {
+      href: "/mini-blog/quick3-how-much-per-month-for-25-years",
+      title: "25 年版本會不會輕鬆很多？",
+      description: "有時延長年數更有效。",
+    },
+    {
+      href: "/mini-blog/quick3-increase-goal-or-extend-years",
+      title: "升目標還是延長年數？",
+      description: "順序錯了容易崩。",
+    },
+    {
+      href: "/mini-blog/quick3-salary-growth-reverse-strategy",
+      title: "加薪後怎麼反推新目標？",
+      description: "別讓升級消費吃掉加薪。",
+    },
+    {
+      href: "/mini-blog/quick3-single-income-reverse-plan",
+      title: "單薪版反推：如何不爆壓",
+      description: "先守節奏再加速。",
+    },
+    {
+      href: "/mini-blog/quick3-double-income-reverse-plan",
+      title: "雙薪反推：怎麼對齊節奏",
+      description: "同一張時間軸才有共識。",
+    },
+    {
+      href: "/mini-blog/quick3-bonus-topup-reverse-plan",
+      title: "有獎金時怎麼優化反推結果？",
+      description: "一次加碼要加在對的位置。",
+    },
+    {
+      href: "/mini-blog/quick3-late-start-reverse-path",
+      title: "晚開始怎麼反推？",
+      description: "晚不代表沒機會。",
+    },
+    {
+      href: "/mini-blog/quick3-inflation-adjusted-monthly-goal",
+      title: "月領目標要不要加通膨？",
+      description: "名目好看不代表夠用。",
+    },
+    {
+      href: "/mini-blog/quick3-risk-buffer-before-goal-upgrade",
+      title: "升目標前先留緩衝",
+      description: "不然很容易半路掉隊。",
+    },
+    {
+      href: "/mini-blog/quick3-side-income-accelerate-goal",
+      title: "副業收入怎麼用才會加速",
+      description: "最怕只是額外花掉。",
+    },
+    {
+      href: "/mini-blog/quick3-annual-reset-reverse-checklist",
+      title: "每年一次反推重設清單",
+      description: "不重設，計畫會脫節。",
+    },
+    {
+      href: "/mini-blog/quick3-expense-cut-vs-income-rise",
+      title: "省支出還是增收入比較快？",
+      description: "重點是先後順序。",
+    },
+    {
+      href: "/mini-blog/quick3-avoid-overoptimistic-goal-gap",
+      title: "反推太樂觀會放大焦慮",
+      description: "先誠實，再樂觀。",
     },
   ],
   "/quick-4": [
@@ -136,8 +326,103 @@ const QUICK_ROUTE_LINKS: Record<QuickRoute, readonly { href: string; title: stri
   "/quick-5": [
     {
       href: "/mini-blog/quick5-principal-vs-compound-reality",
-      title: "本金複利對照：你在買時間",
+      title: "雪球效應：本金 vs 複利，你在買時間",
       description: "看懂本金線與複利線的長期分岔。",
+    },
+    {
+      href: "/mini-blog/quick5-first-100k-snowball-start",
+      title: "第一個 10 萬怎麼開始滾",
+      description: "最難在起步，先守節奏。",
+    },
+    {
+      href: "/mini-blog/quick5-first-500k-compound-curve",
+      title: "為什麼 50 萬前看起來很慢",
+      description: "你其實正要進入加速區。",
+    },
+    {
+      href: "/mini-blog/quick5-first-million-snowball-moment",
+      title: "第一個 100 萬後，路線怎麼走",
+      description: "到這裡才是真正有感。",
+    },
+    {
+      href: "/mini-blog/quick5-10year-vs-20year-gap",
+      title: "10 年 vs 20 年差距",
+      description: "不是多 10 年而已。",
+    },
+    {
+      href: "/mini-blog/quick5-20year-vs-30year-gap",
+      title: "20 年 vs 30 年後段威力",
+      description: "複利斜率常在後面爆發。",
+    },
+    {
+      href: "/mini-blog/quick5-stop-investing-for-1year-impact",
+      title: "中斷一年，長期代價有多大",
+      description: "停一下可能差很多。",
+    },
+    {
+      href: "/mini-blog/quick5-small-increase-big-longterm-gap",
+      title: "每月多 1000，長期有感嗎",
+      description: "微調也能放大結果。",
+    },
+    {
+      href: "/mini-blog/quick5-monthly-10000-vs-12000",
+      title: "月投 10000 vs 12000",
+      description: "差的不只 2000。",
+    },
+    {
+      href: "/mini-blog/quick5-monthly-15000-vs-20000",
+      title: "月投 15000 vs 20000",
+      description: "差距何時開始擴大？",
+    },
+    {
+      href: "/mini-blog/quick5-lump-sum-plus-monthly-plan",
+      title: "一次投入加月投怎麼配",
+      description: "組合打法，重點在節奏。",
+    },
+    {
+      href: "/mini-blog/quick5-bear-market-continue-or-stop",
+      title: "下跌時停還是續投？",
+      description: "先看長線再做決定。",
+    },
+    {
+      href: "/mini-blog/quick5-inflation-vs-nominal-balance",
+      title: "名目成長 vs 真實購買力",
+      description: "數字有長不等於夠用。",
+    },
+    {
+      href: "/mini-blog/quick5-expense-growth-eats-snowball",
+      title: "支出長大會吃掉雪球速度",
+      description: "先算才不會後知後覺。",
+    },
+    {
+      href: "/mini-blog/quick5-salary-growth-boost-compound",
+      title: "加薪後怎麼放大複利",
+      description: "先分配，再加碼。",
+    },
+    {
+      href: "/mini-blog/quick5-risk-buffer-before-acceleration",
+      title: "加速前先放安全墊",
+      description: "不中斷比更快更重要。",
+    },
+    {
+      href: "/mini-blog/quick5-annual-rebalance-snowball-check",
+      title: "每年一次雪球健檢",
+      description: "校正路線比盯盤有用。",
+    },
+    {
+      href: "/mini-blog/quick5-dividend-reinvest-snowball",
+      title: "配息再投入的雪球差距",
+      description: "看起來小，長期很關鍵。",
+    },
+    {
+      href: "/mini-blog/quick5-why-time-beats-perfect-timing",
+      title: "時間勝過完美進場",
+      description: "長時間在場更務實。",
+    },
+    {
+      href: "/mini-blog/quick5-build-30year-snowball-habit",
+      title: "30 年雪球靠習慣",
+      description: "習慣比天分更重要。",
     },
   ],
   "/quick-6": [

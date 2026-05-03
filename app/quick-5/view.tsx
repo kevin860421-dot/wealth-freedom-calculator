@@ -191,7 +191,7 @@ export default function QuickCalculator5View() {
               textOverflow: "ellipsis",
             }}
           >
-            本金／複利
+            雪球效應：本金 vs 複利
           </div>
         </div>
 
