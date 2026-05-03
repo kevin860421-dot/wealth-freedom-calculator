@@ -217,6 +217,30 @@ export function QuickCalculator10View() {
         *::after {
           box-sizing: border-box;
         }
+        @keyframes quick10TitleGradientShift {
+          0% {
+            background-position: 0% 50%;
+          }
+          100% {
+            background-position: 100% 50%;
+          }
+        }
+        .quick10-title-gradient {
+          background: linear-gradient(
+            90deg,
+            rgba(196, 210, 240, 0.88),
+            #e8eefc,
+            rgba(120, 190, 210, 0.95),
+            rgba(200, 180, 235, 0.88),
+            rgba(196, 210, 240, 0.88)
+          );
+          background-size: 240% 100%;
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          -webkit-text-fill-color: transparent;
+          animation: quick10TitleGradientShift 7s ease-in-out infinite alternate;
+        }
       `}</style>
 
       <div style={{ width: "100%", maxWidth: 420, margin: "0 auto", minWidth: 0, overflowX: "hidden", boxSizing: "border-box" }}>
@@ -249,6 +273,7 @@ export function QuickCalculator10View() {
             </button>
           </div>
           <div
+            className="quick10-title-gradient"
             style={{
               fontSize: 30,
               fontWeight: 950,
@@ -257,7 +282,7 @@ export function QuickCalculator10View() {
               whiteSpace: "normal",
             }}
           >
-            資產抗壓模擬器
+            複利美夢 VS 崩盤現實 計算機
           </div>
         </div>
 

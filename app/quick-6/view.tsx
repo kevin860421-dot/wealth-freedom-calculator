@@ -218,7 +218,7 @@ export function QuickCalculator6View() {
               textOverflow: "ellipsis",
             }}
           >
-            房貸 VS 直接投入股市
+            槓桿抉擇：房產 vs 全球股市
           </div>
         </div>
 

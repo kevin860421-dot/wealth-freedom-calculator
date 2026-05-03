@@ -55,15 +55,15 @@ export default async function MiniBlogPostPage({ params }: PageProps) {
           : post.calculatorRoute === "/quick-5"
             ? "雪球效應：本金 vs 複利"
             : post.calculatorRoute === "/quick-6"
-              ? "買房跟投資試算器"
+              ? "槓桿抉擇：房產 vs 全球股市"
               : post.calculatorRoute === "/quick-7"
-                ? "買車跟投資試算器"
+                ? "槓桿抉擇：房貸 vs 全球股市"
                 : post.calculatorRoute === "/quick-8"
                   ? "延遲享樂模擬器"
                   : post.calculatorRoute === "/quick-9"
                     ? "延遲消費價值計算機"
                     : post.calculatorRoute === "/quick-10"
-                      ? "資產抗壓模擬器"
+                      ? "複利美夢 VS 崩盤現實 計算機"
         : "存股複利計算機";
 
   return (

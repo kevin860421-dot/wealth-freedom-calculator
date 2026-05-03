@@ -427,16 +427,206 @@ const QUICK_ROUTE_LINKS: Record<QuickRoute, readonly { href: string; title: stri
   ],
   "/quick-6": [
     {
-      href: "/mini-blog/quick6-house-vs-invest-decision-map",
-      title: "買房跟投資試算器：先看壓力",
-      description: "同樣是資產，現金流體感可能完全不同。",
+      href: "/mini-blog/quick6-leverage-choice-property-vs-global-stocks",
+      title: "槓桿抉擇：房產 vs 全球股市",
+      description: "先看現金流壓力，再看報酬想像。",
+    },
+    {
+      href: "/mini-blog/quick6-rent-vs-buy-cashflow-truth",
+      title: "租房還是買房：先看真實現金流",
+      description: "先看可持續，再談立場。",
+    },
+    {
+      href: "/mini-blog/quick6-down-payment-vs-monthly-invest-gap",
+      title: "頭期款 vs 分批投入差在哪",
+      description: "一次決策會改寫十年彈性。",
+    },
+    {
+      href: "/mini-blog/quick6-interest-rate-shock-stress-test",
+      title: "利率上升，你的路線撐得住嗎",
+      description: "壓力測試比樂觀假設重要。",
+    },
+    {
+      href: "/mini-blog/quick6-15year-vs-30year-loan-impact",
+      title: "房貸 15 年 vs 30 年",
+      description: "重點是可持續，不是逞強。",
+    },
+    {
+      href: "/mini-blog/quick6-home-ownership-cost-hidden-list",
+      title: "買房最常漏算的持有成本",
+      description: "漏一筆，整條路會失真。",
+    },
+    {
+      href: "/mini-blog/quick6-liquidity-trap-property-heavy-portfolio",
+      title: "資產都在房子裡的流動性陷阱",
+      description: "看起來有資產，不等於可動用。",
+    },
+    {
+      href: "/mini-blog/quick6-first-home-or-first-million",
+      title: "先買房還是先存第一桶金",
+      description: "先後順序很關鍵。",
+    },
+    {
+      href: "/mini-blog/quick6-couple-buy-home-invest-balance",
+      title: "伴侶買房與投資怎麼平衡",
+      description: "先對齊，才不內耗。",
+    },
+    {
+      href: "/mini-blog/quick6-single-income-mortgage-pressure-map",
+      title: "單薪房貸壓力地圖",
+      description: "先不爆，再求快。",
+    },
+    {
+      href: "/mini-blog/quick6-inflation-helps-or-hurts-home-buyer",
+      title: "通膨到底幫不幫買房族",
+      description: "取決於你的現金流體質。",
+    },
+    {
+      href: "/mini-blog/quick6-global-etf-vs-local-property-bias",
+      title: "本地房產偏誤 vs 全球股市",
+      description: "熟悉感不等於最適解。",
+    },
+    {
+      href: "/mini-blog/quick6-bear-market-while-paying-mortgage",
+      title: "繳房貸時遇股市回檔怎麼守",
+      description: "先有逆風劇本，才不亂改。",
+    },
+    {
+      href: "/mini-blog/quick6-bonus-use-prepay-or-invest",
+      title: "獎金先還貸還是先投資",
+      description: "買安心還是買時間？",
+    },
+    {
+      href: "/mini-blog/quick6-career-risk-and-mortgage-commitment",
+      title: "工作不穩時的房貸承諾",
+      description: "承諾大小要配風險承受度。",
+    },
+    {
+      href: "/mini-blog/quick6-rebalance-after-buying-property",
+      title: "買房後為何要重配資產",
+      description: "風險結構已經改變。",
+    },
+    {
+      href: "/mini-blog/quick6-retire-with-mortgage-plan",
+      title: "退休前房貸未清怎麼規劃",
+      description: "關鍵在現金流可承受。",
+    },
+    {
+      href: "/mini-blog/quick6-property-upgrade-vs-portfolio-growth",
+      title: "升級房子還是升級投資",
+      description: "每次升級都有機會成本。",
+    },
+    {
+      href: "/mini-blog/quick6-why-cashflow-beats-paper-wealth",
+      title: "現金流為何勝過帳面富有",
+      description: "活得穩，才走得遠。",
+    },
+    {
+      href: "/mini-blog/quick6-build-30year-leverage-discipline",
+      title: "30 年槓桿紀律路線",
+      description: "不是衝動，而是長期校正。",
     },
   ],
   "/quick-7": [
     {
-      href: "/mini-blog/quick7-car-vs-invest-decision-map",
-      title: "買車跟投資試算器：先看代價",
-      description: "一筆車款，可能換走十年的選擇權。",
+      href: "/mini-blog/quick7-leverage-choice-mortgage-vs-global-stocks",
+      title: "槓桿抉擇：房貸 vs 全球股市",
+      description: "先看壓力，再看報酬。",
+    },
+    {
+      href: "/mini-blog/quick7-rent-or-buy-global-portfolio-balance",
+      title: "租房或買房，怎麼配全球資產",
+      description: "先看彈性，再選立場。",
+    },
+    {
+      href: "/mini-blog/quick7-mortgage-term-20-vs-30-impact",
+      title: "房貸 20 年 vs 30 年",
+      description: "差的不只利息。",
+    },
+    {
+      href: "/mini-blog/quick7-down-payment-vs-dca-global-etf",
+      title: "頭期款 vs 分批全球 ETF",
+      description: "兩條路代價不同。",
+    },
+    {
+      href: "/mini-blog/quick7-rate-hike-risk-check",
+      title: "升息來了怎麼調策略",
+      description: "先做逆風檢查。",
+    },
+    {
+      href: "/mini-blog/quick7-single-income-mortgage-survival-map",
+      title: "單薪房貸生存地圖",
+      description: "先不爆，再求快。",
+    },
+    {
+      href: "/mini-blog/quick7-double-income-home-invest-strategy",
+      title: "雙薪買房投資對齊法",
+      description: "先對齊，再加速。",
+    },
+    {
+      href: "/mini-blog/quick7-bonus-prepay-or-invest-global",
+      title: "獎金先還貸還是先投資",
+      description: "買安心還是買時間。",
+    },
+    {
+      href: "/mini-blog/quick7-liquidity-buffer-before-leverage",
+      title: "上槓桿前的緩衝金",
+      description: "留呼吸空間很關鍵。",
+    },
+    {
+      href: "/mini-blog/quick7-home-ownership-hidden-costs",
+      title: "買房隱形成本清單",
+      description: "買得起不等於持有得起。",
+    },
+    {
+      href: "/mini-blog/quick7-property-concentration-risk",
+      title: "房產過度集中風險",
+      description: "集中不一定錯，但要知道代價。",
+    },
+    {
+      href: "/mini-blog/quick7-bear-market-while-paying-mortgage",
+      title: "繳房貸遇股災怎麼守",
+      description: "先有逆風劇本。",
+    },
+    {
+      href: "/mini-blog/quick7-career-uncertainty-and-mortgage",
+      title: "工作不穩時的房貸承諾",
+      description: "承諾要配風險承受度。",
+    },
+    {
+      href: "/mini-blog/quick7-inflation-and-mortgage-choice",
+      title: "通膨下房貸怎麼選",
+      description: "先看現金流體質。",
+    },
+    {
+      href: "/mini-blog/quick7-global-diversification-vs-local-home-bias",
+      title: "本地偏好 vs 全球分散",
+      description: "熟悉感不等於最適解。",
+    },
+    {
+      href: "/mini-blog/quick7-retire-with-mortgage-plan",
+      title: "退休前房貸未清規劃",
+      description: "關鍵是可承受現金流。",
+    },
+    {
+      href: "/mini-blog/quick7-asset-rebalance-after-home-buy",
+      title: "買房後資產重配",
+      description: "風險結構已改變。",
+    },
+    {
+      href: "/mini-blog/quick7-upgrade-home-vs-upgrade-portfolio",
+      title: "升級房屋或升級投資",
+      description: "每次升級都有機會成本。",
+    },
+    {
+      href: "/mini-blog/quick7-cashflow-first-paper-wealth-second",
+      title: "現金流優先於帳面富有",
+      description: "先活得穩，才走得遠。",
+    },
+    {
+      href: "/mini-blog/quick7-build-30year-leverage-discipline",
+      title: "30 年槓桿紀律框架",
+      description: "持續校正，不靠運氣。",
     },
   ],
   "/quick-8": [
@@ -445,6 +635,101 @@ const QUICK_ROUTE_LINKS: Record<QuickRoute, readonly { href: string; title: stri
       title: "延遲享樂模擬器：晚點花差多少？",
       description: "先看可投資金額，再決定現在就買。",
     },
+    {
+      href: "/mini-blog/quick8-installment-vs-invest-3000-gap",
+      title: "每月分期 3000 的長期差距",
+      description: "小額固定支出也很關鍵。",
+    },
+    {
+      href: "/mini-blog/quick8-installment-vs-invest-5000-gap",
+      title: "每月分期 5000 vs 每月投資",
+      description: "差距可以被量化。",
+    },
+    {
+      href: "/mini-blog/quick8-new-phone-now-or-later",
+      title: "手機現在換還是晚一年",
+      description: "先看曲線再決定。",
+    },
+    {
+      href: "/mini-blog/quick8-subscription-creep-vs-freedom-speed",
+      title: "訂閱膨脹拖慢自由速度",
+      description: "總和比單筆更可怕。",
+    },
+    {
+      href: "/mini-blog/quick8-weekend-shopping-habit-audit",
+      title: "週末慣性購物檢查",
+      description: "小習慣長期很有感。",
+    },
+    {
+      href: "/mini-blog/quick8-couple-spending-alignment-framework",
+      title: "伴侶消費觀怎麼對齊",
+      description: "先有同一張圖。",
+    },
+    {
+      href: "/mini-blog/quick8-year-end-sale-trap-analysis",
+      title: "年底促銷到底有沒有賺",
+      description: "便宜不一定划算。",
+    },
+    {
+      href: "/mini-blog/quick8-bonus-spend-or-invest-split",
+      title: "獎金要花還是投資",
+      description: "關鍵在分配規則。",
+    },
+    {
+      href: "/mini-blog/quick8-travel-budget-vs-longterm-assets",
+      title: "旅行預算和長期資產平衡",
+      description: "享受與規劃可以並存。",
+    },
+    {
+      href: "/mini-blog/quick8-lifestyle-upgrade-timing-choice",
+      title: "生活升級要不要晚一年",
+      description: "時間是便宜槓桿。",
+    },
+    {
+      href: "/mini-blog/quick8-emotion-buying-cooldown-system",
+      title: "情緒購物冷卻系統",
+      description: "流程比意志力可靠。",
+    },
+    {
+      href: "/mini-blog/quick8-credit-card-installment-hidden-cost",
+      title: "信用卡分期隱形成本",
+      description: "無痛常是最痛。",
+    },
+    {
+      href: "/mini-blog/quick8-low-buy-impulse-high-invest-routine",
+      title: "降低衝動提高投入習慣",
+      description: "把行為變成系統。",
+    },
+    {
+      href: "/mini-blog/quick8-pay-yourself-first-delay-gratification",
+      title: "先支付自己再消費",
+      description: "順序一改，結果就變。",
+    },
+    {
+      href: "/mini-blog/quick8-family-budget-priority-map",
+      title: "家庭預算優先順序地圖",
+      description: "先排序再分配。",
+    },
+    {
+      href: "/mini-blog/quick8-side-income-do-not-inflate-lifestyle",
+      title: "副業收入別膨脹生活",
+      description: "額外收入是加速器。",
+    },
+    {
+      href: "/mini-blog/quick8-minimalism-vs-consumption-balance",
+      title: "極簡與消費如何平衡",
+      description: "重點是可持續。",
+    },
+    {
+      href: "/mini-blog/quick8-annual-reset-delay-gratification-plan",
+      title: "每年重設延遲享樂計畫",
+      description: "不重設會過期。",
+    },
+    {
+      href: "/mini-blog/quick8-build-30year-delay-gratification-habit",
+      title: "30 年延遲享樂習慣",
+      description: "小習慣累積大結果。",
+    },
   ],
   "/quick-9": [
     {
@@ -452,12 +737,202 @@ const QUICK_ROUTE_LINKS: Record<QuickRoute, readonly { href: string; title: stri
       title: "延遲消費價值計算機：重算每次刷卡",
       description: "3/5/10 年切換，看清消費機會成本。",
     },
+    {
+      href: "/mini-blog/quick9-3year-5year-10year-compare",
+      title: "3年/5年/10年幅度比較",
+      description: "年限一換，答案就變。",
+    },
+    {
+      href: "/mini-blog/quick9-buy-now-vs-buy-later-laptop-case",
+      title: "筆電現在買或延後買",
+      description: "用數字取代直覺。",
+    },
+    {
+      href: "/mini-blog/quick9-installment-or-cash-global-invest-impact",
+      title: "分期或現金差在哪",
+      description: "付款方式會改變路線。",
+    },
+    {
+      href: "/mini-blog/quick9-impulse-purchase-cooldown-72h",
+      title: "72 小時冷卻機制",
+      description: "流程化降低衝動購買。",
+    },
+    {
+      href: "/mini-blog/quick9-monthly-wants-budget-cap-system",
+      title: "想要型支出上限系統",
+      description: "設上限是保留選擇權。",
+    },
+    {
+      href: "/mini-blog/quick9-credit-card-points-vs-real-cost",
+      title: "回饋 vs 真實成本",
+      description: "別被回饋推著多花。",
+    },
+    {
+      href: "/mini-blog/quick9-year-end-discount-vs-longterm-value",
+      title: "折扣 vs 長期價值",
+      description: "便宜不一定划算。",
+    },
+    {
+      href: "/mini-blog/quick9-subscription-stack-cleanup-plan",
+      title: "訂閱堆疊清理流程",
+      description: "砍對比砍多更重要。",
+    },
+    {
+      href: "/mini-blog/quick9-iphone-upgrade-cycle-choice",
+      title: "手機升級週期選擇",
+      description: "延後一年差很多。",
+    },
+    {
+      href: "/mini-blog/quick9-car-upgrade-delay-value",
+      title: "車子升級延後價值",
+      description: "晚一點未必吃虧。",
+    },
+    {
+      href: "/mini-blog/quick9-home-appliance-replace-or-repair",
+      title: "家電換新或維修",
+      description: "先看總成本再決定。",
+    },
+    {
+      href: "/mini-blog/quick9-side-income-spend-or-invest-rule",
+      title: "副業收入花或投規則",
+      description: "沒規則就難留住錢。",
+    },
+    {
+      href: "/mini-blog/quick9-couple-big-ticket-decision-framework",
+      title: "伴侶大額消費決策框架",
+      description: "先對齊再決定。",
+    },
+    {
+      href: "/mini-blog/quick9-family-consumption-priority-order",
+      title: "家庭消費優先順序",
+      description: "排序比節省更重要。",
+    },
+    {
+      href: "/mini-blog/quick9-buy-experience-or-buy-asset-balance",
+      title: "買體驗或買資產平衡",
+      description: "重點在比例設計。",
+    },
+    {
+      href: "/mini-blog/quick9-annual-reset-consumption-value-map",
+      title: "年度消費價值重設",
+      description: "不重設會過期。",
+    },
+    {
+      href: "/mini-blog/quick9-low-consumption-high-freedom-routine",
+      title: "低消費高自由習慣",
+      description: "少衝動，多選擇。",
+    },
+    {
+      href: "/mini-blog/quick9-avoid-lifestyle-inflation-checklist",
+      title: "避免生活膨脹清單",
+      description: "加薪別只加開銷。",
+    },
+    {
+      href: "/mini-blog/quick9-build-30year-delay-spending-discipline",
+      title: "30年延遲消費紀律",
+      description: "小選擇累積大差距。",
+    },
   ],
   "/quick-10": [
     {
-      href: "/mini-blog/quick10-asset-stress-test-simulator-guide",
-      title: "資產抗壓模擬器：逆風也要能走",
-      description: "先測脆弱點，再調整可持續策略。",
+      href: "/mini-blog/quick10-compound-dream-vs-crash-reality-guide",
+      title: "複利美夢 VS 崩盤現實",
+      description: "順風好看，逆風更該先看。",
+    },
+    {
+      href: "/mini-blog/quick10-if-crash-hits-last-year-what-happens",
+      title: "崩盤發生在最後一年",
+      description: "接近終點更怕時序風險。",
+    },
+    {
+      href: "/mini-blog/quick10-20percent-drop-stress-case",
+      title: "-20% 回檔壓力測試",
+      description: "先演練中度回檔。",
+    },
+    {
+      href: "/mini-blog/quick10-30percent-drop-stress-case",
+      title: "-30% 修正情境",
+      description: "情緒分水嶺要先看。",
+    },
+    {
+      href: "/mini-blog/quick10-40percent-drop-stress-case",
+      title: "-40% 崩盤極端版本",
+      description: "先看最壞再談最好。",
+    },
+    {
+      href: "/mini-blog/quick10-withdrawal-need-during-crash",
+      title: "崩盤時剛好要用錢",
+      description: "提款需求會放大風險。",
+    },
+    {
+      href: "/mini-blog/quick10-emergency-fund-before-risk-assets",
+      title: "預備金先於風險資產",
+      description: "避免低點被迫賣出。",
+    },
+    {
+      href: "/mini-blog/quick10-sequence-risk-for-near-retire",
+      title: "接近退休的時序風險",
+      description: "順序比平均值更重要。",
+    },
+    {
+      href: "/mini-blog/quick10-sell-in-panic-vs-hold-discipline",
+      title: "恐慌賣出 vs 紀律持有",
+      description: "長期差距常在行為。",
+    },
+    {
+      href: "/mini-blog/quick10-recovery-years-after-big-drawdown",
+      title: "大跌後回本要幾年",
+      description: "回本時間別估太快。",
+    },
+    {
+      href: "/mini-blog/quick10-asset-allocation-under-crash",
+      title: "崩盤下配置比例怎麼看",
+      description: "先求活下來再求快。",
+    },
+    {
+      href: "/mini-blog/quick10-hedge-cash-bond-equity-balance",
+      title: "現金債股平衡設計",
+      description: "平衡是韌性來源。",
+    },
+    {
+      href: "/mini-blog/quick10-income-stability-vs-risk-capacity",
+      title: "收入穩定度與風險承受",
+      description: "現金流條件決定配置。",
+    },
+    {
+      href: "/mini-blog/quick10-job-loss-plus-market-crash-plan",
+      title: "失業加崩盤雙壓力",
+      description: "要有雙重逆風預案。",
+    },
+    {
+      href: "/mini-blog/quick10-family-protection-during-drawdown",
+      title: "家庭責任下的防線",
+      description: "先保護現金流。",
+    },
+    {
+      href: "/mini-blog/quick10-annual-crash-rehearsal-checklist",
+      title: "年度崩盤演練清單",
+      description: "沒演練就容易慌。",
+    },
+    {
+      href: "/mini-blog/quick10-avoid-overoptimistic-return-setting",
+      title: "避免過度樂觀報酬",
+      description: "先務實再追快。",
+    },
+    {
+      href: "/mini-blog/quick10-sleep-well-portfolio-design",
+      title: "睡得著的投資組合",
+      description: "能持有才是好配置。",
+    },
+    {
+      href: "/mini-blog/quick10-build-30year-antifragile-habit",
+      title: "30年抗脆弱習慣",
+      description: "流程化撐過逆風。",
+    },
+    {
+      href: "/mini-blog/quick10-crash-reality-longterm-discipline",
+      title: "崩盤現實下長期紀律",
+      description: "下一次大跌照流程走。",
     },
   ],
 };

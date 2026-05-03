@@ -218,7 +218,7 @@ export function QuickCalculator7View() {
               textOverflow: "ellipsis",
             }}
           >
-            車貸 VS 直接投入股市
+            槓桿抉擇：房貸 vs 全球股市
           </div>
         </div>
 
@@ -291,7 +291,7 @@ export function QuickCalculator7View() {
             </div>
 
             <div style={{ padding: 10, borderRadius: 14, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" }}>
-              <div style={{ fontSize: 16, opacity: 0.9, fontWeight: 900 }}>車貸年數／投入年數（同步）</div>
+              <div style={{ fontSize: 16, opacity: 0.9, fontWeight: 900 }}>房貸年數／投入年數（同步）</div>
               <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, rowGap: 8, justifyContent: "space-between", width: "100%", minWidth: 0 }}>
                 <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, flex: "1 1 auto", minWidth: 0 }}>
                   <div style={{ position: "relative", flex: "1 1 64px", minWidth: 48 }}>
@@ -314,7 +314,7 @@ export function QuickCalculator7View() {
                           (e.currentTarget as HTMLInputElement).blur();
                         }
                       }}
-                      aria-label="車貸與試算年數"
+                      aria-label="房貸與試算年數"
                       style={{
                         width: "100%",
                         height: 44,
@@ -353,7 +353,7 @@ export function QuickCalculator7View() {
                   </button>
                 </div>
                 <div style={{ fontSize: 12, opacity: 0.82, fontWeight: 800, whiteSpace: "nowrap", flexShrink: 0 }}>
-                  年化 {INVEST_ANNUAL_PCT}%（股市示意）
+                  年化 {INVEST_ANNUAL_PCT}%（全球股市示意）
                 </div>
               </div>
               <input
@@ -376,8 +376,8 @@ export function QuickCalculator7View() {
               years={yearsList}
               seriesA={series.carPath}
               seriesB={series.stock}
-              legendA={`車貸情境（繳款中示意 ×${CAR_LOAN_EQUITY_SHARE}；結清後全進股市）`}
-              legendB={`直接投入股市（複利 ${INVEST_ANNUAL_PCT}%）`}
+              legendA={`房貸情境（繳款中示意 ×${CAR_LOAN_EQUITY_SHARE}；結清後全進全球股市）`}
+              legendB={`直接投入全球股市（複利 ${INVEST_ANNUAL_PCT}%）`}
               colorA="rgba(196, 122, 122, 0.92)"
               colorB="rgba(106, 165, 184, 0.92)"
               showPointValues
@@ -388,7 +388,7 @@ export function QuickCalculator7View() {
               topNotes={
                 <>
                   <text x="0" y="16" fontSize="13" fill="rgba(252, 211, 77, 0.96)" fontWeight="900">
-                    車貸／分界：{yearsClamped} 年結清後每月全額投入
+                    房貸／分界：{yearsClamped} 年結清後每月全額投入
                   </text>
                   <text x="0" y="34" fontSize="13" fill="rgba(134, 239, 172, 0.96)" fontWeight="900">
                     每月：{formatTwd(monthlyInvest)} 元
@@ -398,7 +398,7 @@ export function QuickCalculator7View() {
             />
 
             <div style={{ padding: 12, borderRadius: 14, background: "rgba(0,0,0,0.20)", border: "1px solid rgba(255,255,255,0.12)" }}>
-              <div style={{ fontSize: 16, fontWeight: 900, opacity: 0.95 }}>固定里程碑·差距（股市 − 車貸路徑）</div>
+              <div style={{ fontSize: 16, fontWeight: 900, opacity: 0.95 }}>固定里程碑·差距（全球股市 − 房貸路徑）</div>
               <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
                 {milestoneGaps.map((row) => (
                   <div
@@ -424,7 +424,7 @@ export function QuickCalculator7View() {
                 ))}
               </div>
               <div style={{ marginTop: 10, fontSize: 11, opacity: 0.65, fontWeight: 700, lineHeight: 1.4 }}>
-                * 情境試算僅供教育討論；車貸利率、期數與投資報酬因人而異。
+                * 情境試算僅供教育討論；房貸利率、期數與投資報酬因人而異。
               </div>
             </div>
 

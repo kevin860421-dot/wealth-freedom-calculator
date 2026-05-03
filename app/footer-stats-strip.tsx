@@ -17,11 +17,11 @@ function quickCalculatorLabel(n: number): string {
   if (n === 3) return "第3台｜夢想月領試算器";
   if (n === 4) return "第4台｜ETF 月領試算器";
   if (n === 5) return "第5台｜雪球效應：本金 vs 複利";
-  if (n === 6) return "第6台｜房貸 VS 股市";
-  if (n === 7) return "第7台｜車貸 VS 股市";
+  if (n === 6) return "第6台｜槓桿抉擇：房產 vs 全球股市";
+  if (n === 7) return "第7台｜槓桿抉擇：房貸 vs 全球股市";
   if (n === 8) return "第8台｜延遲享樂模擬器";
   if (n === 9) return "第9台｜延遲消費價值計算機";
-  if (n === 10) return "第10台｜資產抗壓模擬器";
+  if (n === 10) return "第10台｜複利美夢 VS 崩盤現實 計算機";
   return `第${n}台｜小計算機（建置中）`;
 }
 
