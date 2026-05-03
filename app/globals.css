@@ -70,29 +70,39 @@ a {
 
 @keyframes quickBrandGoldSweep {
   0% {
-    background-position: 0% 50%;
+    background-position:
+      0% 50%,
+      -180% 50%;
   }
   100% {
-    background-position: 100% 50%;
+    background-position:
+      0% 50%,
+      180% 50%;
   }
 }
 
 .quick-brand-gold-shimmer {
-  background: linear-gradient(
-    105deg,
-    #ffd84d 0%,
-    #ffef9a 22%,
-    #fff9d6 38%,
-    #fff3b0 50%,
-    #ffea7a 64%,
-    #ffd84d 100%
-  ) !important;
-  background-size: 220% 100% !important;
+  background-image:
+    linear-gradient(90deg, #e3ad00 0%, #f6c53a 45%, #ffd95d 70%, #e3ad00 100%),
+    linear-gradient(
+      105deg,
+      rgba(255, 255, 255, 0) 44%,
+      rgba(255, 247, 207, 0.55) 48%,
+      rgba(255, 255, 255, 1) 50%,
+      rgba(255, 247, 207, 0.55) 52%,
+      rgba(255, 255, 255, 0) 56%
+    ) !important;
+  background-size:
+    100% 100%,
+    260% 100% !important;
+  background-repeat: no-repeat !important;
   -webkit-background-clip: text !important;
   background-clip: text !important;
   color: transparent !important;
   -webkit-text-fill-color: transparent !important;
-  text-shadow: 0 0 10px rgba(255, 215, 77, 0.4);
+  display: inline-block;
+  text-shadow: 0 0 12px rgba(255, 215, 64, 0.5);
+  will-change: background-position;
   animation: quickBrandGoldSweep var(--quick-brand-duration, 2.4s) linear infinite !important;
 }
 

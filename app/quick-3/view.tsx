@@ -182,7 +182,7 @@ export default function QuickCalculator3View() {
               textOverflow: "ellipsis",
             }}
           >
-            希望月領 → 月投
+            💣 夢想月領試算器
           </div>
         </div>
 

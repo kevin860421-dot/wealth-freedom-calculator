@@ -12,7 +12,7 @@ const PROD_URL = "https://wealth-freedom-calculator.vercel.app/";
 const AVAILABLE_QUICK_CALCULATORS = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 
 function quickCalculatorLabel(n: number): string {
-  if (n === 1) return "第1台｜月投累積試算";
+  if (n === 1) return "第1台｜存股複利計算機";
   if (n === 2) return "第2台｜目標幾年達成";
   if (n === 3) return "第3台｜希望月領→月投";
   if (n === 4) return "第4台｜ETF 月領試算器";

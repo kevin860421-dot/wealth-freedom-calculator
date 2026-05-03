@@ -166,7 +166,7 @@ export default function QuickCalculator2View() {
             textOverflow: "ellipsis",
           }}
         >
-          🎯 目標幾年達成
+          💣 財富自由倒數計時器
         </div>
 
         <section style={{ border: "1px solid rgba(255,255,255,0.12)", borderRadius: 14, padding: 10, background: "rgba(255,255,255,0.05)" }}>

@@ -12,8 +12,14 @@ type Props = {
 const Quick8 = lazy(() => import("../quick-8/page"));
 const Quick9 = lazy(() => import("../quick-9/page"));
 const Quick10 = lazy(() => import("../quick-10/page"));
+const Quick1 = lazy(() => import("../quick-1/view"));
+const Quick2 = lazy(() => import("../quick-2/page"));
+const Quick3 = lazy(() => import("../quick-3/page"));
 
 function resolveCalculator(route: string) {
+  if (route === "/quick-1") return Quick1;
+  if (route === "/quick-2") return Quick2;
+  if (route === "/quick-3") return Quick3;
   if (route === "/quick-8") return Quick8;
   if (route === "/quick-9") return Quick9;
   if (route === "/quick-10") return Quick10;
@@ -45,12 +51,12 @@ export function BlogMiniCalculatorEmbed({ route, title, note }: Props) {
               </div>
             }
           >
-            <Calculator />
+            {route === "/quick-1" ? <Calculator showArticleToggle={false} /> : <Calculator />}
           </Suspense>
         </div>
       ) : (
         <div style={{ marginTop: 8, padding: 12, borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)" }}>
-          目前僅支援 quick-8 / quick-9 / quick-10 直接內嵌。
+          目前僅支援 quick-1 / quick-2 / quick-3 / quick-8 / quick-9 / quick-10 直接內嵌。
         </div>
       )}
 

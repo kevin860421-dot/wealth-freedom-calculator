@@ -12,6 +12,7 @@ export type ExtendedSeriesPost = {
   subtitle: string;
   seoTitle: string;
   metaDescription: string;
+  calculatorMode?: "embed" | "direct-link";
   calculatorRoute: string;
   calculatorTitle: string;
   calculatorNote: string;

@@ -106,11 +106,21 @@ export default async function ExtendedSeriesPage({ params }: PageProps) {
             ) : null}
 
             {idx === 0 ? (
-              <BlogMiniCalculatorEmbed
-                route={post.calculatorRoute}
-                title={post.calculatorTitle}
-                note={post.calculatorNote}
-              />
+              post.calculatorMode === "direct-link" ? (
+                <section className={styles.card} aria-label={`計算機連結：${post.calculatorTitle}`}>
+                  <h2 style={{ marginTop: 0 }}>{post.calculatorTitle}</h2>
+                  <p className={styles.grafTight}>{post.calculatorNote}</p>
+                  <Link href={post.calculatorRoute} className={styles.cta} target="_blank" rel="noopener noreferrer">
+                    直接打開計算機（另開分頁）→
+                  </Link>
+                </section>
+              ) : (
+                <BlogMiniCalculatorEmbed
+                  route={post.calculatorRoute}
+                  title={post.calculatorTitle}
+                  note={post.calculatorNote}
+                />
+              )
             ) : null}
           </section>
         ))}
