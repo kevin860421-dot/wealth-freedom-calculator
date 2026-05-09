@@ -76,6 +76,8 @@ export default async function MiniBlogPostPage({ params }: PageProps) {
                     ? "延遲消費價值計算機"
                     : post.calculatorRoute === "/quick-10"
                       ? "複利美夢 VS 崩盤現實 計算機"
+                      : post.calculatorRoute === "/quick-11"
+                        ? "破產計算機"
         : "存股複利計算機";
 
   return (

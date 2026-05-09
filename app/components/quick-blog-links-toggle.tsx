@@ -3,7 +3,18 @@
 import Link from "next/link";
 import { getQuick1ExclusivePostBySlug, isQuick1ExclusivePostPublished } from "../mini-blog/posts/quick1-exclusive";
 
-type QuickRoute = "/quick-1" | "/quick-2" | "/quick-3" | "/quick-4" | "/quick-5" | "/quick-6" | "/quick-7" | "/quick-8" | "/quick-9" | "/quick-10";
+type QuickRoute =
+  | "/quick-1"
+  | "/quick-2"
+  | "/quick-3"
+  | "/quick-4"
+  | "/quick-5"
+  | "/quick-6"
+  | "/quick-7"
+  | "/quick-8"
+  | "/quick-9"
+  | "/quick-10"
+  | "/quick-11";
 
 type QuickBlogLinksToggleProps = {
   quickRoute: QuickRoute;
@@ -1031,6 +1042,7 @@ const QUICK_ROUTE_LINKS: Record<QuickRoute, readonly { href: string; title: stri
       description: "下一次大跌照流程走。",
     },
   ],
+  "/quick-11": [],
 };
 
 export function QuickBlogLinksToggle({ quickRoute, title = "📚 本台小計算機延伸文章（點我展開）" }: QuickBlogLinksToggleProps) {

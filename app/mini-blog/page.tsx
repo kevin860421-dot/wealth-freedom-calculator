@@ -7,7 +7,7 @@ const publishedPosts = getPublishedQuick1ExclusivePosts();
 
 export const metadata: Metadata = {
   title: "小計算機專屬文章｜小計算機專區",
-  description: `小計算機專屬文章列表：已公開 ${publishedPosts.length} 篇，涵蓋 quick-1 ~ quick-10 的試算情境與規劃。`,
+  description: `小計算機專屬文章列表：已公開 ${publishedPosts.length} 篇，涵蓋 quick-1 ~ quick-11 的試算情境與規劃。`,
 };
 
 export default function MiniBlogIndexPage() {
