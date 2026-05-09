@@ -323,3 +323,51 @@
   font-weight: 700;
   margin-right: 0.35rem;
 }
+
+/*
+ * 文內試算區塊：須放在 `.article` **外層**，避免 blog.module 內
+ * `.article p` / `.article h2` / `.article ul` 等後代選擇器覆寫試算 UI 的 Tailwind。
+ * 寬度與 `.article` 同為 38rem 置中。
+ */
+.articleAdjacentEmbed {
+  max-width: 38rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* 迷你部落格文內試算（無 inline style） */
+.miniEmbedSectionTitle {
+  margin-top: 0;
+}
+
+.miniEmbedMount {
+  margin-top: 0.5rem;
+  background: transparent;
+}
+
+.miniEmbedPlaceholder {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: var(--morandi-text-soft, #b8aea4);
+  font-weight: 700;
+  text-align: center;
+}
+
+.miniEmbedFallback {
+  padding: 16px;
+  font-size: 14px;
+  opacity: 0.9;
+  background: transparent;
+}
+
+.miniEmbedUnsupported {
+  margin-top: 0.5rem;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: var(--morandi-text-soft, #b8aea4);
+}

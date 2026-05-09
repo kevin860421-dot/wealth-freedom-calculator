@@ -1042,7 +1042,38 @@ const QUICK_ROUTE_LINKS: Record<QuickRoute, readonly { href: string; title: stri
       description: "下一次大跌照流程走。",
     },
   ],
-  "/quick-11": [],
+  "/quick-11": [
+    {
+      href: "/mini-blog/quick11-scooter-loan-high-rate-trap",
+      title: "💣 延遲享樂模擬器：晚一點花，真的會差很多嗎？",
+      description: "先看每期還款與總利息再換車。",
+    },
+    {
+      href: "/mini-blog/quick11-car-loan-rate-years-impact",
+      title: "車貸差 1%，十年感受差很多嗎？",
+      description: "利率與年期一起動時最敏感。",
+    },
+    {
+      href: "/mini-blog/quick11-credit-loan-8pct-cashflow-total-interest",
+      title: "信貸 8% 看起來還好？先把總利息與月付攤開",
+      description: "長期固定支出與總利息一起看。",
+    },
+    {
+      href: "/mini-blog/quick11-mortgage-11m-annuity-vs-equal-principal",
+      title: "房貸 1100 萬：本息均攤跟本金均攤差在哪？",
+      description: "同一本金，還款曲線不同。",
+    },
+    {
+      href: "/mini-blog/quick11-student-loan-payment-stress",
+      title: "學貸開銷像房租？先把還款放回預算底層",
+      description: "看占所得比例與緩衝。",
+    },
+    {
+      href: "/mini-blog/quick11-renovation-loan-plus-mortgage-cashflow",
+      title: "房貸已經在吃現金流，裝潢貸還敢再疊一層？",
+      description: "兩筆固定支出先看合計月付。",
+    },
+  ],
 };
 
 export function QuickBlogLinksToggle({ quickRoute, title = "📚 本台小計算機延伸文章（點我展開）" }: QuickBlogLinksToggleProps) {

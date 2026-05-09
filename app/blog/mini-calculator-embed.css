@@ -1,0 +1,18 @@
+/**
+ * 文內試算：收斂 `.wf-inline-calculator main`，與 quick-1～11 一致。
+ */
+
+.wf-inline-calculator {
+  background: transparent;
+}
+
+.wf-inline-calculator main {
+  background: transparent !important;
+  min-height: auto !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.wf-inline-calculator .quick-blog-links-toggle {
+  display: none !important;
+}

@@ -1,5 +1,5 @@
-import { QuickCalculator11View } from "./view";
+import { QuickCalculator11Content } from "./QuickCalculator11Content";
 
 export default function Page() {
-  return <QuickCalculator11View />;
+  return <QuickCalculator11Content />;
 }
