@@ -1,17 +1,26 @@
 "use client";
 
+/**
+ * quick-1～11：皆 lazy 載入「純 UI 元件」（非 route page），包在 `.wf-inline-calculator`。
+ * 第11台：`QuickCalculator11Content` 與 `/quick-11` 頁面為同一份元件。
+ */
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { quick11EmbedPresetFromSlug } from "../quick-11/loan-scenarios";
 import styles from "./blog.module.css";
+import "./mini-calculator-embed.css";
 
 type Props = {
   route: string;
   title: string;
   note?: string;
+  /** 小計算機專屬文 slug：quick-11 時帶入，文內試算與 `loan-scenarios` 快捷鈕數字一致 */
+  miniBlogSlug?: string;
 };
 
 const Quick8 = lazy(() => import("../quick-8/page"));
 const Quick9 = lazy(() => import("../quick-9/page"));
 const Quick10 = lazy(() => import("../quick-10/page"));
+const Quick11 = lazy(() => import("../quick-11/QuickCalculator11Content"));
 const Quick1 = lazy(() => import("../quick-1/view"));
 const Quick2 = lazy(() => import("../quick-2/page"));
 const Quick3 = lazy(() => import("../quick-3/page"));
@@ -31,11 +40,13 @@ function resolveCalculator(route: string) {
   if (route === "/quick-8") return Quick8;
   if (route === "/quick-9") return Quick9;
   if (route === "/quick-10") return Quick10;
+  if (route === "/quick-11") return Quick11;
   return null;
 }
 
-export function BlogMiniCalculatorEmbed({ route, title, note }: Props) {
+export function BlogMiniCalculatorEmbed({ route, title, note, miniBlogSlug }: Props) {
   const Calculator = resolveCalculator(route);
+  const quick11Anchor = route === "/quick-11" && miniBlogSlug ? quick11EmbedPresetFromSlug(miniBlogSlug) : undefined;
   const [shouldMount, setShouldMount] = useState(false);
   const mountRef = useRef<HTMLDivElement | null>(null);
 
@@ -64,59 +75,33 @@ export function BlogMiniCalculatorEmbed({ route, title, note }: Props) {
   }, [shouldMount]);
 
   return (
-    <section className={styles.card} aria-label={`內嵌小計算機：${title}`}>
-      <h2 style={{ marginTop: 0 }}>{title}</h2>
+    <section aria-label={`文內試算：${title}`}>
+      <h2 className={styles.miniEmbedSectionTitle}>{title}</h2>
       <p className={styles.grafTight}>{note ?? "直接在文內試算，先看結論再回到完整工具微調。"}</p>
 
-      {Calculator ? (
-        <div ref={mountRef} className="wf-inline-calculator" style={{ marginTop: 8 }}>
+      {Calculator != null ? (
+        <div ref={mountRef} className={styles.miniEmbedMount}>
           {!shouldMount ? (
-            <div
-              style={{
-                width: "100%",
-                padding: "12px 14px",
-                borderRadius: 12,
-                border: "1px solid rgba(255,255,255,0.16)",
-                background: "rgba(255,255,255,0.04)",
-                color: "rgba(219,234,254,0.95)",
-                fontWeight: 700,
-                textAlign: "center",
-              }}
-            >
-              小計算機即將載入...
-            </div>
+            <div className={styles.miniEmbedPlaceholder}>小計算機即將載入...</div>
           ) : (
-            <>
-              <style jsx global>{`
-                .wf-inline-calculator main {
-                  background: transparent !important;
-                  min-height: auto !important;
-                  padding-top: 0 !important;
-                  padding-bottom: 0 !important;
-                }
-                .wf-inline-calculator .quick-blog-links-toggle {
-                  display: none !important;
-                }
-              `}</style>
-              <Suspense
-                fallback={
-                  <div style={{ padding: 16, fontSize: 14, opacity: 0.9 }}>
-                    小計算機載入中...
+            <div className="isolate w-full wf-inline-calculator">
+              <Suspense fallback={<div className={styles.miniEmbedFallback}>小計算機載入中...</div>}>
+                {route === "/quick-1" ? (
+                  <Calculator showArticleToggle={false} />
+                ) : route === "/quick-11" ? (
+                  <div className="not-prose isolate w-full min-w-0">
+                    <Calculator embeddedInMiniBlog initialEmbedPreset={quick11Anchor} />
                   </div>
-                }
-              >
-                {route === "/quick-1" ? <Calculator showArticleToggle={false} /> : <Calculator />}
+                ) : (
+                  <Calculator />
+                )}
               </Suspense>
-            </>
+            </div>
           )}
         </div>
       ) : (
-        <div style={{ marginTop: 8, padding: 12, borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)" }}>
-          目前僅支援 quick-1 ~ quick-10 直接內嵌。
-        </div>
+        <div className={styles.miniEmbedUnsupported}>目前僅支援 quick-1 ~ quick-11 文內試算。</div>
       )}
-
     </section>
   );
 }
-

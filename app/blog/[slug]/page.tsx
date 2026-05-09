@@ -88,60 +88,88 @@ export default async function ExtendedSeriesPage({ params }: PageProps) {
 
       <CalculatorHeroPreview />
 
-      <div className={styles.article}>
-        {post.sections.map((section, idx) => (
-          <section key={section.heading}>
-            <h2>{section.heading}</h2>
-            {section.paragraphs.map((paragraph) => (
-              <p key={paragraph} className={styles.grafTight}>
-                {paragraph}
-              </p>
-            ))}
-            {section.bullets ? (
-              <ul>
-                {section.bullets.map((bullet) => (
-                  <li key={bullet}>{bullet}</li>
+      {(() => {
+        const [firstSection, ...restSections] = post.sections;
+        return (
+          <>
+            <div className={styles.article}>
+              <section key={firstSection.heading}>
+                <h2>{firstSection.heading}</h2>
+                {firstSection.paragraphs.map((paragraph) => (
+                  <p key={paragraph} className={styles.grafTight}>
+                    {paragraph}
+                  </p>
                 ))}
-              </ul>
-            ) : null}
+                {firstSection.bullets ? (
+                  <ul>
+                    {firstSection.bullets.map((bullet) => (
+                      <li key={bullet}>{bullet}</li>
+                    ))}
+                  </ul>
+                ) : null}
 
-            {idx === 0 ? (
-              post.calculatorMode === "direct-link" ? (
-                <section className={styles.card} aria-label={`計算機連結：${post.calculatorTitle}`}>
-                  <h2 style={{ marginTop: 0 }}>{post.calculatorTitle}</h2>
-                  <p className={styles.grafTight}>{post.calculatorNote}</p>
-                  <Link href={post.calculatorRoute} className={styles.cta} target="_blank" rel="noopener noreferrer">
-                    直接打開計算機（另開分頁）→
-                  </Link>
-                </section>
-              ) : (
+                {post.calculatorMode === "direct-link" ? (
+                  <section aria-label={`計算機連結：${post.calculatorTitle}`}>
+                    <h2 style={{ marginTop: 0 }}>{post.calculatorTitle}</h2>
+                    <p className={styles.grafTight}>{post.calculatorNote}</p>
+                    <Link href={post.calculatorRoute} className={styles.cta} target="_blank" rel="noopener noreferrer">
+                      直接打開計算機（另開分頁）→
+                    </Link>
+                  </section>
+                ) : null}
+              </section>
+            </div>
+
+            {post.calculatorMode !== "direct-link" ? (
+              <div className={styles.articleAdjacentEmbed}>
                 <BlogMiniCalculatorEmbed
                   route={post.calculatorRoute}
                   title={post.calculatorTitle}
                   note={post.calculatorNote}
+                  miniBlogSlug={slug}
                 />
-              )
+              </div>
             ) : null}
-          </section>
-        ))}
 
-        <p className={styles.grafTight}>
-          你可以在<strong>財富自由計算機</strong>把每期須扣除、稅費與達標年期放在同一條時間軸比較，避免只看一個報酬率數字做決策。
-        </p>
+            <div className={styles.article}>
+              {restSections.map((section) => (
+                <section key={section.heading}>
+                  <h2>{section.heading}</h2>
+                  {section.paragraphs.map((paragraph) => (
+                    <p key={paragraph} className={styles.grafTight}>
+                      {paragraph}
+                    </p>
+                  ))}
+                  {section.bullets ? (
+                    <ul>
+                      {section.bullets.map((bullet) => (
+                        <li key={bullet}>{bullet}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </section>
+              ))}
 
-        <Link id={WF_BLOG_CALCULATOR_CTA_ID} href="/" className={styles.cta} target="_blank" rel="noopener noreferrer">
-          前往財富自由計算機（另開分頁）→
-        </Link>
+              <p className={styles.grafTight}>
+                你可以在<strong>財富自由計算機</strong>把每期須扣除、稅費與達標年期放在同一條時間軸比較，避免只看一個報酬率數字做決策。
+              </p>
 
-        <p className={styles.grafTight}>{post.closeQuestion}</p>
+              <Link id={WF_BLOG_CALCULATOR_CTA_ID} href="/" className={styles.cta} target="_blank" rel="noopener noreferrer">
+                前往財富自由計算機（另開分頁）→
+              </Link>
 
-        <div className={styles.disclaimer}>
-          <p>
-            <strong>免責聲明：</strong>
-            {post.disclaimer}
-          </p>
-        </div>
-      </div>
+              <p className={styles.grafTight}>{post.closeQuestion}</p>
+
+              <div className={styles.disclaimer}>
+                <p>
+                  <strong>免責聲明：</strong>
+                  {post.disclaimer}
+                </p>
+              </div>
+            </div>
+          </>
+        );
+      })()}
 
       <ArticlePublishStamp publishAtIso={registry.publishAtIso} />
     </article>

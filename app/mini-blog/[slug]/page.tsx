@@ -95,46 +95,72 @@ export default async function MiniBlogPostPage({ params }: PageProps) {
       <h1 className={styles.title}>{post.title}</h1>
       <p className={styles.subtitle}>{post.subtitle}</p>
 
-      <div className={styles.article}>
-        {post.sections.map((section, idx) => (
-          <section key={section.heading}>
-            <h2>{section.heading}</h2>
-            {section.paragraphs.map((paragraph) => (
-              <p key={paragraph} className={styles.grafTight}>
-                {paragraph}
-              </p>
-            ))}
-            {section.bullets ? (
-              <ul>
-                {section.bullets.map((bullet) => (
-                  <li key={bullet}>{bullet}</li>
+      {(() => {
+        const [firstSection, ...restSections] = post.sections;
+        return (
+          <>
+            <div className={styles.article}>
+              <section key={firstSection.heading}>
+                <h2>{firstSection.heading}</h2>
+                {firstSection.paragraphs.map((paragraph) => (
+                  <p key={paragraph} className={styles.grafTight}>
+                    {paragraph}
+                  </p>
                 ))}
-              </ul>
-            ) : null}
+                {firstSection.bullets ? (
+                  <ul>
+                    {firstSection.bullets.map((bullet) => (
+                      <li key={bullet}>{bullet}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </section>
+            </div>
 
-            {idx === 0 ? (
+            <div className={styles.articleAdjacentEmbed}>
               <BlogMiniCalculatorEmbed
                 route={post.calculatorRoute}
                 title={post.calculatorTitle}
                 note={post.calculatorNote}
+                miniBlogSlug={post.slug}
               />
-            ) : null}
-          </section>
-        ))}
+            </div>
 
-        <Link href={post.calculatorRoute} className={styles.cta} target="_blank" rel="noopener noreferrer" prefetch={false}>
-          回到{calculatorLabel}（另開分頁）→
-        </Link>
+            <div className={styles.article}>
+              {restSections.map((section) => (
+                <section key={section.heading}>
+                  <h2>{section.heading}</h2>
+                  {section.paragraphs.map((paragraph) => (
+                    <p key={paragraph} className={styles.grafTight}>
+                      {paragraph}
+                    </p>
+                  ))}
+                  {section.bullets ? (
+                    <ul>
+                      {section.bullets.map((bullet) => (
+                        <li key={bullet}>{bullet}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </section>
+              ))}
 
-        <p className={styles.grafTight}>{post.closeQuestion}</p>
+              <Link href={post.calculatorRoute} className={styles.cta} target="_blank" rel="noopener noreferrer" prefetch={false}>
+                回到{calculatorLabel}（另開分頁）→
+              </Link>
 
-        <div className={styles.disclaimer}>
-          <p>
-            <strong>免責聲明：</strong>
-            {post.disclaimer}
-          </p>
-        </div>
-      </div>
+              <p className={styles.grafTight}>{post.closeQuestion}</p>
+
+              <div className={styles.disclaimer}>
+                <p>
+                  <strong>免責聲明：</strong>
+                  {post.disclaimer}
+                </p>
+              </div>
+            </div>
+          </>
+        );
+      })()}
     </article>
   );
 }
