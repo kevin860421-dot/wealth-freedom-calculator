@@ -288,7 +288,7 @@ const QUICK10_PUBLISH_DATES: Record<string, string> = {
   "quick10-crash-reality-longterm-discipline": "2026-12-26T09:00:00+08:00",
 };
 
-/** 破產計算機 100 篇：與 {@link QUICK11_ALL_100_PUBLISH_SLOTS} 同序（支柱 6 → 量產 94），自 5/10 12:30 起每 3 小時一篇 */
+/** 破產計算機 100 篇：與 {@link QUICK11_ALL_100_PUBLISH_SLOTS} 同序（支柱 6 → 量產 94）；自 5/10 起每日最多 2 篇（12:30／18:00） */
 const QUICK11_PILLAR_SLUGS: readonly string[] = [
   "quick11-scooter-loan-high-rate-trap",
   "quick11-car-loan-rate-years-impact",

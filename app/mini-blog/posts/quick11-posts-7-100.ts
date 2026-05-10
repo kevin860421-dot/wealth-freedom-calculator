@@ -115,14 +115,24 @@ function formatTaipeiIso(ms: number): string {
   return `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}:${map.second}+08:00`;
 }
 
-/** 破產計算機 100 篇公開時間：自 5/10 中午過後（12:30）起，每 3 小時一篇，順序對齊支柱 6 → 量產 94 */
+/** 破產計算機 100 篇公開時間：自 5/10 中午過後起，每日最多 2 篇（12:30、18:00 台北），順序對齊支柱 6 → 量產 94 */
 const QUICK11_PUBLISH_SLOT_COUNT = 100;
-const QUICK11_PUBLISH_START_MS = Date.parse("2026-05-10T12:30:00+08:00");
-const QUICK11_PUBLISH_STEP_MS = 3 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const QUICK11_FIRST_SLOT_OF_DAY_MS = Date.parse("2026-05-10T12:30:00+08:00");
+/** 同日第二篇 18:00（距 12:30 為 5.5 小時） */
+const QUICK11_SECOND_SLOT_OFFSET_MS = 5.5 * 60 * 60 * 1000;
 
 export const QUICK11_ALL_100_PUBLISH_SLOTS: readonly string[] = Array.from(
   { length: QUICK11_PUBLISH_SLOT_COUNT },
-  (_, i) => formatTaipeiIso(QUICK11_PUBLISH_START_MS + i * QUICK11_PUBLISH_STEP_MS),
+  (_, i) => {
+    const dayIndex = Math.floor(i / 2);
+    const slotInDay = i % 2;
+    const ms =
+      QUICK11_FIRST_SLOT_OF_DAY_MS +
+      dayIndex * DAY_MS +
+      (slotInDay === 0 ? 0 : QUICK11_SECOND_SLOT_OFFSET_MS);
+    return formatTaipeiIso(ms);
+  },
 );
 
 function generate(): TopicSeed[] {
