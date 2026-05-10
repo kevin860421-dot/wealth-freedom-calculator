@@ -1,4 +1,9 @@
 import { formatPrincipalZhTW, getQuick11LoanPresetBySlug, parseQuick11SlugEmbed } from "../../quick-11/loan-scenarios";
+import {
+  buildMiniBlogSectionsInvestingV2,
+  defaultCalculatorNoteAfterMay10,
+  miniBlogUsesMay10Architecture,
+} from "./mini-blog-architecture-v2";
 import { QUICK11_ALL_100_PUBLISH_SLOTS, QUICK11_POSTS_7_TO_100 } from "./quick11-posts-7-100";
 import type { Quick1ExclusiveSection, TopicSeed } from "./topic-types";
 
@@ -3438,6 +3443,9 @@ export const QUICK1_EXCLUSIVE_POSTS: Quick1ExclusivePost[] = TOPIC_SEEDS.map((se
                         : calculatorRoute === "/quick-10"
                           ? (QUICK10_PUBLISH_DATES[seed.slug] ?? fallbackDate)
                           : fallbackDate);
+  const investingMay10Arch =
+    miniBlogUsesMay10Architecture(scheduledAt) && calculatorRoute !== "/quick-11";
+
   return {
     slug: seed.slug,
     title: seed.title,
@@ -3451,10 +3459,16 @@ export const QUICK1_EXCLUSIVE_POSTS: Quick1ExclusivePost[] = TOPIC_SEEDS.map((se
       seed.calculatorNote ??
       (calculatorRoute === "/quick-11"
         ? "先對齊本金、利率與年期，再看本息／本金均攤下的每月還款。"
-        : "先改月投，再改年數，最後看月領示意。先求做得到，再求做得快。"),
+        : investingMay10Arch
+          ? defaultCalculatorNoteAfterMay10(calculatorRoute)
+          : "先改月投，再改年數，最後看月領示意。先求做得到，再求做得快。"),
     sections:
       seed.customSections ??
-      (calculatorRoute === "/quick-11" ? buildQuick11ExclusiveSections(seed.slug, seed, calculatorName) : buildSections(seed, calculatorName)),
+      (calculatorRoute === "/quick-11"
+        ? buildQuick11ExclusiveSections(seed.slug, seed, calculatorName)
+        : investingMay10Arch
+          ? buildMiniBlogSectionsInvestingV2(seed, calculatorName, calculatorRoute)
+          : buildSections(seed, calculatorName)),
     closeQuestion: seed.closeQuestion,
     disclaimer:
       calculatorRoute === "/quick-11"
