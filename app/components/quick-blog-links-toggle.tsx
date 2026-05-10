@@ -1046,7 +1046,7 @@ const QUICK_ROUTE_LINKS: Record<QuickRoute, readonly { href: string; title: stri
       description: "下一次大跌照流程走。",
     },
   ],
-  /** 第 1～100 篇：{@link QUICK11_ROUTE_LINK_ITEMS}（TOPIC_SEEDS），勿改回硬編碼六筆。 */
+  /** 第 1～100 篇資料源 {@link QUICK11_ROUTE_LINK_ITEMS}；折疊區僅顯示已到 publishAtIso 的項目（會隨時間自動變多）。 */
   "/quick-11": QUICK11_ROUTE_LINK_ITEMS,
 };
 
@@ -1055,8 +1055,6 @@ export function QuickBlogLinksToggle({ quickRoute, title = "📚 本台小計算
     const slug = item.href.replace(/^\/mini-blog\//, "");
     const post = getQuick1ExclusivePostBySlug(slug);
     if (!post) return false;
-    // /quick-11 延伸區為完整索引：第 7～100 篇未到公開時間仍列出（文章頁仍依排程／SEO）。
-    if (quickRoute === "/quick-11") return true;
     return isQuick1ExclusivePostPublished(post.publishAtIso);
   });
   return (
