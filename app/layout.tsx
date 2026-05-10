@@ -28,7 +28,11 @@ const notoSansTc = Noto_Sans_TC({
   adjustFontFallback: true,
 });
 
-export const dynamic = "force-dynamic";
+/**
+ * 首頁為巨型 client bundle；若 force-dynamic 會讓每次請求都 SSR、邊緣無快取，TTFB 容易偏高。
+ * 造訪統計不需秒級更新：用 ISR 讓 HTML 可在邊緣快取（頁內仍會 POST /api/stats 更新）。
+ */
+export const revalidate = 60;
 
 function getSiteOrigin(): string {
   return (

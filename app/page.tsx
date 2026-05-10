@@ -43,7 +43,6 @@ const DEFAULT_SIM_START_MONTH = 3;
 const ETF_CODE_FILTER_PERSIST = "";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import * as XLSX from "xlsx";
 
 /** 頁尾「版權說明」版本號（請與 package.json 的 version 對齊） */
 const APP_VERSION = "0.1.0";
@@ -2190,10 +2189,13 @@ export default function Home() {
   ]);
 
   const downloadTableExcel = useCallback(() => {
-    const ws = XLSX.utils.aoa_to_sheet(accumulatedSheetExcelMatrix);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "累積金額與股數");
-    XLSX.writeFile(wb, `累積金額與股數表_${new Date().toISOString().slice(0, 10)}.xlsx`, { cellStyles: false });
+    void (async () => {
+      const XLSX = await import("xlsx");
+      const ws = XLSX.utils.aoa_to_sheet(accumulatedSheetExcelMatrix);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "累積金額與股數");
+      XLSX.writeFile(wb, `累積金額與股數表_${new Date().toISOString().slice(0, 10)}.xlsx`, { cellStyles: false });
+    })();
   }, [accumulatedSheetExcelMatrix]);
 
   useEffect(() => {
