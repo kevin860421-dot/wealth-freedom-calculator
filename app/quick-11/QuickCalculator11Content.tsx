@@ -234,7 +234,13 @@ export function QuickCalculator11Content({
   const [monthlyIncomeText, setMonthlyIncomeText] = useState(() => formatMoney(anchor?.monthlyIncome ?? 80_000));
 
   const [method, setMethod] = useState<LoanMethod>("annuity");
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(() => {
+    const tab = anchor?.initialPage;
+    if (tab == null || !Number.isFinite(tab)) return 0;
+    const t = Math.round(tab);
+    if (t < 0 || t > 8) return 0;
+    return t;
+  });
   const [pageDirection, setPageDirection] = useState(0);
   const [extraMonthlyPayment, setExtraMonthlyPayment] = useState(10_000);
   const [earlyRepayMethod, setEarlyRepayMethod] = useState<LoanMethod>("annuity");

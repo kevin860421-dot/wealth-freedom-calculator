@@ -1,10 +1,8 @@
-import { formatPrincipalZhTW, getQuick11LoanPresetBySlug } from "../../quick-11/loan-scenarios";
+import { formatPrincipalZhTW, getQuick11LoanPresetBySlug, parseQuick11SlugEmbed } from "../../quick-11/loan-scenarios";
+import { QUICK11_POSTS_7_TO_100, QUICK11_PUBLISH_DATES_7_100 } from "./quick11-posts-7-100";
+import type { Quick1ExclusiveSection, TopicSeed } from "./topic-types";
 
-export type Quick1ExclusiveSection = {
-  heading: string;
-  paragraphs: string[];
-  bullets?: string[];
-};
+export type { Quick1ExclusiveSection, TopicSeed } from "./topic-types";
 
 export type Quick1ExclusivePost = {
   slug: string;
@@ -30,35 +28,6 @@ export type Quick1ExclusivePost = {
   sections: Quick1ExclusiveSection[];
   closeQuestion: string;
   disclaimer: string;
-};
-
-type TopicSeed = {
-  slug: string;
-  title: string;
-  subtitle: string;
-  seoTitle: string;
-  metaDescription: string;
-  focus: string;
-  keywordA: string;
-  keywordB: string;
-  keywordC: string;
-  closeQuestion: string;
-  calculatorRoute?:
-    | "/quick-1"
-    | "/quick-2"
-    | "/quick-3"
-    | "/quick-4"
-    | "/quick-5"
-    | "/quick-6"
-    | "/quick-7"
-    | "/quick-8"
-    | "/quick-9"
-    | "/quick-10"
-    | "/quick-11";
-  calculatorName?: string;
-  calculatorNote?: string;
-  /** 若設定，取代預設 buildSections（貸款情境文） */
-  customSections?: Quick1ExclusiveSection[];
 };
 
 const PUBLISH_DATES = [
@@ -327,6 +296,7 @@ const QUICK11_PUBLISH_DATES: Record<string, string> = {
   "quick11-mortgage-11m-annuity-vs-equal-principal": "2026-05-13T09:00:00+08:00",
   "quick11-student-loan-payment-stress": "2026-05-14T09:00:00+08:00",
   "quick11-renovation-loan-plus-mortgage-cashflow": "2026-05-15T09:00:00+08:00",
+  ...QUICK11_PUBLISH_DATES_7_100,
 };
 
 const TOPIC_SEEDS: TopicSeed[] = [
@@ -3202,7 +3172,16 @@ const TOPIC_SEEDS: TopicSeed[] = [
     calculatorName: "破產計算機",
     calculatorNote: "本篇數字已對齊：按 🛠️ 裝潢貸快捷；另將房貸月付自行加總到家庭預算再談加貸。",
   },
+  ...QUICK11_POSTS_7_TO_100,
 ];
+
+/** 破產計算機 mini-blog 第 1～100 篇（支柱 6 ＋量產 94），順序與 {@link TOPIC_SEEDS} 中 `calculatorRoute === "/quick-11"` 一致。 */
+export const QUICK11_ROUTE_LINK_ITEMS: ReadonlyArray<{ href: string; title: string; description: string }> =
+  TOPIC_SEEDS.filter((s) => s.calculatorRoute === "/quick-11").map((s) => ({
+    href: `/mini-blog/${s.slug}`,
+    title: s.title,
+    description: s.subtitle,
+  }));
 
 /** 與 {@link buildSections} 相同三段結構／句數，用語改為貸款／現金流（第 11 台專文）。 */
 function buildSectionsQuick11(seed: TopicSeed, calculatorName: string): Quick1ExclusiveSection[] {
@@ -3248,6 +3227,32 @@ function buildQuick11ExclusiveSections(slug: string, seed: TopicSeed, calculator
   const principalZh = formatPrincipalZhTW(preset.amount);
   const incomeLabel = `NT$ ${preset.monthlyIncome.toLocaleString("zh-TW")}`;
   const anchor = `數字錨點（與試算機「${preset.icon} ${preset.label}」快捷鈕一致）：本金 ${principalZh}、年利率 ${preset.annualRate}%、年期 ${preset.years} 年、月收入 ${incomeLabel}（情境示意，實際以契約／銀行為準）。`;
+
+  const ext = parseQuick11SlugEmbed(slug);
+  if (ext) {
+    const TAB_TITLES: Record<number, string> = {
+      1: "本息均攤",
+      2: "本金平均",
+      3: "提前還款",
+      4: "大額還款",
+      5: "延遲還款代價",
+      6: "各種貸款 vs 存股",
+      7: "風險模擬",
+      8: "財富翻轉",
+    };
+    const tabTitle = TAB_TITLES[ext.initialPage] ?? "試算";
+    const hookExt = [
+      `這篇把「${preset.label}」跟「${tabTitle}」一起看：長尾關鍵可對照「${seed.keywordA}」「${seed.keywordB}」，但決策仍要回到同一組本金／利率／年期。`,
+      `${anchor}；文內試算開啟後會停在「${tabTitle}」分頁。`,
+      `${calculatorName}的「${tabTitle}」分頁，是把該主題的假設攤成可驗證數字；別只蒐集關鍵字，不蒐集扣款。`,
+      "若你也看存股或投資，請把貸款成本當機會成本，與月付壓力一起放進同一份預算。",
+    ];
+    return [
+      { heading: base[0].heading, paragraphs: hookExt, bullets: base[0].bullets },
+      base[1],
+      base[2],
+    ];
+  }
 
   let hook: string[];
   switch (preset.key) {

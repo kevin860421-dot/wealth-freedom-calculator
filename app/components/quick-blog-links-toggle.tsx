@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { getQuick1ExclusivePostBySlug, isQuick1ExclusivePostPublished } from "../mini-blog/posts/quick1-exclusive";
+import {
+  getQuick1ExclusivePostBySlug,
+  isQuick1ExclusivePostPublished,
+  QUICK11_ROUTE_LINK_ITEMS,
+} from "../mini-blog/posts/quick1-exclusive";
 
 type QuickRoute =
   | "/quick-1"
@@ -1042,36 +1046,37 @@ const QUICK_ROUTE_LINKS: Record<QuickRoute, readonly { href: string; title: stri
       description: "下一次大跌照流程走。",
     },
   ],
+  /** 僅列破產計算機「支柱六篇」（機車～裝潢）；第 7～100 篇為 SEO 長尾量產，不進此折疊區，請走列表／搜尋。 */
   "/quick-11": [
     {
       href: "/mini-blog/quick11-scooter-loan-high-rate-trap",
-      title: "💣 延遲享樂模擬器：晚一點花，真的會差很多嗎？",
-      description: "先看每期還款與總利息再換車。",
+      title: "機車貸 5 萬也要認真算：利率一高，總利息很咬人",
+      description: "本金不大≠成本不大；先把總利息跟本金擺在一起看，再決定要不要簽。",
     },
     {
       href: "/mini-blog/quick11-car-loan-rate-years-impact",
-      title: "車貸差 1%，十年感受差很多嗎？",
-      description: "利率與年期一起動時最敏感。",
+      title: "車貸 80 萬：利率差 1%，月付與總利息差多少？",
+      description: "先把本金與年期固定，再動利率，你才看得到真正的敏感度。",
     },
     {
       href: "/mini-blog/quick11-credit-loan-8pct-cashflow-total-interest",
-      title: "信貸 8% 看起來還好？先把總利息與月付攤開",
-      description: "長期固定支出與總利息一起看。",
+      title: "信貸 50 萬、年利率 8%：總利息其實很有感",
+      description: "信用貸款最致命的是固定月付磨掉緩衝，以及總利息被時間放大。",
     },
     {
       href: "/mini-blog/quick11-mortgage-11m-annuity-vs-equal-principal",
       title: "房貸 1100 萬：本息均攤跟本金均攤差在哪？",
-      description: "同一本金，還款曲線不同。",
+      description: "同一筆本金，還款曲線不同；選的是現金流版型，不是誰比較高尚。",
     },
     {
       href: "/mini-blog/quick11-student-loan-payment-stress",
-      title: "學貸開銷像房租？先把還款放回預算底層",
-      description: "看占所得比例與緩衝。",
+      title: "學貸約 45 萬進入還款：固定月付像房租一樣黏人",
+      description: "利率不高不代表壓力不大——占收入比太高，你就失去換跑道緩衝。",
     },
     {
       href: "/mini-blog/quick11-renovation-loan-plus-mortgage-cashflow",
-      title: "房貸已經在吃現金流，裝潢貸還敢再疊一層？",
-      description: "兩筆固定支出先看合計月付。",
+      title: "裝潢貸 100 萬：房貸已在咬現金流時，別先被風格洗腦",
+      description: "先看清這一筆的月付與總利息，再決定木皮與坪數要不要升級。",
     },
   ],
 };
@@ -1094,7 +1099,16 @@ export function QuickBlogLinksToggle({ quickRoute, title = "📚 本台小計算
       }}
     >
       <summary style={{ cursor: "pointer", fontSize: 15, fontWeight: 900, color: "rgba(226,232,240,0.98)" }}>{title}</summary>
-      <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
+      <div
+        style={{
+          marginTop: 10,
+          display: "grid",
+          gap: 8,
+          ...(quickRoute === "/quick-11"
+            ? { maxHeight: "min(70vh, 520px)", overflowY: "auto", paddingRight: 4 }
+            : {}),
+        }}
+      >
         {links.length === 0 ? (
           <div style={{ borderRadius: 10, border: "1px dashed rgba(148,163,184,0.35)", padding: "10px 12px", color: "rgba(191,219,254,0.92)", fontSize: 12 }}>
             文章排程中，尚未到公開時間。

@@ -32,8 +32,22 @@ export const QUICK11_SLUG_TO_PRESET_KEY: Record<string, Quick11LoanPresetKey> = 
   "quick11-renovation-loan-plus-mortgage-cashflow": "renovation",
 };
 
+/**
+ * 延伸篇 slug：`quick11-{loan}-t{01-08}-s{007}` → 綁定試算分頁 initialPage。
+ * 前 6 篇 legacy slug 不符此格式，回傳 undefined。
+ */
+export function parseQuick11SlugEmbed(slug: string): { presetKey: Quick11LoanPresetKey; initialPage: number } | undefined {
+  const m = /^quick11-(scooter|car|personal|mortgage|student|renovation)-t(\d{2})-s\d{3}$/.exec(slug);
+  if (!m) return undefined;
+  const initialPage = Number(m[2]);
+  if (!Number.isFinite(initialPage) || initialPage < 1 || initialPage > 8) return undefined;
+  return { presetKey: m[1] as Quick11LoanPresetKey, initialPage };
+}
+
 export function getQuick11LoanPresetBySlug(slug: string): Quick11LoanPreset | undefined {
-  const key = QUICK11_SLUG_TO_PRESET_KEY[slug];
+  const legacyKey = QUICK11_SLUG_TO_PRESET_KEY[slug];
+  const ext = parseQuick11SlugEmbed(slug);
+  const key = legacyKey ?? ext?.presetKey;
   if (!key) return undefined;
   return QUICK11_LOAN_PRESETS.find((p) => p.key === key);
 }
@@ -41,12 +55,15 @@ export function getQuick11LoanPresetBySlug(slug: string): Quick11LoanPreset | un
 export function quick11EmbedPresetFromSlug(slug: string): Quick11EmbedPreset | undefined {
   const p = getQuick11LoanPresetBySlug(slug);
   if (!p) return undefined;
-  return {
+  const ext = parseQuick11SlugEmbed(slug);
+  const base: Quick11EmbedPreset = {
     loanAmount: p.amount,
     annualRate: p.annualRate,
     loanYears: p.years,
     monthlyIncome: p.monthlyIncome,
   };
+  if (ext) base.initialPage = ext.initialPage;
+  return base;
 }
 
 /** 用於文章口語：「5 萬元」「80 萬元」「1100 萬元」 */
