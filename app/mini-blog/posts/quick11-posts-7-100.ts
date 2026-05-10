@@ -1,5 +1,9 @@
 import type { TopicSeed } from "./topic-types";
-import { QUICK11_LOAN_PRESETS, type Quick11LoanPresetKey } from "../../quick-11/loan-scenarios";
+import {
+  formatPrincipalZhTW,
+  QUICK11_LOAN_PRESETS,
+  type Quick11LoanPresetKey,
+} from "../../quick-11/loan-scenarios";
 
 /**
  * 第 7～100 篇：6 貸款類型 × 8 試算分頁 × 2 輪 ≒ 96 組，取前 94 篇。
@@ -66,13 +70,15 @@ function buildSeed(
   const roundNote = round === 0 ? "" : "（進階對照）";
   const principalHint =
     loanKey === "mortgage"
-      ? "千萬級房貸／情境本金與試算機「🏠 房貸」快捷一致"
-      : `本金級距與試算機「${loan.icon} ${loan.label}」快捷一致`;
+      ? "千萬級房貸；本篇本金級距與文末試算「🏠 房貸」預設情境相同"
+      : `本篇本金級距與文末試算「${loan.icon} ${loan.label}」預設情境相同`;
 
-  const title = `${loan.label}×${tab.title}：月付、總利息怎麼一起看？${roundNote}`.trim();
-  const subtitle = `${principalHint}；建議開箱後直接停在「${tab.title}」分頁做對照。`;
+  const principalZh = formatPrincipalZhTW(loan.amount);
+  const title =
+    `${loan.label}${tab.title}划算嗎？${principalZh}、年利率 ${loan.annualRate}% 實測怎麼看${roundNote}`.trim();
+  const subtitle = `${principalHint}；開啟文末試算後建議先查看「${tab.title}」單元的對照。`;
   const seoTitle = `${loan.label}${tab.title}試算｜破產計算機｜${pickSeo(loanKey, serial, "a")}`;
-  const metaDescription = `${tab.hook} 錨點：${loan.icon} ${loan.label}、${tab.title}。長尾：${pickSeo(loanKey, serial, "a")}、${pickSeo(loanKey, serial, "b")}。情境試算僅供參考，以契約為準。`;
+  const metaDescription = `${tab.hook} 本篇試算條件含 ${loan.icon} ${loan.label}、${tab.title}。延伸可對照：${pickSeo(loanKey, serial, "a")}、${pickSeo(loanKey, serial, "b")}。情境試算僅供參考，以契約為準。`;
 
   return {
     slug,
@@ -87,35 +93,39 @@ function buildSeed(
     closeQuestion: `若「${tab.title}」下的數字比你預期更硬，你會先調本金、年期，還是先拉高每月多還？`,
     calculatorRoute: "/quick-11",
     calculatorName: "破產計算機",
-    calculatorNote: `本篇 slug 已綁定：開啟文內試算會停在「${tab.title}」分頁；按 ${loan.icon} ${loan.label} 快捷可重設為文中錨點數字。`,
+    calculatorNote: `本篇試算條件：文末試算開啟後會先顯示「${tab.title}」試算單元；若要回到與本文一致的預設本金／利率，請在試算頁選 ${loan.icon} ${loan.label} 情境。`,
   };
 }
 
-/** 平日 09:00／15:00 各一篇，略過週六日（連假可再手動調檔） */
-function assignPublishIsoSlots(count: number): string[] {
-  const out: string[] = [];
-  let slotStartMs = Date.parse("2026-05-18T09:00:00+08:00");
-  while (out.length < count) {
-    const wd = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Taipei", weekday: "short" }).format(new Date(slotStartMs));
-    if (wd === "Sat" || wd === "Sun") {
-      slotStartMs += 24 * 60 * 60 * 1000;
-      continue;
-    }
-    const ymd = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Asia/Taipei",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(new Date(slotStartMs));
-    out.push(`${ymd}T09:00:00+08:00`);
-    if (out.length >= count) break;
-    out.push(`${ymd}T15:00:00+08:00`);
-    slotStartMs += 24 * 60 * 60 * 1000;
-  }
-  return out.slice(0, count);
+/** 台北時間 ISO（固定 +08:00，台灣無夏令時間） */
+function formatTaipeiIso(ms: number): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Taipei",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date(ms));
+  const map = Object.fromEntries(
+    parts.filter((p) => p.type !== "literal").map((p) => [p.type, p.value]),
+  ) as Record<string, string>;
+  return `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}:${map.second}+08:00`;
 }
 
-function generate(): { seeds: TopicSeed[]; publishBySlug: Record<string, string> } {
+/** 破產計算機 100 篇公開時間：自 5/10 中午過後（12:30）起，每 3 小時一篇，順序對齊支柱 6 → 量產 94 */
+const QUICK11_PUBLISH_SLOT_COUNT = 100;
+const QUICK11_PUBLISH_START_MS = Date.parse("2026-05-10T12:30:00+08:00");
+const QUICK11_PUBLISH_STEP_MS = 3 * 60 * 60 * 1000;
+
+export const QUICK11_ALL_100_PUBLISH_SLOTS: readonly string[] = Array.from(
+  { length: QUICK11_PUBLISH_SLOT_COUNT },
+  (_, i) => formatTaipeiIso(QUICK11_PUBLISH_START_MS + i * QUICK11_PUBLISH_STEP_MS),
+);
+
+function generate(): TopicSeed[] {
   const seeds: TopicSeed[] = [];
   const loans = [...QUICK11_LOAN_PRESETS];
 
@@ -130,16 +140,7 @@ function generate(): { seeds: TopicSeed[]; publishBySlug: Record<string, string>
     }
   }
 
-  const times = assignPublishIsoSlots(seeds.length);
-  const publishBySlug: Record<string, string> = {};
-  seeds.forEach((s, i) => {
-    publishBySlug[s.slug] = times[i];
-  });
-
-  return { seeds, publishBySlug };
+  return seeds;
 }
 
-const generated = generate();
-
-export const QUICK11_POSTS_7_TO_100: TopicSeed[] = generated.seeds;
-export const QUICK11_PUBLISH_DATES_7_100 = generated.publishBySlug;
+export const QUICK11_POSTS_7_TO_100: TopicSeed[] = generate();

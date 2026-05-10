@@ -1046,39 +1046,8 @@ const QUICK_ROUTE_LINKS: Record<QuickRoute, readonly { href: string; title: stri
       description: "下一次大跌照流程走。",
     },
   ],
-  /** 僅列破產計算機「支柱六篇」（機車～裝潢）；第 7～100 篇為 SEO 長尾量產，不進此折疊區，請走列表／搜尋。 */
-  "/quick-11": [
-    {
-      href: "/mini-blog/quick11-scooter-loan-high-rate-trap",
-      title: "機車貸 5 萬也要認真算：利率一高，總利息很咬人",
-      description: "本金不大≠成本不大；先把總利息跟本金擺在一起看，再決定要不要簽。",
-    },
-    {
-      href: "/mini-blog/quick11-car-loan-rate-years-impact",
-      title: "車貸 80 萬：利率差 1%，月付與總利息差多少？",
-      description: "先把本金與年期固定，再動利率，你才看得到真正的敏感度。",
-    },
-    {
-      href: "/mini-blog/quick11-credit-loan-8pct-cashflow-total-interest",
-      title: "信貸 50 萬、年利率 8%：總利息其實很有感",
-      description: "信用貸款最致命的是固定月付磨掉緩衝，以及總利息被時間放大。",
-    },
-    {
-      href: "/mini-blog/quick11-mortgage-11m-annuity-vs-equal-principal",
-      title: "房貸 1100 萬：本息均攤跟本金均攤差在哪？",
-      description: "同一筆本金，還款曲線不同；選的是現金流版型，不是誰比較高尚。",
-    },
-    {
-      href: "/mini-blog/quick11-student-loan-payment-stress",
-      title: "學貸約 45 萬進入還款：固定月付像房租一樣黏人",
-      description: "利率不高不代表壓力不大——占收入比太高，你就失去換跑道緩衝。",
-    },
-    {
-      href: "/mini-blog/quick11-renovation-loan-plus-mortgage-cashflow",
-      title: "裝潢貸 100 萬：房貸已在咬現金流時，別先被風格洗腦",
-      description: "先看清這一筆的月付與總利息，再決定木皮與坪數要不要升級。",
-    },
-  ],
+  /** 第 1～100 篇：{@link QUICK11_ROUTE_LINK_ITEMS}（TOPIC_SEEDS），勿改回硬編碼六筆。 */
+  "/quick-11": QUICK11_ROUTE_LINK_ITEMS,
 };
 
 export function QuickBlogLinksToggle({ quickRoute, title = "📚 本台小計算機延伸文章（點我展開）" }: QuickBlogLinksToggleProps) {
@@ -1086,6 +1055,8 @@ export function QuickBlogLinksToggle({ quickRoute, title = "📚 本台小計算
     const slug = item.href.replace(/^\/mini-blog\//, "");
     const post = getQuick1ExclusivePostBySlug(slug);
     if (!post) return false;
+    // /quick-11 延伸區為完整索引：第 7～100 篇未到公開時間仍列出（文章頁仍依排程／SEO）。
+    if (quickRoute === "/quick-11") return true;
     return isQuick1ExclusivePostPublished(post.publishAtIso);
   });
   return (

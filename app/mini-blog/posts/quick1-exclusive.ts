@@ -1,5 +1,5 @@
 import { formatPrincipalZhTW, getQuick11LoanPresetBySlug, parseQuick11SlugEmbed } from "../../quick-11/loan-scenarios";
-import { QUICK11_POSTS_7_TO_100, QUICK11_PUBLISH_DATES_7_100 } from "./quick11-posts-7-100";
+import { QUICK11_ALL_100_PUBLISH_SLOTS, QUICK11_POSTS_7_TO_100 } from "./quick11-posts-7-100";
 import type { Quick1ExclusiveSection, TopicSeed } from "./topic-types";
 
 export type { Quick1ExclusiveSection, TopicSeed } from "./topic-types";
@@ -288,16 +288,25 @@ const QUICK10_PUBLISH_DATES: Record<string, string> = {
   "quick10-crash-reality-longterm-discipline": "2026-12-26T09:00:00+08:00",
 };
 
-/** 破產計算機專文：優先於 SERIES 間隔公式，方便同日多篇上架 */
-const QUICK11_PUBLISH_DATES: Record<string, string> = {
-  "quick11-scooter-loan-high-rate-trap": "2026-05-10T09:00:00+08:00",
-  "quick11-car-loan-rate-years-impact": "2026-05-11T09:00:00+08:00",
-  "quick11-credit-loan-8pct-cashflow-total-interest": "2026-05-12T09:00:00+08:00",
-  "quick11-mortgage-11m-annuity-vs-equal-principal": "2026-05-13T09:00:00+08:00",
-  "quick11-student-loan-payment-stress": "2026-05-14T09:00:00+08:00",
-  "quick11-renovation-loan-plus-mortgage-cashflow": "2026-05-15T09:00:00+08:00",
-  ...QUICK11_PUBLISH_DATES_7_100,
-};
+/** 破產計算機 100 篇：與 {@link QUICK11_ALL_100_PUBLISH_SLOTS} 同序（支柱 6 → 量產 94），自 5/10 12:30 起每 3 小時一篇 */
+const QUICK11_PILLAR_SLUGS: readonly string[] = [
+  "quick11-scooter-loan-high-rate-trap",
+  "quick11-car-loan-rate-years-impact",
+  "quick11-credit-loan-8pct-cashflow-total-interest",
+  "quick11-mortgage-11m-annuity-vs-equal-principal",
+  "quick11-student-loan-payment-stress",
+  "quick11-renovation-loan-plus-mortgage-cashflow",
+];
+
+const QUICK11_PUBLISH_DATES: Record<string, string> = (() => {
+  const slugs = [...QUICK11_PILLAR_SLUGS, ...QUICK11_POSTS_7_TO_100.map((s) => s.slug)];
+  if (slugs.length !== QUICK11_ALL_100_PUBLISH_SLOTS.length) {
+    throw new Error(
+      `QUICK11 publish: slug count ${slugs.length} !== slots ${QUICK11_ALL_100_PUBLISH_SLOTS.length}`,
+    );
+  }
+  return Object.fromEntries(slugs.map((slug, i) => [slug, QUICK11_ALL_100_PUBLISH_SLOTS[i]]));
+})();
 
 const TOPIC_SEEDS: TopicSeed[] = [
   {
@@ -3082,7 +3091,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     subtitle: "本金不大≠成本不大；先把總利息跟本金擺在一起看，再決定要不要簽。",
     seoTitle: "機車貸5萬試算｜年利率14%情境｜破產計算機總利息與月付",
     metaDescription:
-      "情境錨點：本金5萬元、年利率14%、年期4年、月收入約3.6萬（與試算機「🛵 機車貸」快捷一致）。對照月付與總利息，避免只看分期表面便宜。",
+      "本篇試算條件：本金5萬元、年利率14%、年期4年、月收入約3.6萬（與文末試算「🛵 機車貸」預設情境相同）。對照月付與總利息，避免只看分期表面便宜。",
     focus: "機車貸／利率陷阱",
     keywordA: "機車貸試算",
     keywordB: "貸款總利息",
@@ -3090,7 +3099,8 @@ const TOPIC_SEEDS: TopicSeed[] = [
     closeQuestion: "若總利息接近本金甚至更高，你仍覺得這筆分期划算嗎？",
     calculatorRoute: "/quick-11",
     calculatorName: "破產計算機",
-    calculatorNote: "本篇數字已對齊：開啟試算後按 🛵 機車貸快捷，即為文中 5 萬／14%／4 年／月入約 3.6 萬。",
+    calculatorNote:
+      "本篇試算條件：文末試算請選「🛵 機車貸」情境，即對齊文中 5 萬／14%／4 年／月入約 3.6 萬。",
   },
   {
     slug: "quick11-car-loan-rate-years-impact",
@@ -3098,7 +3108,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     subtitle: "先把本金與年期固定，再動利率，你才看得到真正的敏感度。",
     seoTitle: "車貸80萬試算｜利率4.2%情境｜破產計算機總利息與月付對照",
     metaDescription:
-      "情境錨點：本金80萬元、年利率4.2%、年期7年、月收入約6.5萬（與試算機「🚗 汽車貸」快捷一致）。示範利率±1%對總利息的影響。",
+      "本篇試算條件：本金80萬元、年利率4.2%、年期7年、月收入約6.5萬（與文末試算「🚗 汽車貸」預設情境相同）。示範利率±1%對總利息的影響。",
     focus: "車貸利率年期",
     keywordA: "車貸利率試算",
     keywordB: "車貸總利息",
@@ -3106,7 +3116,8 @@ const TOPIC_SEEDS: TopicSeed[] = [
     closeQuestion: "你願意用較短年期換較少總利息，還是保留較低月付但接受較多總利息？",
     calculatorRoute: "/quick-11",
     calculatorName: "破產計算機",
-    calculatorNote: "本篇數字已對齊：按 🚗 汽車貸快捷；試著只調年利率（例如 +1%）對照總利息與月付。",
+    calculatorNote:
+      "本篇試算條件：文末試算請選「🚗 汽車貸」情境；試著只調年利率（例如 +1%）對照總利息與月付。",
   },
   {
     slug: "quick11-credit-loan-8pct-cashflow-total-interest",
@@ -3114,7 +3125,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     subtitle: "信用貸款最致命的是固定月付磨掉緩衝，以及總利息被時間放大。",
     seoTitle: "信用貸款50萬試算8%｜破產計算機｜月付與總利息",
     metaDescription:
-      "情境錨點：本金50萬元、年利率8%、年期5年、月收入約5.5萬（與試算機「💳 信貸」快捷一致）。先看總利息再談月付爽不爽。",
+      "本篇試算條件：本金50萬元、年利率8%、年期5年、月收入約5.5萬（與文末試算「💳 信貸」預設情境相同）。先看總利息再談月付爽不爽。",
     focus: "信用貸款利率",
     keywordA: "信用貸款試算",
     keywordB: "信貸每月還款",
@@ -3122,7 +3133,8 @@ const TOPIC_SEEDS: TopicSeed[] = [
     closeQuestion: "若只能選一個，你會先談較低利率還是拉高每月多還？",
     calculatorRoute: "/quick-11",
     calculatorName: "破產計算機",
-    calculatorNote: "本篇數字已對齊：按 💳 信貸快捷；可試調「每月可以額外多還」看縮短負債時間。",
+    calculatorNote:
+      "本篇試算條件：文末試算請選「💳 信貸」情境；可試調「每月可以額外多還」看縮短負債時間。",
   },
   {
     slug: "quick11-mortgage-11m-annuity-vs-equal-principal",
@@ -3130,7 +3142,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     subtitle: "同一筆本金，還款曲線不同；選的是現金流版型，不是誰比較高尚。",
     seoTitle: "房貸1100萬試算｜年利率2.2%｜本息均攤與本金均攤對照",
     metaDescription:
-      "情境錨點：本金1100萬元、年利率2.2%、年期30年、月收入約12萬（與試算機「🏠 房貸」快捷一致）。對照兩種均攤的前幾年月付與總利息。",
+      "本篇試算條件：本金1100萬元、年利率2.2%、年期30年、月收入約12萬（與文末試算「🏠 房貸」預設情境相同）。對照兩種均攤的前幾年月付與總利息。",
     focus: "房貸均攤方式",
     keywordA: "房貸本息均攤",
     keywordB: "本金均攤試算",
@@ -3138,7 +3150,8 @@ const TOPIC_SEEDS: TopicSeed[] = [
     closeQuestion: "你較在意前期月付輕一點，還是總利息少一點？",
     calculatorRoute: "/quick-11",
     calculatorName: "破產計算機",
-    calculatorNote: "本篇數字已對齊：按 🏠 房貸快捷；切換本息／本金均攤對照月付與總利息（實際以銀行核准為準）。",
+    calculatorNote:
+      "本篇試算條件：文末試算請選「🏠 房貸」情境；切換本息／本金均攤對照月付與總利息（實際以銀行核准為準）。",
   },
   {
     slug: "quick11-student-loan-payment-stress",
@@ -3146,7 +3159,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     subtitle: "利率不高不代表壓力不大——占收入比太高，你就失去換跑道緩衝。",
     seoTitle: "就學貸款45萬試算｜年利率1.9%｜破產計算機與月收支對照",
     metaDescription:
-      "情境錨點：本金45萬元、年利率1.9%、年期10年、月收入約4.2萬（與試算機「🎓 學貸」快捷一致）。先看還款占收入比，再談理想生活。",
+      "本篇試算條件：本金45萬元、年利率1.9%、年期10年、月收入約4.2萬（與文末試算「🎓 學貸」預設情境相同）。先看還款占收入比，再談理想生活。",
     focus: "就學貸款還款",
     keywordA: "就學貸款試算",
     keywordB: "學貸每月還款",
@@ -3154,7 +3167,8 @@ const TOPIC_SEEDS: TopicSeed[] = [
     closeQuestion: "若學貸月付再高一段，你的緊急預備還守得住嗎？",
     calculatorRoute: "/quick-11",
     calculatorName: "破產計算機",
-    calculatorNote: "本篇數字已對齊：按 🎓 學貸快捷；對照「月付 ÷ 月收入」是否吃掉緩衝。",
+    calculatorNote:
+      "本篇試算條件：文末試算請選「🎓 學貸」情境；對照「月付 ÷ 月收入」是否吃掉緩衝。",
   },
   {
     slug: "quick11-renovation-loan-plus-mortgage-cashflow",
@@ -3162,7 +3176,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     subtitle: "先看清這一筆的月付與總利息，再決定木皮與坪數要不要升級。",
     seoTitle: "裝潢貸款100萬試算｜年利率3.5%｜破產計算機現金流",
     metaDescription:
-      "情境錨點：本金100萬元、年利率3.5%、年期10年、月收入約7.5萬（與試算機「🛠️ 裝潢貸」快捷一致）。另請把房貸月付手動加總後再評估。",
+      "本篇試算條件：本金100萬元、年利率3.5%、年期10年、月收入約7.5萬（與文末試算「🛠️ 裝潢貸」預設情境相同）。另請把房貸月付手動加總後再評估。",
     focus: "裝潢貸款現金流",
     keywordA: "裝潢貸試算",
     keywordB: "房貸加裝潢貸",
@@ -3170,7 +3184,8 @@ const TOPIC_SEEDS: TopicSeed[] = [
     closeQuestion: "若裝潢預算砍一成，你的月付壓力會從紅燈回到黃燈嗎？",
     calculatorRoute: "/quick-11",
     calculatorName: "破產計算機",
-    calculatorNote: "本篇數字已對齊：按 🛠️ 裝潢貸快捷；另將房貸月付自行加總到家庭預算再談加貸。",
+    calculatorNote:
+      "本篇試算條件：文末試算請選「🛠️ 裝潢貸」情境；另將房貸月付自行加總到家庭預算再談加貸。",
   },
   ...QUICK11_POSTS_7_TO_100,
 ];
@@ -3183,42 +3198,35 @@ export const QUICK11_ROUTE_LINK_ITEMS: ReadonlyArray<{ href: string; title: stri
     description: s.subtitle,
   }));
 
-/** 與 {@link buildSections} 相同三段結構／句數，用語改為貸款／現金流（第 11 台專文）。 */
+/** 第 11 台專文：前言 → 理財觀點 → 操作指南（讀者向，不出現 slug／錨點／快捷等幕後用語）。 */
 function buildSectionsQuick11(seed: TopicSeed, calculatorName: string): Quick1ExclusiveSection[] {
   return [
     {
-      heading: `先把問題說白：${seed.focus}，不是靠感覺`,
+      heading: "前言",
       paragraphs: [
-        `很多人一開始都會問：「${seed.focus}到底要怎麼看才對？」`,
-        "我通常會先回一句內心戲：\"先別急著被月付洗腦，先把本金、利率與年期對齊。\"",
-        `${calculatorName}的價值很務實：把你現在的貸款條件，直接翻成「每期還款、總利息、以及占收入的比例」。`,
-        "當數字攤開，你就不再靠想像簽約…而是靠可驗證的現金流在前進。",
-      ],
-      bullets: [`🔎 你可能也在找：${seed.keywordA}`, `🔎 你可能也在找：${seed.keywordB}`, `🔎 你可能也在找：${seed.keywordC}`],
-    },
-    {
-      heading: "最常見的卡點：不是不努力，是路線太硬",
-      paragraphs: [
-        "很多貸款一開始覺得月付還好，兩年後才發現固定支出把生活黏死。不是你不會賺，而是你把「可承受的月付」設得太吃緊。",
-        "我自己的原則很簡單：可以背貸，但不要背到沒有緩衝。因為一旦收入波動，最先爆掉的多半是這種每月準時咬人的款。",
-        "把決策拆成可調旋鈕最實際——縮本金、談利率與年期、提高每月多還，而不是只聽業務話術。",
-        "你不需要一次談到最美條件；你只需要每次都比上一次更清楚「總利息」與「現金流」。",
+        `談「${seed.focus}」時，最常見的落差是只看月付爽不爽，沒把總利息與占收入比例放在一起。`,
+        "若你正在猶豫要不要加速還款、或想先把負債壓在可控範圍，接下來用同一組可核對的試算條件，把選擇題講得具體一點。",
       ],
     },
     {
-      heading: "給你一套可執行版 ✅",
+      heading: "理財觀點",
       paragraphs: [
-        "① 先填你能對齊的貸款本金、利率與年期（用契約／對帳單上的數字，別靠印象）。",
-        "② 切到「本息均攤／本金均攤」，對照每月還款與總利息；一次只改一個變數最好懂。",
-        "③ 把「每月還款 ÷ 月收入」放回預算表，問自己：意外來時還喘得過氣嗎？",
-        "④ 每 30 天回來校正一次，只調參數，不用自責。",
-        "一句話收尾：還款不是比賽誰最敢借，而是看誰最能長期不失控。",
+        "多還款與保留現金之間，取捨常在機會成本：少付利息能降低總成本，但也會改變你可運用的緩衝與其他規畫空間。",
+        "所以試算的目的不是堆數字自我安慰，而是把「每期扣款、總成本、能不能長期扛住」對齊成你願意承擔的節奏。",
+      ],
+    },
+    {
+      heading: "操作指南",
+      paragraphs: [
+        `請下滑使用文末的「${calculatorName}」：先核對本篇試算條件（本金、利率、年期、月收入）是否接近你的契約，再依你想釐清的主題切換試算單元，對照月付、總利息與負債占收入比。`,
+        `若想延伸思考「${seed.keywordA}」與「${seed.keywordB}」對現金流的影響，建議留在同一試算裡、一次只改一個條件，差異最清楚。`,
+        `也請把「${seed.keywordC}」這類常被低估的成本納入決策——把總利息與每期還款看明白，比蒐集口號式關鍵字更能保護預算。`,
       ],
     },
   ];
 }
 
-/** 第 11 台專文：段落內嵌數字與 `loan-scenarios`／試算機快捷鈕一致 */
+/** 第 11 台專文：段落內嵌試算條件（與 loan-scenarios 預設一致），用語為讀者向。 */
 function buildQuick11ExclusiveSections(slug: string, seed: TopicSeed, calculatorName: string): Quick1ExclusiveSection[] {
   const preset = getQuick11LoanPresetBySlug(slug);
   const base = buildSectionsQuick11(seed, calculatorName);
@@ -3226,7 +3234,7 @@ function buildQuick11ExclusiveSections(slug: string, seed: TopicSeed, calculator
 
   const principalZh = formatPrincipalZhTW(preset.amount);
   const incomeLabel = `NT$ ${preset.monthlyIncome.toLocaleString("zh-TW")}`;
-  const anchor = `數字錨點（與試算機「${preset.icon} ${preset.label}」快捷鈕一致）：本金 ${principalZh}、年利率 ${preset.annualRate}%、年期 ${preset.years} 年、月收入 ${incomeLabel}（情境示意，實際以契約／銀行為準）。`;
+  const trialConditions = `本篇試算條件（情境示意，實際以契約／銀行為準）：本金 ${principalZh}、年利率 ${preset.annualRate}%、年期 ${preset.years} 年、月收入 ${incomeLabel}。`;
 
   const ext = parseQuick11SlugEmbed(slug);
   if (ext) {
@@ -3242,13 +3250,13 @@ function buildQuick11ExclusiveSections(slug: string, seed: TopicSeed, calculator
     };
     const tabTitle = TAB_TITLES[ext.initialPage] ?? "試算";
     const hookExt = [
-      `這篇把「${preset.label}」跟「${tabTitle}」一起看：長尾關鍵可對照「${seed.keywordA}」「${seed.keywordB}」，但決策仍要回到同一組本金／利率／年期。`,
-      `${anchor}；文內試算開啟後會停在「${tabTitle}」分頁。`,
-      `${calculatorName}的「${tabTitle}」分頁，是把該主題的假設攤成可驗證數字；別只蒐集關鍵字，不蒐集扣款。`,
-      "若你也看存股或投資，請把貸款成本當機會成本，與月付壓力一起放進同一份預算。",
+      `這篇把「${preset.label}」與「${tabTitle}」放在同一個決策框架：先把固定月付與總利息看清楚，再談你要的是省息、還是保留現金流。`,
+      trialConditions,
+      `若月收入約在 ${incomeLabel} 這個級距，利率或月付每差一點，長期都可能反映在總利息與生活緩衝上。試算不是為了堆數字，而是幫你把「每月該還多少、利息會累到哪裡」對齊成可執行的還款規畫。`,
+      `請下滑開啟文末「${calculatorName}」：進入後會以本篇條件為起點，並先開啟「${tabTitle}」試算單元。請優先看該單元的月付與總利息；想再比較提前多還或不同均攤方式，可在同一試算內切換其他單元。`,
     ];
     return [
-      { heading: base[0].heading, paragraphs: hookExt, bullets: base[0].bullets },
+      { heading: base[0].heading, paragraphs: hookExt },
       base[1],
       base[2],
     ];
@@ -3259,49 +3267,49 @@ function buildQuick11ExclusiveSections(slug: string, seed: TopicSeed, calculator
     case "scooter":
       hook = [
         `「先騎再說」最常忽略的不是本金，而是利率：本篇用 ${principalZh}、年利率 ${preset.annualRate}%、${preset.years} 年當常見機車分期／融資級距，請你在試算裡把總利息跟本金擺在一起看。`,
-        anchor,
-        `${calculatorName}能把本息／本金均攤、月付與總利息放在同一條時間軸；先把數字對齊，再決定要不要談提前結清或多還一點。`,
+        trialConditions,
+        `${calculatorName}能把本息／本金均攤、月付與總利息放在同一條時間軸；請下滑開啟文末試算，先把數字對齊，再決定要不要談提前結清或多還一點。`,
         "很多人只看月付「還好」，直到總利息加總才發現：小的本金也能養出不小的利息負擔。",
       ];
       break;
     case "car":
       hook = [
         `中古車／一般車貸常落在「本金數十萬～百萬」級距：本篇對齊 ${principalZh}、年利率 ${preset.annualRate}%、${preset.years} 年、月收入 ${incomeLabel}。`,
-        anchor,
+        trialConditions,
         "建議你先固定本金與年期，只把年利率往上調 1%，看多付的總利息與月付差多少——這才是利率敏感度的直球對決。",
-        `${calculatorName}可直接對照月付與總利息；別只用「感覺差不多」代替試算。`,
+        `請下滑開啟文末「${calculatorName}」對照月付與總利息；別只用「感覺差不多」代替試算。`,
       ];
       break;
     case "personal":
       hook = [
         `信用貸款五十萬級距、條件普通時，年利率常落在個位數中段：本篇對齊 ${principalZh}、年利率 ${preset.annualRate}%、${preset.years} 年、月收入 ${incomeLabel}。`,
-        anchor,
+        trialConditions,
         "信貸最咬人的往往不是表面利率，而是固定月付把生活緩衝磨掉：請特別看總利息與占收入比。",
-        `${calculatorName}可調「每月可以額外多還」，看縮短負債所需時間的變化。`,
+        `請下滑開啟文末「${calculatorName}」，可試調「每月可以額外多還」，看縮短負債所需時間的變化。`,
       ];
       break;
     case "mortgage":
       hook = [
         `首購／換屋族最常扛的是千萬級房貸：本篇對齊 ${principalZh}（約 1100 萬）、年利率 ${preset.annualRate}%、${preset.years} 年、月收入 ${incomeLabel}。`,
-        anchor,
+        trialConditions,
         "同一筆本金下，本息均攤與本金均攤的前期月付與總利息走勢不同——選的不是道德，是現金流版型。",
-        `${calculatorName}切換兩種均攤時，請對照前幾年月付與總利息；數字僅為情境，實際以銀行核准為準。`,
+        `請下滑開啟文末「${calculatorName}」切換兩種均攤，對照前幾年月付與總利息；數字僅為情境，實際以銀行核准為準。`,
       ];
       break;
     case "student":
       hook = [
         `就學貸款累積到四十多萬不算少數；進入還款後即使利率不高，固定月付仍像房租一樣黏在預算裡：本篇對齊 ${principalZh}、年利率 ${preset.annualRate}%、${preset.years} 年、月收入 ${incomeLabel}。`,
-        anchor,
+        trialConditions,
         "請把每月還款 ÷ 月收入看一遍：若比例太高，往往不是利率害你，而是現金流沒有緩衝。",
-        `${calculatorName}把負債占收入比攤在表上，先保障生活與緊急預備，再談加速還款。`,
+        `請下滑開啟文末「${calculatorName}」，把負債占收入比攤在表上，先保障生活與緊急預備，再談加速還款。`,
       ];
       break;
     case "renovation":
       hook = [
         `裝潢分期／裝潢貸常以「百萬級」為單位；若又疊加房貸，現金流很容易在同月份被擰乾：本篇對齊 ${principalZh}、年利率 ${preset.annualRate}%、${preset.years} 年、月收入 ${incomeLabel}。`,
-        anchor,
+        trialConditions,
         "此文先單筆試算裝潢情境；實務請再把「房貸月付」手動加總到家庭預算表上對照。",
-        `${calculatorName}先看這筆裝潢貸的月付與總利息，再決定風格與坪數要不要收斂。`,
+        `請下滑開啟文末「${calculatorName}」，先看這筆裝潢貸的月付與總利息，再決定風格與坪數要不要收斂。`,
       ];
       break;
     default:
@@ -3312,7 +3320,6 @@ function buildQuick11ExclusiveSections(slug: string, seed: TopicSeed, calculator
     {
       heading: base[0].heading,
       paragraphs: hook,
-      bullets: base[0].bullets,
     },
     base[1],
     base[2],

@@ -1,6 +1,6 @@
 import type { Quick11EmbedPreset } from "./embed-preset";
 
-/** 與破產計算機首頁六顆快捷鈕一致（台灣常見情境示意，非報價／非核貸承諾） */
+/** 與破產計算機首頁六種貸款情境預設一致（台灣常見情境示意，非報價／非核貸承諾） */
 export type Quick11LoanPresetKey = "scooter" | "car" | "personal" | "mortgage" | "student" | "renovation";
 
 export type Quick11LoanPreset = {
