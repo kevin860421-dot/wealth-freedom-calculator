@@ -19,8 +19,8 @@ function quickCalculatorLabel(n: number): string {
   if (n === 5) return "第5台｜雪球效應：本金 vs 複利";
   if (n === 6) return "第6台｜槓桿抉擇：房產 vs 全球股市";
   if (n === 7) return "第7台｜槓桿抉擇：房貸 vs 全球股市";
-  if (n === 8) return "第8台｜延遲享樂模擬器";
-  if (n === 9) return "第9台｜延遲消費價值計算機";
+  if (n === 8) return "第8台｜延遲享樂計算機";
+  if (n === 9) return "第9台｜延遲享樂計算機 2";
   if (n === 10) return "第10台｜複利美夢 VS 崩盤現實 計算機";
   if (n === 11) return "第11台｜破產計算機";
   return `第${n}台｜小計算機（建置中）`;

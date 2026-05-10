@@ -118,7 +118,7 @@ export const QUICK_SEO_BLOCKS: Record<number, QuickSeoBlock> = {
     ],
   },
   8: {
-    metaTitle: "延遲享樂試算｜延遲享樂意思｜分期代價｜財富自由計算機",
+    metaTitle: "延遲享樂計算機｜延遲享樂試算｜延遲享樂意思｜分期代價｜財富自由計算機",
     metaDescription:
       "以月預算拆分分期與可投資：理解延遲享樂意思與無痛分期的代價。延伸可用完整財富自由計算機檢視稅費與每期須扣除。",
     summaryLabel: "延伸閱讀（點開）：延遲享樂、分期與心理帳戶",
@@ -133,7 +133,7 @@ export const QUICK_SEO_BLOCKS: Record<number, QuickSeoBlock> = {
     ],
   },
   9: {
-    metaTitle: "延遲消費與分期｜先投資再買｜財富自由計算機",
+    metaTitle: "延遲享樂計算機 2｜延遲消費與分期｜先投資再買｜財富自由計算機",
     metaDescription:
       "比較「立即分期」與「延後購買先投資」的資產路徑：貼近無痛分期代價與延遲享樂試算。進階請用完整計算機納入每期須扣除。",
     summaryLabel: "延伸閱讀（點開）：延遲消費、路徑差異與代價",

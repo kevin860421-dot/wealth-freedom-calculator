@@ -743,7 +743,7 @@ const QUICK_ROUTE_LINKS: Record<QuickRoute, readonly { href: string; title: stri
   "/quick-8": [
     {
       href: "/mini-blog/quick8-delay-gratification-simulator-guide",
-      title: "延遲享樂模擬器：晚點花差多少？",
+      title: "延遲享樂計算機：晚點花差多少？",
       description: "先看可投資金額，再決定現在就買。",
     },
     {
@@ -845,7 +845,7 @@ const QUICK_ROUTE_LINKS: Record<QuickRoute, readonly { href: string; title: stri
   "/quick-9": [
     {
       href: "/mini-blog/quick9-delay-spending-value-calculator-guide",
-      title: "延遲消費價值計算機：重算每次刷卡",
+      title: "延遲享樂計算機 2：重算每次刷卡",
       description: "3/5/10 年切換，看清消費機會成本。",
     },
     {

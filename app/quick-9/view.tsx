@@ -268,7 +268,7 @@ export function QuickCalculator9View() {
               textOverflow: "ellipsis",
             }}
           >
-            🧾 延遲消費價值計算機
+            🧾 延遲享樂計算機 2
           </div>
         </div>
 

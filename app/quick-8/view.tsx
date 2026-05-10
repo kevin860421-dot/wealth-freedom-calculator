@@ -283,7 +283,7 @@ export function QuickCalculator8View() {
               textOverflow: "ellipsis",
             }}
           >
-            ⏳ 延遲享樂模擬器
+            ⏳ 延遲享樂計算機
           </div>
         </div>
 
