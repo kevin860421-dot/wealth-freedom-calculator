@@ -28,7 +28,8 @@ export type TopicSeed = {
     | "/quick-8"
     | "/quick-9"
     | "/quick-10"
-    | "/quick-11";
+    | "/quick-11"
+    | "/quick-12";
   calculatorName?: string;
   calculatorNote?: string;
   customSections?: Quick1ExclusiveSection[];

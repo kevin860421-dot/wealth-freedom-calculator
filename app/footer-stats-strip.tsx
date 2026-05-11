@@ -9,7 +9,7 @@ import styles from "./footer-stats-strip.module.css";
 const SHARE_TITLE = "財富自由計算機";
 const SHARE_DESC = "財富自由計算機：台股 ETF、定期定額、股利與稅負試算（僅供參考）";
 const PROD_URL = "https://wealth-freedom-calculator.vercel.app/";
-const AVAILABLE_QUICK_CALCULATORS = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+const AVAILABLE_QUICK_CALCULATORS = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
 
 function quickCalculatorLabel(n: number): string {
   if (n === 1) return "第1台｜存股複利計算機";
@@ -23,6 +23,7 @@ function quickCalculatorLabel(n: number): string {
   if (n === 9) return "第9台｜延遲享樂計算機 2";
   if (n === 10) return "第10台｜複利美夢 VS 崩盤現實 計算機";
   if (n === 11) return "第11台｜破產計算機";
+  if (n === 12) return "第12台｜小額貸款代價計算機";
   return `第${n}台｜小計算機（建置中）`;
 }
 
@@ -102,13 +103,13 @@ export function FooterStatsStrip() {
 
           <section className={`${styles.card} ${styles.quickHub}`} aria-label="小計算機捷徑">
             <div className={styles.quickHubHead}>
-              <div className={styles.quickHubTitle}>小計算機 1 - 11</div>
+              <div className={styles.quickHubTitle}>小計算機 1 - 12</div>
               <div className={styles.quickHubHint}>可用按鈕會以新分頁開啟</div>
             </div>
             <div className={styles.quickSection}>
               <div className={styles.quickSectionTitle}>建置中</div>
               <div className={styles.quickGrid}>
-                {Array.from({ length: 11 }, (_, idx) => idx + 1)
+                {Array.from({ length: 12 }, (_, idx) => idx + 1)
                   .filter((n) => !AVAILABLE_QUICK_CALCULATORS.has(n))
                   .map((n) => (
                   <button key={n} type="button" className={`${styles.quickBtn} ${styles.quickBtnDisabled}`} disabled>
@@ -120,7 +121,7 @@ export function FooterStatsStrip() {
             <div className={styles.quickSection}>
               <div className={styles.quickSectionTitle}>可使用</div>
               <div className={styles.quickGrid}>
-                {Array.from({ length: 11 }, (_, idx) => idx + 1)
+                {Array.from({ length: 12 }, (_, idx) => idx + 1)
                   .filter((n) => AVAILABLE_QUICK_CALCULATORS.has(n))
                   .sort((a, b) => a - b)
                   .map((n) => (

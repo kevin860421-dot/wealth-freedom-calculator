@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * quick-1～11：皆 lazy 載入「純 UI 元件」（非 route page），包在 `.wf-inline-calculator`。
+ * quick-1～12：皆 lazy 載入「純 UI 元件」（非 route page），包在 `.wf-inline-calculator`。
  * 第11台：`QuickCalculator11Content` 與 `/quick-11` 頁面為同一份元件。
  */
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
@@ -28,6 +28,7 @@ const Quick4 = lazy(() => import("../quick-4/page"));
 const Quick5 = lazy(() => import("../quick-5/page"));
 const Quick6 = lazy(() => import("../quick-6/page"));
 const Quick7 = lazy(() => import("../quick-7/page"));
+const Quick12 = lazy(() => import("../quick-12/page"));
 
 function resolveCalculator(route: string) {
   if (route === "/quick-1") return Quick1;
@@ -41,6 +42,7 @@ function resolveCalculator(route: string) {
   if (route === "/quick-9") return Quick9;
   if (route === "/quick-10") return Quick10;
   if (route === "/quick-11") return Quick11;
+  if (route === "/quick-12") return Quick12;
   return null;
 }
 
@@ -100,7 +102,7 @@ export function BlogMiniCalculatorEmbed({ route, title, note, miniBlogSlug }: Pr
           )}
         </div>
       ) : (
-        <div className={styles.miniEmbedUnsupported}>目前僅支援 quick-1 ~ quick-11 文內試算。</div>
+        <div className={styles.miniEmbedUnsupported}>目前僅支援 quick-1 ~ quick-12 文內試算。</div>
       )}
     </section>
   );

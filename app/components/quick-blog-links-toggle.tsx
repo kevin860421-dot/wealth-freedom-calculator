@@ -18,7 +18,8 @@ type QuickRoute =
   | "/quick-8"
   | "/quick-9"
   | "/quick-10"
-  | "/quick-11";
+  | "/quick-11"
+  | "/quick-12";
 
 type QuickBlogLinksToggleProps = {
   quickRoute: QuickRoute;
@@ -1048,6 +1049,7 @@ const QUICK_ROUTE_LINKS: Record<QuickRoute, readonly { href: string; title: stri
   ],
   /** 第 1～100 篇資料源 {@link QUICK11_ROUTE_LINK_ITEMS}；折疊區僅顯示已到 publishAtIso 的項目（會隨時間自動變多）。 */
   "/quick-11": QUICK11_ROUTE_LINK_ITEMS,
+  "/quick-12": [],
 };
 
 export function QuickBlogLinksToggle({ quickRoute, title = "📚 本台小計算機延伸文章（點我展開）" }: QuickBlogLinksToggleProps) {

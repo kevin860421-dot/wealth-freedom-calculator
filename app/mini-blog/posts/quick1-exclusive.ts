@@ -27,7 +27,8 @@ export type Quick1ExclusivePost = {
     | "/quick-8"
     | "/quick-9"
     | "/quick-10"
-    | "/quick-11";
+    | "/quick-11"
+    | "/quick-12";
   calculatorTitle: string;
   calculatorNote: string;
   sections: Quick1ExclusiveSection[];
@@ -3377,6 +3378,7 @@ const SERIES_START_BY_ROUTE: Record<NonNullable<TopicSeed["calculatorRoute"]>, s
   "/quick-9": "2026-05-12T09:00:00+08:00",
   "/quick-10": "2026-05-13T09:00:00+08:00",
   "/quick-11": "2026-05-09T09:30:00+08:00",
+  "/quick-12": "2026-05-14T09:00:00+08:00",
 };
 
 const SERIES_PUBLISH_INTERVAL_DAYS = 13;
