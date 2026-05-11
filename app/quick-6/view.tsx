@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
 import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
+import { quickChartYearTicks } from "@/lib/quick-chart-series";
 import { clampNum, futureValueMonthlyContribution } from "@/lib/quick-calculator-math";
 import {
   evalCalcInputToNumber,
@@ -34,12 +35,7 @@ export function QuickCalculator6View() {
 
   const yearsClamped = Math.round(clampNum(years, YEARS_MIN, YEARS_MAX));
 
-  const yearsList = useMemo(() => {
-    const base = [1, 5, 10, 20, 30, 40];
-    const set = new Set<number>(base);
-    set.add(yearsClamped);
-    return Array.from(set).sort((a, b) => a - b);
-  }, [yearsClamped]);
+  const yearsList = useMemo(() => quickChartYearTicks(yearsClamped), [yearsClamped]);
 
   const series = useMemo(() => {
     const m = Math.max(0, monthlyInvest);
@@ -52,7 +48,9 @@ export function QuickCalculator6View() {
 
   const milestoneGaps = useMemo(() => {
     const m = Math.max(0, monthlyInvest);
-    return MILESTONE_YEARS.map((yy) => {
+    const cap = yearsClamped;
+    const yearMarkers = [...new Set([...MILESTONE_YEARS.filter((yy) => yy <= cap), cap])].sort((a, b) => a - b);
+    return yearMarkers.map((yy) => {
       const stock = Math.round(futureValueMonthlyContribution(m, INVEST_ANNUAL_PCT, yy));
       const mort = mortgageVsStockPath(m, yearsClamped, yy, MORTGAGE_EQUITY_SHARE, INVEST_ANNUAL_PCT);
       const delta = stock - mort;

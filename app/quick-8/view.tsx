@@ -6,6 +6,7 @@ import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
 import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { clampNum, fvMonthly } from "@/lib/quick-calculator-math";
+import { quickChartYearTicks } from "@/lib/quick-chart-series";
 import {
   buildInstallmentTipContent,
   evalCalcInputToNumber,
@@ -138,19 +139,15 @@ export function QuickCalculator8View() {
 
   // 核心邏輯（照你指定）
   const result = useMemo(() => {
-    const m = years * 12;
+    const m = yearsClamped * 12;
     const currentAssets = fvMonthly({ annualReturnPct: investAnnualPct, months: m, initial: 0, monthlyContribution });
     const delayedAssets = fvMonthly({ annualReturnPct: investAnnualPct, months: m, initial: 0, monthlyContribution: totalPrice });
     const loss = delayedAssets - currentAssets;
     return { currentAssets, delayedAssets, loss };
-  }, [investAnnualPct, monthlyContribution, totalPrice, years]);
+  }, [investAnnualPct, monthlyContribution, totalPrice, yearsClamped]);
 
-  const yearsList = useMemo(() => {
-    const ys = [1, 5, 10, 20, 30, 40, 50];
-    const set = new Set<number>(ys);
-    set.add(years);
-    return Array.from(set).sort((x, y) => x - y);
-  }, [years]);
+  /** 橫軸僅顯示 ≤ 設定年限之刻度（與主試算終點一致） */
+  const yearsList = useMemo(() => quickChartYearTicks(yearsClamped), [yearsClamped]);
 
   const series = useMemo(() => {
     const a = yearsList.map((y) => fvMonthly({ annualReturnPct: investAnnualPct, months: y * 12, initial: 0, monthlyContribution }));
@@ -158,16 +155,24 @@ export function QuickCalculator8View() {
     return { a, b };
   }, [investAnnualPct, monthlyContribution, totalPrice, yearsList]);
 
-  /** 圖上方里程碑：同時顯示「照常投入 / 延遲享樂」 */
-  const milestoneAssets = useMemo(() => {
+  /** 圖上方里程碑：1 年、5 年（若未超過上限）、以及「設定年限」終點 */
+  const chartMilestoneRows = useMemo(() => {
     const at = (y: number) => {
       const months = y * 12;
       const normal = fvMonthly({ annualReturnPct: investAnnualPct, months, initial: 0, monthlyContribution });
       const delayed = fvMonthly({ annualReturnPct: investAnnualPct, months, initial: 0, monthlyContribution: totalPrice });
-      return { normal, delayed };
+      return { year: y, normal, delayed };
     };
-    return { y1: at(1), y5: at(5), y50: at(50) };
-  }, [investAnnualPct, monthlyContribution, totalPrice]);
+    const cap = yearsClamped;
+    const ys = [...new Set([1, Math.min(5, cap), cap].filter((y) => y >= 1 && y <= cap))].sort((a, b) => a - b);
+    return ys.map((y) => at(y));
+  }, [investAnnualPct, monthlyContribution, totalPrice, yearsClamped]);
+
+  const chartMilestoneColors = [
+    "rgba(252, 211, 77, 0.98)",
+    "rgba(134, 239, 172, 0.98)",
+    "rgba(147, 197, 253, 0.98)",
+  ] as const;
 
   const deltaYuan = Math.max(0, Math.round(result.loss));
 
@@ -602,20 +607,23 @@ export function QuickCalculator8View() {
               showPointValuesScope="last"
               pointLabelMode="legacy"
               formatPointValue={formatTwd}
-              redLabelBelowYearThreshold={shouldForceRedLabelBelow ? 999 : 20}
+              redLabelBelowYearThreshold={shouldForceRedLabelBelow ? 999 : yearsClamped}
               redLabelExtraDrop={(yearsClamped <= 3 ? 42 : yearsClamped <= 10 ? 24 : 14) + extraRedDrop}
               redLabelXOffset={(yearsClamped <= 3 ? 30 : yearsClamped <= 10 ? 14 : 8) + extraRedRightShift}
               topNotes={
                 <>
-                  <text x="0" y="16" fontSize="14" fill="rgba(252, 211, 77, 0.98)" fontWeight="900">
-                    1年資產：{formatSmartUnit(milestoneAssets.y1.normal)} / {formatSmartUnit(milestoneAssets.y1.delayed)}
-                  </text>
-                  <text x="0" y="34" fontSize="14" fill="rgba(134, 239, 172, 0.98)" fontWeight="900">
-                    5年資產：{formatSmartUnit(milestoneAssets.y5.normal)} / {formatSmartUnit(milestoneAssets.y5.delayed)}
-                  </text>
-                  <text x="0" y="52" fontSize="14" fill="rgba(147, 197, 253, 0.98)" fontWeight="900">
-                    50年資產：{formatSmartUnit(milestoneAssets.y50.normal)} / {formatSmartUnit(milestoneAssets.y50.delayed)}
-                  </text>
+                  {chartMilestoneRows.map((row, i) => (
+                    <text
+                      key={row.year}
+                      x="0"
+                      y={16 + i * 18}
+                      fontSize="14"
+                      fill={chartMilestoneColors[i % chartMilestoneColors.length]}
+                      fontWeight="900"
+                    >
+                      {row.year}年資產：{formatSmartUnit(row.normal)} / {formatSmartUnit(row.delayed)}
+                    </text>
+                  ))}
                 </>
               }
             />
