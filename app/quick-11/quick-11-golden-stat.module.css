@@ -1,0 +1,89 @@
+/**
+ * 深色主題 KPI 格：金邊光暈 + 輕掃光（GPU 友善）。
+ * 參考常見作法：box-shadow 脈動 + 半透明斜向 gradient 的 ::after 掃過（shimmer）。
+ */
+
+.q11GoldStat {
+  position: relative;
+  z-index: 0;
+  overflow: hidden;
+  isolation: isolate;
+  border-color: rgba(251, 191, 36, 0.42) !important;
+  animation: q11GoldPulse 2.85s ease-in-out infinite;
+}
+
+.q11GoldStat::after {
+  content: "";
+  position: absolute;
+  top: -45%;
+  left: -70%;
+  width: 48%;
+  height: 190%;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 253, 231, 0.06) 42%,
+    rgba(254, 243, 199, 0.22) 50%,
+    rgba(255, 253, 231, 0.06) 58%,
+    transparent 100%
+  );
+  transform: rotate(16deg) translateX(-30%);
+  animation: q11GoldShine 4.2s ease-in-out infinite;
+}
+
+.q11GoldInner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+@keyframes q11GoldPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(251, 191, 36, 0.38),
+      0 0 12px rgba(245, 158, 11, 0.18),
+      inset 0 0 22px rgba(251, 191, 36, 0.035);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(253, 224, 71, 0.72),
+      0 0 26px rgba(250, 204, 21, 0.32),
+      inset 0 0 28px rgba(253, 224, 71, 0.07);
+  }
+}
+
+@keyframes q11GoldShine {
+  0%,
+  18% {
+    opacity: 0;
+    transform: rotate(16deg) translateX(-40%);
+  }
+  28% {
+    opacity: 1;
+  }
+  48%,
+  100% {
+    opacity: 0;
+    transform: rotate(16deg) translateX(220%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .q11GoldStat {
+    animation: none;
+    box-shadow:
+      0 0 0 1px rgba(253, 224, 71, 0.55),
+      0 0 18px rgba(245, 158, 11, 0.22),
+      inset 0 0 20px rgba(251, 191, 36, 0.05);
+  }
+  .q11GoldStat::after {
+    animation: none;
+    opacity: 0;
+  }
+}

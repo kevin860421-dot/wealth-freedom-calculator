@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
-  title: "小額貸款代價計算機｜利息、機會成本與稅後損失（示意）｜財富自由計算機",
+  title: "實領薪資與稅務負擔計算機｜勞健保、二代健保、綜所稅累進（示意）｜財富自由計算機",
   description:
-    "信貸級距本息攤還、總利息，並以與大計算機相同之合併課稅與二代健保 2.11% 邏輯估算本金若改投之稅後複利；情境試算僅供參考。",
+    "月薪投保、年終與兼職／股利單筆給付；勞健保簡化自付率、二代健保 2.11% 與大計算機一致、綜所 5%～40% 累進差額試算；情境僅供參考。",
 };
 
 export default function Quick12Layout({ children }: { children: ReactNode }) {

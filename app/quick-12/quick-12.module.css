@@ -1,35 +1,374 @@
-.root {
+/** 主容器：偏窄欄寬，單手閱讀 */
+.shell {
+  width: 100%;
+  max-width: 336px;
+  margin-inline: auto;
   font-size: 16px;
   line-height: 1.45;
   color: #e8eefc;
 }
 
 @media (max-width: 520px) {
-  .root {
+  .shell {
     font-size: 14px;
   }
 }
 
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: inherit;
+/** 文內嵌入：由外層 wf-inline-calculator 控寬 */
+.embedded {
+  max-width: 100%;
 }
 
-.table th,
-.table td {
-  font-size: inherit;
-  padding: 10px 8px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
-  text-align: left;
-  word-break: break-word;
+.themeLight {
+  color: #0f172a;
 }
 
-.table th {
-  font-weight: 800;
-  color: rgba(226, 232, 240, 0.95);
+.themeLight .panel {
+  border-color: rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.92);
 }
 
-.mono {
+.themeLight .input {
+  border-color: rgba(148, 163, 184, 0.45);
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.themeLight .select {
+  border-color: rgba(148, 163, 184, 0.45);
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.themeLight .steps {
+  border-color: rgba(148, 163, 184, 0.35);
+  background: rgba(241, 245, 249, 0.95);
+}
+
+.themeLight .stepsTitle {
+  color: #b45309;
+}
+
+/** 試算結果頂部：綜所稅一眼結論（與階梯內 ⑤ 同數字，避免另建模型） */
+.taxHero {
+  margin: 0 0 14px;
+  padding: 12px 12px 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  border-left: 4px solid rgba(251, 191, 36, 0.9);
+  background: rgba(15, 23, 42, 0.72);
+}
+
+.taxHeroLabel {
+  font-weight: 850;
+  font-size: 0.95em;
+  opacity: 0.95;
+  margin-bottom: 6px;
+}
+
+.taxHeroAmount {
+  font-size: 1.42em;
+  font-weight: 900;
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.taxHeroNote {
+  margin-top: 8px;
+  font-size: 0.88em;
+  font-weight: 650;
+  line-height: 1.4;
+  opacity: 0.86;
+}
+
+.themeLight .taxHero {
+  background: rgba(255, 251, 235, 0.96);
+  border-color: rgba(217, 119, 6, 0.32);
+  border-left-color: rgba(217, 119, 6, 0.85);
+}
+
+.themeLight .taxHeroNote {
+  color: #78350f;
+}
+
+.themeLight .step {
+  background: rgba(255, 255, 255, 0.88);
+  border-left-color: rgba(100, 116, 139, 0.45);
+}
+
+.themeLight .stepL2 {
+  border-left-color: rgba(217, 119, 6, 0.45);
+}
+
+.themeLight .stepL3 {
+  border-left-color: rgba(5, 150, 105, 0.45);
+}
+
+.themeLight .stepL4 {
+  border-left-color: rgba(2, 132, 199, 0.45);
+}
+
+.themeLight .gov {
+  color: #dc2626;
+}
+
+.themeLight .pocket {
+  color: #15803d;
+}
+
+.themeLight .muted,
+.themeLight .note,
+.themeLight .disclaimer {
+  color: #475569;
+}
+
+.row2 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+}
+
+.row2 > * {
+  flex: 1 1 128px;
+  min-width: 0;
+}
+
+.panel {
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.55);
+  padding: 10px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: inherit;
+}
+
+.label span:first-child {
+  font-weight: 850;
+}
+
+.input {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.65);
+  color: #e8eefc;
+  padding: 10px 12px;
+  font-size: inherit;
+  font-weight: 750;
+  outline: none;
+}
+
+/** 與大計算機手機區塊一致：原生 select 全寬、利於觸控 */
+.select {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.65);
+  color: #e8eefc;
+  padding: 10px 8px 10px 12px;
+  font-size: inherit;
+  font-weight: 750;
+  outline: none;
+  min-height: 42px;
+}
+
+.steps {
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(0, 0, 0, 0.22);
+  padding: 10px 10px 8px;
+  font-size: inherit;
+}
+
+.stepsTitle {
+  font-weight: 900;
+  margin: 0 0 12px;
+  color: rgba(252, 211, 77, 0.95);
+}
+
+.step {
+  position: relative;
+  padding: 10px 12px 10px 16px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.45);
+  border-left: 4px solid rgba(100, 116, 139, 0.55);
+}
+
+.stepL1 {
+  margin-left: 0;
+}
+
+.stepL2 {
+  margin-left: 14px;
+  border-left-color: rgba(251, 191, 36, 0.35);
+}
+
+.stepL3 {
+  margin-left: 28px;
+  border-left-color: rgba(52, 211, 153, 0.35);
+}
+
+.stepL4 {
+  margin-left: 42px;
+  border-left-color: rgba(56, 189, 248, 0.35);
+}
+
+.stepLabel {
+  font-weight: 800;
+  opacity: 0.92;
+  margin-bottom: 4px;
+}
+
+.stepValue {
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.gov {
+  color: #fca5a5;
+}
+
+.pocket {
+  color: #86efac;
+}
+
+.muted {
+  opacity: 0.78;
+  font-weight: 650;
+  margin-top: 4px;
+  font-size: 0.95em;
+}
+
+.note {
+  margin: 12px 0 0;
+  opacity: 0.82;
+  font-weight: 650;
+  font-size: 0.95em;
+}
+
+.disclaimer {
+  margin: 0;
+  opacity: 0.65;
+  font-size: 0.92em;
+  font-weight: 650;
+}
+
+/** 清單末端「新增一筆」：全寬、緊接最後一列（常見表單／電商加購列 UX） */
+.addBelow {
+  margin-top: 10px;
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(14, 165, 233, 0.55);
+  background: #0284c7;
+  color: #fff;
+  padding: 12px 14px;
+  font-size: inherit;
+  font-weight: 900;
+  cursor: pointer;
+  outline: none;
+}
+
+.addBelow:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.addBelow:active:not(:disabled) {
+  background: #0369a1;
+}
+
+.themeLight .addBelow {
+  border-color: rgba(2, 132, 199, 0.45);
+  background: #0284c7;
+  color: #fff;
+}
+
+.addBelowHint {
+  margin: 6px 0 0;
+  font-size: 0.88em;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.collapseBtn {
+  margin-top: 10px;
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(100, 116, 139, 0.45);
+  background: rgba(15, 23, 42, 0.55);
+  color: rgba(226, 232, 240, 0.95);
+  padding: 10px 12px;
+  font-size: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  outline: none;
+}
+
+.collapseBtn:active {
+  background: rgba(30, 41, 59, 0.75);
+}
+
+.themeLight .collapseBtn {
+  border-color: rgba(148, 163, 184, 0.45);
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.collapseSummary {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+  border-radius: 10px;
+  border: 1px solid rgba(100, 116, 139, 0.4);
+  background: rgba(15, 23, 42, 0.4);
+  color: #e8eefc;
+  padding: 10px 12px;
+  font-size: inherit;
+  font-weight: 750;
+  cursor: pointer;
+  outline: none;
+}
+
+.themeLight .collapseSummary {
+  border-color: rgba(148, 163, 184, 0.4);
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+/** 全部收起時：每筆摘要列（同外觀，不可點） */
+.collapseSummaryReadonly {
+  cursor: default;
+  user-select: text;
+}
+
+.cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-decoration: none;
+  padding: 18px 16px;
+  border-radius: 14px;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 900;
+  font-size: inherit;
 }

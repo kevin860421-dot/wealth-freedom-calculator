@@ -8,6 +8,7 @@ import { createContext, useCallback, useContext, useEffect, useLayoutEffect, use
 import { buildLoanSchedules, evaluateCalcInput, formatMoney, type LoanMethod, type PaymentRow } from "./logic";
 import { QUICK11_LOAN_PRESETS } from "./loan-scenarios";
 import type { Quick11EmbedPreset } from "./embed-preset";
+import goldStat from "./quick-11-golden-stat.module.css";
 
 type Quick11InputStore = {
   loanAmount: number;
@@ -1024,18 +1025,21 @@ export function QuickCalculator11Content({
                           value={method === "annuity" ? `NT$ ${formatMoney(output.annuityRows[0]?.payment ?? 0)}` : `NT$ ${formatMoney(output.equalPrincipalRows[0]?.payment ?? 0)}`}
                           tone="text-slate-100 border-slate-600 bg-slate-800/80"
                           shrinkValue
+                          isLight={isLight}
                         />
                         <InfoCard
                           title="每月利息"
                           value={`NT$ ${formatMoney(rows[0]?.interest ?? 0)}`}
                           tone="text-slate-100 border-slate-600 bg-slate-800/80"
                           shrinkValue
+                          isLight={isLight}
                         />
                         <InfoCard
                           title="總繳利息"
                           value={`NT$ ${formatMoney(method === "annuity" ? output.annuityTotalInterest : output.equalPrincipalTotalInterest)}`}
                           tone="text-sky-100 border-sky-500/35 bg-sky-500/10"
                           shrinkValue
+                          isLight={isLight}
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-3">
@@ -1044,16 +1048,29 @@ export function QuickCalculator11Content({
                           totalInterest={method === "annuity" ? output.annuityTotalInterest : output.equalPrincipalTotalInterest}
                           totalRepayment={loanAmount + (method === "annuity" ? output.annuityTotalInterest : output.equalPrincipalTotalInterest)}
                           delay={0.2}
+                          isLight={isLight}
                         />
-                        <div className="min-w-0 rounded-lg border border-slate-600 bg-slate-800/80 p-2 text-slate-100">
-                          <p className="truncate whitespace-nowrap text-[16px] font-bold tracking-[0.04em] text-slate-300">多出多少</p>
-                          <ShrinkFitCardAmount
-                            animKey={`home-overpay-${Math.round(method === "annuity" ? output.annuityTotalInterest : output.equalPrincipalTotalInterest)}`}
-                            maxPx={20}
-                          >
-                            {`NT$ ${formatMoney(method === "annuity" ? output.annuityTotalInterest : output.equalPrincipalTotalInterest)}`}
-                          </ShrinkFitCardAmount>
-                          <p className="mt-1 text-[10px] text-slate-400">相較本金多付</p>
+                        <div
+                          className={`min-w-0 rounded-lg border p-2 ${
+                            isLight
+                              ? "border-amber-300 bg-amber-50 text-amber-950 shadow-[0_1px_6px_rgba(245,158,11,0.22)] ring-1 ring-amber-400/35"
+                              : `border-slate-600 bg-slate-800/80 text-slate-100 ${goldStat.q11GoldStat}`
+                          }`}
+                        >
+                          <div className={goldStat.q11GoldInner}>
+                            <p
+                              className={`truncate whitespace-nowrap text-[16px] font-bold tracking-[0.04em] ${isLight ? "text-amber-900" : "text-slate-300"}`}
+                            >
+                              多出多少
+                            </p>
+                            <ShrinkFitCardAmount
+                              animKey={`home-overpay-${Math.round(method === "annuity" ? output.annuityTotalInterest : output.equalPrincipalTotalInterest)}`}
+                              maxPx={20}
+                            >
+                              {`NT$ ${formatMoney(method === "annuity" ? output.annuityTotalInterest : output.equalPrincipalTotalInterest)}`}
+                            </ShrinkFitCardAmount>
+                            <p className={`mt-1 text-[10px] ${isLight ? "text-amber-800/90" : "text-slate-400"}`}>相較本金多付</p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1904,6 +1921,7 @@ export function QuickCalculator11Content({
                           }
                           subtitle="本金平均方式下，預估總利息"
                           shrinkValue
+                          isLight={isLight}
                         />
                         <InfoCard
                           title="預估收益"
@@ -1915,6 +1933,7 @@ export function QuickCalculator11Content({
                           }
                           subtitle={`複利 ${loanYears} 年 · 不含交易成本`}
                           shrinkValue
+                          isLight={isLight}
                         />
                       </div>
 
@@ -2008,16 +2027,28 @@ export function QuickCalculator11Content({
                             bumpStep={0.25}
                           />
                           <div className="min-w-0 rounded-lg border border-slate-700 bg-slate-950/40 p-2">
-                            <p className="truncate whitespace-nowrap text-[16px] font-bold tracking-[0.04em] text-slate-300">升息後年利率</p>
-                            <p className="mt-1 whitespace-nowrap font-mono text-[clamp(16px,4.2vw,22px)] font-black leading-none tracking-[-0.01em] text-sky-200 tabular-nums">
-                              {shockedAnnualRate.toFixed(2)}%
-                            </p>
+                            <div>
+                              <p className="truncate whitespace-nowrap text-[16px] font-bold tracking-[0.04em] text-slate-300">升息後年利率</p>
+                              <p className="mt-1 whitespace-nowrap font-mono text-[clamp(16px,4.2vw,22px)] font-black leading-none tracking-[-0.01em] text-sky-200 tabular-nums">
+                                {shockedAnnualRate.toFixed(2)}%
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
-                        <InfoCard title="利息增加" value={`NT$ ${formatMoney(shockedInterestIncrease)}`} tone="text-amber-100 border-amber-500/35 bg-amber-500/10" />
-                        <InfoCard title="新每月繳款" value={`NT$ ${formatMoney(shockedOutput.annuityRows[0]?.payment ?? 0)}`} tone="text-orange-100 border-orange-500/35 bg-orange-500/10" />
+                        <InfoCard
+                          title="利息增加"
+                          value={`NT$ ${formatMoney(shockedInterestIncrease)}`}
+                          tone="text-amber-100 border-amber-500/35 bg-amber-500/10"
+                          isLight={false}
+                        />
+                        <InfoCard
+                          title="新每月繳款"
+                          value={`NT$ ${formatMoney(shockedOutput.annuityRows[0]?.payment ?? 0)}`}
+                          tone="text-orange-100 border-orange-500/35 bg-orange-500/10"
+                          isLight={false}
+                        />
                       </div>
                     </div>
                   ) : null}
@@ -2300,19 +2331,21 @@ function ResultPage(props: {
             isLight ? "border border-slate-200 bg-slate-100 shadow-[0_1px_4px_rgba(0,0,0,0.05)]" : "border-slate-700 bg-slate-900/70"
           }`}
         >
-          <p className={`truncate whitespace-nowrap text-[16px] font-bold tracking-[0.04em] ${isLight ? "text-slate-600" : "text-slate-300"}`}>每月繳款（首月）</p>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`payment-${payment}`}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.2 }}
-              className={`mt-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[clamp(17px,4.4vw,24px)] font-black leading-none tracking-[-0.01em] ${isLight ? "text-slate-900" : "text-sky-200"}`}
-            >
-              {payment}
-            </motion.div>
-          </AnimatePresence>
+          <div>
+            <p className={`truncate whitespace-nowrap text-[16px] font-bold tracking-[0.04em] ${isLight ? "text-slate-600" : "text-slate-300"}`}>每月繳款（首月）</p>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`payment-${payment}`}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.2 }}
+                className={`mt-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[clamp(17px,4.4vw,24px)] font-black leading-none tracking-[-0.01em] ${isLight ? "text-slate-900" : "text-sky-200"}`}
+              >
+                {payment}
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
         {paymentDiffVsCompare != null ? (
           <motion.div
@@ -2329,10 +2362,12 @@ function ResultPage(props: {
             }}
             style={{ transformPerspective: 900, transformOrigin: "50% 55%" }}
           >
-            <p className={`truncate whitespace-nowrap text-[16px] font-bold tracking-[0.04em] ${isLight ? "text-amber-800" : "text-amber-200"}`}>比{compareLabel}多(少)多少</p>
-            <p className={`mt-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[clamp(16px,4.1vw,22px)] font-black leading-none tracking-[-0.01em] ${isLight ? "text-amber-900" : "text-amber-100"}`}>
-              {diffPrefix}NT$ {formatMoney(Math.abs(diffValue))}
-            </p>
+            <div>
+              <p className={`truncate whitespace-nowrap text-[16px] font-bold tracking-[0.04em] ${isLight ? "text-amber-800" : "text-amber-200"}`}>比{compareLabel}多(少)多少</p>
+              <p className={`mt-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[clamp(16px,4.1vw,22px)] font-black leading-none tracking-[-0.01em] ${isLight ? "text-amber-900" : "text-amber-100"}`}>
+                {diffPrefix}NT$ {formatMoney(Math.abs(diffValue))}
+              </p>
+            </div>
           </motion.div>
         ) : null}
       </div>
@@ -2342,9 +2377,12 @@ function ResultPage(props: {
           value={`NT$ ${formatMoney(totalInterest)}`}
           tone={
             isLight
-              ? "text-slate-900 border-slate-200 bg-slate-100 shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
+              ? "text-amber-950 border-amber-300 bg-amber-50 shadow-[0_1px_6px_rgba(245,158,11,0.22)] ring-1 ring-amber-400/35"
               : "text-slate-100 border-slate-700 bg-slate-900/60"
           }
+          shrinkValue
+          isLight={isLight}
+          goldGlow={!isLight}
         />
         <InfoCard
           title="總還款金額"
@@ -2354,6 +2392,7 @@ function ResultPage(props: {
               ? "text-slate-900 border-slate-200 bg-slate-100 shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
               : "text-slate-100 border-slate-700 bg-slate-900/60"
           }
+          isLight={isLight}
         />
       </div>
       {showPkSection && pkSeries ? (
@@ -2516,28 +2555,40 @@ function ShrinkFitCardAmount(props: { animKey: string; children: string; minPx?:
   );
 }
 
-function InfoCard(props: { title: string; value: string; tone: string; subtitle?: string; shrinkValue?: boolean }) {
-  const { title, value, tone, subtitle, shrinkValue = false } = props;
+function InfoCard(props: {
+  title: string;
+  value: string;
+  tone: string;
+  subtitle?: string;
+  shrinkValue?: boolean;
+  /** 深色主題：金邊光暈 + 輕掃光（淺色主題不套用，避免對比過花） */
+  goldGlow?: boolean;
+  isLight?: boolean;
+}) {
+  const { title, value, tone, subtitle, shrinkValue = false, goldGlow = false, isLight = false } = props;
+  const ring = goldGlow && !isLight ? goldStat.q11GoldStat : "";
   return (
-    <div className={`min-w-0 rounded-lg border p-2 ${tone} flex min-h-[94px] flex-col`}>
-      <p className="truncate whitespace-nowrap text-[16px] font-bold tracking-[0.04em] text-slate-300">{title}</p>
-      {shrinkValue ? (
-        <ShrinkFitCardAmount animKey={`${title}-${value}`}>{value}</ShrinkFitCardAmount>
-      ) : (
-        <AnimatePresence mode="wait">
-          <motion.p
-            key={`${title}-${value}`}
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -14 }}
-            transition={{ duration: 0.24, ease: "easeOut" }}
-            className="mt-1 overflow-hidden text-ellipsis whitespace-nowrap text-[clamp(14px,3.8vw,21px)] font-black leading-none tracking-[-0.015em]"
-          >
-            {value}
-          </motion.p>
-        </AnimatePresence>
-      )}
-      {subtitle ? <p className="mt-1 text-[11px] leading-snug text-slate-400">{subtitle}</p> : null}
+    <div className={`min-w-0 rounded-lg border p-2 ${tone} flex min-h-[94px] flex-col ${ring}`.trim()}>
+      <div className={ring ? goldStat.q11GoldInner : "contents"}>
+        <p className={`truncate whitespace-nowrap text-[16px] font-bold tracking-[0.04em] ${isLight ? "text-slate-600" : "text-slate-300"}`}>{title}</p>
+        {shrinkValue ? (
+          <ShrinkFitCardAmount animKey={`${title}-${value}`}>{value}</ShrinkFitCardAmount>
+        ) : (
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={`${title}-${value}`}
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -14 }}
+              transition={{ duration: 0.24, ease: "easeOut" }}
+              className="mt-1 overflow-hidden text-ellipsis whitespace-nowrap text-[clamp(14px,3.8vw,21px)] font-black leading-none tracking-[-0.015em]"
+            >
+              {value}
+            </motion.p>
+          </AnimatePresence>
+        )}
+        {subtitle ? <p className={`mt-1 text-[11px] leading-snug ${isLight ? "text-slate-500" : "text-slate-400"}`}>{subtitle}</p> : null}
+      </div>
     </div>
   );
 }
@@ -2547,8 +2598,9 @@ function TotalRepaymentCard(props: {
   totalInterest: number;
   totalRepayment: number;
   delay?: number;
+  isLight?: boolean;
 }) {
-  const { principal, totalInterest, totalRepayment, delay = 0 } = props;
+  const { principal, totalInterest, totalRepayment, delay = 0, isLight = false } = props;
   const [displayValue, setDisplayValue] = useState(Math.round(totalRepayment));
   const previousValueRef = useRef(Math.round(totalRepayment));
   const [flipToken, setFlipToken] = useState(0);
@@ -2570,6 +2622,7 @@ function TotalRepaymentCard(props: {
   const warnMedium = totalInterest > principal / 2;
   const warnHigh = totalInterest > principal;
   const titleClass = warnMedium ? "text-orange-300" : "text-slate-400";
+  /** 金黃脈動僅保留「多出多少」格；總繳金額維持藍色重點或紅色警示 */
   const cardBorder = warnHigh ? "rgba(239,68,68,0.65)" : "#3b82f6";
   const cardGlowA = warnHigh ? "rgba(127,29,29,0.55)" : "rgba(59,130,246,0.35)";
   const cardGlowB = warnHigh ? "rgba(69,10,10,0.45)" : "rgba(8,47,73,0.25)";
@@ -2586,20 +2639,22 @@ function TotalRepaymentCard(props: {
       whileHover={{ scale: 1.012 }}
       whileTap={{ scale: 0.985 }}
     >
-      <p className={`truncate whitespace-nowrap text-[16px] font-bold tracking-[0.04em] ${titleClass}`}>總繳金額</p>
-      <AnimatePresence mode="wait">
-        <motion.p
-          key={`total-repayment-flip-${flipToken}`}
-          initial={{ opacity: 0.72, rotateX: -88, y: -4 }}
-          animate={{ opacity: 1, rotateX: 0, y: 0 }}
-          exit={{ opacity: 0.9, rotateX: 86, y: 3 }}
-          transition={{ duration: 0.28, ease: "easeOut", delay }}
-          style={{ transformPerspective: 700, transformOrigin: "50% 60%" }}
-          className="mt-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[clamp(16px,4.1vw,22px)] font-black leading-none tracking-[-0.01em] text-sky-100"
-        >
-          NT$ {formatMoney(displayValue)}
-        </motion.p>
-      </AnimatePresence>
+      <div>
+        <p className={`truncate whitespace-nowrap text-[16px] font-bold tracking-[0.04em] ${titleClass}`}>總繳金額</p>
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={`total-repayment-flip-${flipToken}`}
+            initial={{ opacity: 0.72, rotateX: -88, y: -4 }}
+            animate={{ opacity: 1, rotateX: 0, y: 0 }}
+            exit={{ opacity: 0.9, rotateX: 86, y: 3 }}
+            transition={{ duration: 0.28, ease: "easeOut", delay }}
+            style={{ transformPerspective: 700, transformOrigin: "50% 60%" }}
+            className={`mt-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[clamp(16px,4.1vw,22px)] font-black leading-none tracking-[-0.01em] ${warnHigh ? "text-red-200" : "text-sky-100"}`}
+          >
+            NT$ {formatMoney(displayValue)}
+          </motion.p>
+        </AnimatePresence>
+      </div>
     </motion.div>
   );
 }
