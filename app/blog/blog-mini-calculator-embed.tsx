@@ -2,7 +2,7 @@
 
 /**
  * quick-1～12：皆 lazy 載入「純 UI 元件」（非 route page），包在 `.wf-inline-calculator`。
- * 第11台：`QuickCalculator11Content` 與 `/quick-11` 頁面為同一份元件。
+ * 第11台：`QuickCalculator11Content` 與 `/quick-11` 頁面為同一份元件。第12台：`QuickCalculator12Content` 與 `/quick-12` 同一份。
  */
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { quick11EmbedPresetFromSlug } from "../quick-11/loan-scenarios";
@@ -28,7 +28,7 @@ const Quick4 = lazy(() => import("../quick-4/page"));
 const Quick5 = lazy(() => import("../quick-5/page"));
 const Quick6 = lazy(() => import("../quick-6/page"));
 const Quick7 = lazy(() => import("../quick-7/page"));
-const Quick12 = lazy(() => import("../quick-12/page"));
+const Quick12 = lazy(() => import("../quick-12/QuickCalculator12Content"));
 
 function resolveCalculator(route: string) {
   if (route === "/quick-1") return Quick1;
@@ -93,6 +93,10 @@ export function BlogMiniCalculatorEmbed({ route, title, note, miniBlogSlug }: Pr
                 ) : route === "/quick-11" ? (
                   <div className="not-prose isolate w-full min-w-0">
                     <Calculator embeddedInMiniBlog initialEmbedPreset={quick11Anchor} />
+                  </div>
+                ) : route === "/quick-12" ? (
+                  <div className="not-prose isolate w-full min-w-0">
+                    <Calculator embeddedInMiniBlog />
                   </div>
                 ) : (
                   <Calculator />

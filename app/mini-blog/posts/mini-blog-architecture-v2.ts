@@ -66,7 +66,7 @@ export function getTrialConditionsLineForRoute(route: CalcRoute): string {
     case "/quick-11":
       return `本篇為破產計算機專文，試算條件請以文內「本篇試算條件」段落為準。${disclaimer}`;
     case "/quick-12":
-      return `本篇試算條件（與文末試算開頁預設一致）：貸款本金 NT$ 500,000、84 期、貸款年利率 6%、預期投資年化 7%、合併課稅邊際 5%。${disclaimer}`;
+      return `本篇試算條件（與文末試算開頁預設一致）：月薪（投保薪資）NT$ 45,000、年終／獎金 NT$ 100,000、兼職／股利 NT$ 30,000。${disclaimer}`;
     default:
       return `本篇試算條件請以文末計算機開頁預設為起點再微調。${disclaimer}`;
   }
@@ -95,7 +95,7 @@ export function defaultCalculatorNoteAfterMay10(route: CalcRoute): string {
     case "/quick-10":
       return "文末試算開頁預設為月投 20,000、10 年、年化 7%、崩盤 -30%。";
     case "/quick-12":
-      return "文末試算開頁預設為本金 500,000／84 期／貸款利率 6%／投資年化 7%／邊際稅率 5%。";
+      return "文末試算開頁預設為月薪 45,000、年終 100,000、兼職／股利 30,000。";
     default:
       return "請以文末試算開頁預設為起點，再依個案調整參數。";
   }

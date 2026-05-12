@@ -5,9 +5,12 @@
 import {
   computeCombinedSalaryAndStocks,
   computeSalaryTaxBurden,
+  computeStockNhi2Snapshot,
   progressiveIncomeTaxAnnual,
   SIMPLIFIED_EXEMPTION_AND_DEDUCTION,
 } from "../app/quick-12/logic";
+import { TICKER_PRESETS } from "../app/ticker-presets";
+import { default54cPctFromPreset, estimatedAnnualCashDividendPerLot } from "../app/quick-12/ticker-helpers";
 
 function assert(cond: boolean, msg: string) {
   if (!cond) throw new Error(msg);
@@ -35,8 +38,25 @@ assert(rLow.estimatedAnnualIncomeTax === 0, "低所得應免綜所（淨額<=0�
 const comb = computeCombinedSalaryAndStocks({ monthlyInsuredSalary: 45_000, annualBonus: 0, sideIncome: 0 }, [
   { annualGross: 500_000, ratio54cPct: 100 },
 ]);
-assert(comb.stockNhi2Total > 0, "54C 全計入且超過 2 萬應有二代");
+assert(comb.stockNhi2Total > 0, "54C 全計入且超過 2 萬應有二代健保");
 assert(comb.grossAnnual === 45_000 * 12 + 500_000, "加計股票毛額");
+
+function nhi2SnapFromPresetId(id: string, lots = 1) {
+  const p = TICKER_PRESETS.find((x) => x.id === id);
+  if (!p) throw new Error(`missing preset ${id}`);
+  const nLots = Math.max(1, Math.floor(lots));
+  const gross = Math.round(estimatedAnnualCashDividendPerLot(p) * nLots);
+  return computeStockNhi2Snapshot({
+    annualGross: gross,
+    ratio54cPct: default54cPctFromPreset(p),
+  });
+}
+
+const s2330x2 = nhi2SnapFromPresetId("2330", 2);
+assert(s2330x2.nhi2 > 0, "2330 試算庫 2 張應觸發二代健保");
+const s2454x1 = nhi2SnapFromPresetId("2454", 1);
+assert(s2454x1.nhi2 === 0 && s2454x1.taxable54 < 20_000, "2454 試算庫 1 張計入未達二代門檻");
+assert(s2330x2.nhi2 > s2454x1.nhi2, "2454／2330×2：2330 二代健保應較大");
 
 console.log("validate-quick12-logic: OK");
 console.log("SIMPLIFIED_EXEMPTION_AND_DEDUCTION =", SIMPLIFIED_EXEMPTION_AND_DEDUCTION, "(含免稅額 9.7 萬 + 標扣 + 薪資特扣，示意常數)");

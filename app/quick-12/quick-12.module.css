@@ -168,6 +168,10 @@
   outline: none;
 }
 
+.mvWheelInput {
+  cursor: ns-resize;
+}
+
 /** 與大計算機手機區塊一致：原生 select 全寬、利於觸控 */
 .select {
   width: 100%;
@@ -230,6 +234,77 @@
   font-weight: 800;
   opacity: 0.92;
   margin-bottom: 4px;
+}
+
+/** PK：代碼＋簡稱較長，允許換行 */
+.pkStepLabel {
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.pkCardTitle {
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+/** PK 階梯：標題兩行（代碼 / 簡稱·二代健保） */
+.pkStepLabelStack {
+  margin-bottom: 6px;
+}
+
+.pkStepLineCode {
+  font-weight: 900;
+  font-size: 1.06em;
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.pkStepLineSub {
+  margin-top: 3px;
+  font-weight: 780;
+  font-size: 0.86em;
+  line-height: 1.4;
+  opacity: 0.9;
+  word-break: break-word;
+}
+
+.themeLight .pkStepLineSub {
+  color: #475569;
+}
+
+/** PK「差多少」：代碼＋說明一行，金額獨立一行 */
+.pkDiffStep {
+  margin-top: 4px;
+}
+
+.pkDiffLead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
+  margin-top: 4px;
+}
+
+.pkDiffCode {
+  font-weight: 900;
+  font-size: 1.05em;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+}
+
+.pkDiffVerb {
+  font-weight: 750;
+  font-size: 0.88em;
+  opacity: 0.85;
+}
+
+.pkDiffAmount {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.14em;
+  line-height: 1.2;
+  word-break: break-all;
 }
 
 .stepValue {
@@ -357,6 +432,120 @@
 .collapseSummaryReadonly {
   cursor: default;
   user-select: text;
+}
+
+/** PK 分頁：短提示 + 金額凸顯 */
+.pkHintBox {
+  margin: 10px 0 0;
+  padding: 12px 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  background: rgba(15, 23, 42, 0.65);
+  text-align: center;
+}
+
+.themeLight .pkHintBox {
+  border-color: rgba(14, 165, 233, 0.35);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.pkHintLead {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 780;
+  line-height: 1.45;
+  color: rgba(226, 232, 240, 0.95);
+}
+
+.themeLight .pkHintLead {
+  color: #334155;
+}
+
+.pkHintLead strong {
+  font-weight: 900;
+  color: #e0f2fe;
+}
+
+.themeLight .pkHintLead strong {
+  color: #0369a1;
+}
+
+.pkHintNum {
+  margin: 6px 0 0;
+  font-size: clamp(1.65rem, 7vw, 2rem);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  color: #fde047;
+  text-shadow: 0 0 24px rgba(250, 204, 21, 0.35);
+}
+
+.themeLight .pkHintNum {
+  color: #b45309;
+  text-shadow: none;
+}
+
+.pkHintSub {
+  margin: 8px 0 0;
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.45;
+  color: rgba(148, 163, 184, 0.95);
+}
+
+.themeLight .pkHintSub {
+  color: #64748b;
+}
+
+/** PK 兩欄：二代健保試算較省 → 呼吸光框（常見 glow / pulse 卡片強調） */
+@keyframes pkWinnerPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(34, 211, 238, 0.45),
+      0 0 14px rgba(56, 189, 248, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px rgba(103, 232, 249, 0.9),
+      0 0 26px rgba(56, 189, 248, 0.55);
+  }
+}
+
+@keyframes pkWinnerPulseLight {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(2, 132, 199, 0.35),
+      0 0 10px rgba(14, 165, 233, 0.22);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px rgba(2, 132, 199, 0.65),
+      0 0 20px rgba(14, 165, 233, 0.38);
+  }
+}
+
+.pkHalfWinner {
+  border-color: rgba(56, 189, 248, 0.65) !important;
+  animation: pkWinnerPulse 2.2s ease-in-out infinite;
+}
+
+.themeLight .pkHalfWinner {
+  border-color: rgba(2, 132, 199, 0.55) !important;
+  animation-name: pkWinnerPulseLight;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pkHalfWinner {
+    animation: none;
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.55);
+  }
+
+  .themeLight .pkHalfWinner {
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.45);
+  }
 }
 
 .cta {

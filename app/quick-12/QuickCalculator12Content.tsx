@@ -1,23 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type Dispatch, type KeyboardEvent, type SetStateAction, type WheelEvent } from "react";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
 import { TICKER_PRESETS, type TickerPreset } from "@/app/ticker-presets";
+import { NHI2_THRESHOLD } from "@/lib/dividend-tax-sandbox";
 import {
   computeCombinedSalaryAndStocks,
   computeSalaryTaxBurden,
+  computeStockNhi2Snapshot,
   INSURED_SALARY_MAX,
   INSURED_SALARY_MIN,
   LABOR_SELF_RATE,
   NHI_SELF_RATE,
   SIMPLIFIED_EXEMPTION_AND_DEDUCTION,
   type StockDividendRowInput,
+  type StockNhi2PkSnapshot,
 } from "./logic";
 import styles from "./quick-12.module.css";
 import {
   annualDividendFromMarketValueApprox,
   default54cPctFromPreset,
+  defaultLotMarketValueTwd,
   estimatedAnnualCashDividendPerLot,
   formatInputMoney,
 } from "./ticker-helpers";
@@ -31,6 +35,77 @@ function fmt(n: number) {
 function parseNum(raw: string, fallback: number): number {
   const v = Number(String(raw).replace(/,/g, "").trim());
   return Number.isFinite(v) ? v : fallback;
+}
+
+/** 持股市值算式：去千分位、全形運算子 → 可 eval 片段 */
+function normalizeMoneyExprForEval(raw: string): string {
+  return raw
+    .replace(/，/g, ",")
+    .replace(/,/g, "")
+    .replace(/\s+/g, "")
+    .replace(/＋/g, "+")
+    .replace(/－/g, "-")
+    .replace(/／/g, "/")
+    .replace(/＊/g, "*")
+    .replace(/（/g, "(")
+    .replace(/）/g, ")");
+}
+
+/** 僅允許數字與 + - * /（）；Enter／失焦時結算 */
+function tryEvalArithmeticMoneyExpr(raw: string): number | null {
+  const normalized = normalizeMoneyExprForEval(raw);
+  if (!normalized) return null;
+  if (!/^[\d+\-*/().]+$/u.test(normalized)) return null;
+  try {
+    const v = new Function(`"use strict"; return (${normalized});`)();
+    if (typeof v !== "number" || !Number.isFinite(v)) return null;
+    return Math.round(Math.max(0, v));
+  } catch {
+    return null;
+  }
+}
+
+function hasIncompleteMoneyExpr(raw: string): boolean {
+  const n = normalizeMoneyExprForEval(raw);
+  if (!/[+\-*/]/.test(n)) return false;
+  return tryEvalArithmeticMoneyExpr(raw) === null;
+}
+
+function parseMarketValueForGross(raw: string): number {
+  const ev = tryEvalArithmeticMoneyExpr(raw);
+  if (ev !== null) return ev;
+  return Math.max(0, parseNum(raw, 0));
+}
+
+function wheelStepForMarketValue(cur: number): number {
+  if (!Number.isFinite(cur) || cur <= 0) return 1_000;
+  if (cur >= 2_000_000) return 100_000;
+  if (cur >= 500_000) return 50_000;
+  if (cur >= 100_000) return 10_000;
+  return 1_000;
+}
+
+function formatCommittedMarketValueField(raw: string): string {
+  const n = parseMarketValueForGross(raw);
+  return n > 0 ? formatInputMoney(n) : "";
+}
+
+type MarketGrossRow = { presetId: string; marketValueText: string; grossText: string };
+
+function recomputeGrossFromMarketValue<T extends MarketGrossRow>(row: T): T {
+  if (row.presetId === "none") return { ...row };
+  const pr = TICKER_PRESETS.find((x) => x.id === row.presetId);
+  if (!pr) return { ...row };
+  if (hasIncompleteMoneyExpr(row.marketValueText)) return { ...row };
+  const m = parseMarketValueForGross(row.marketValueText);
+  const y = pr.dividendYieldPct ?? 0;
+  const next = { ...row };
+  if (m > 0 && y > 0) {
+    next.grossText = formatInputMoney(annualDividendFromMarketValueApprox(m, y));
+  } else if (m <= 0) {
+    next.grossText = formatInputMoney(estimatedAnnualCashDividendPerLot(pr));
+  }
+  return next;
 }
 
 function newStockRowId() {
@@ -78,6 +153,267 @@ function grossTextFromPresetAndRow(p: TickerPreset, row: Pick<StockRowState, "ma
   return formatInputMoney(estimatedAnnualCashDividendPerLot(p));
 }
 
+type PkSideState = Pick<StockRowState, "presetId" | "label" | "grossText" | "ratioText" | "marketValueText">;
+
+/** 舊版名稱「2330（2 張）」或半形「2330(2 張)」仍可能留在 state／快取 */
+function matchesLegacyLotsLabel(presetId: string, rawLabel: string): boolean {
+  const t = rawLabel.trim();
+  if (!t) return false;
+  const esc = presetId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return (
+    new RegExp(`^${esc}\\s*（\\s*\\d+\\s*張）$`, "u").test(t) ||
+    new RegExp(`^${esc}\\s*\\(\\s*\\d+\\s*張\\s*\\)$`, "u").test(t)
+  );
+}
+
+function stripLegacyLotsPkLabel(side: PkSideState): PkSideState {
+  if (side.presetId === "none" || !matchesLegacyLotsLabel(side.presetId, side.label)) return side;
+  return { ...side, label: side.presetId };
+}
+
+/** 試算庫 label「元大台50（0050）- ETF…」→「元大台50」 */
+function shortNameFromPresetLabel(fullLabel: string): string {
+  const paren = fullLabel.indexOf("（");
+  if (paren > 0) return fullLabel.slice(0, paren).trim();
+  return fullLabel.split(" - ")[0]?.trim() || fullLabel;
+}
+
+/** PK 抬頭／階梯：代碼＋試算庫簡稱；不顯示張數（張數僅影響預設市值／配息試算） */
+function pkDisplayTitle(side: PkSideState, fallback: string): string {
+  const preset =
+    side.presetId !== "none" ? TICKER_PRESETS.find((p) => p.id === side.presetId) : undefined;
+
+  if (preset) {
+    const libName = shortNameFromPresetLabel(preset.label);
+    const lab = side.label.trim();
+    const looksLegacyLots = matchesLegacyLotsLabel(preset.id, lab);
+    const isDefaultCodeLabel = lab === "" || lab === preset.id || looksLegacyLots;
+    const displayName = isDefaultCodeLabel ? libName : lab;
+    return `${preset.id} ${displayName}`;
+  }
+
+  const lab = side.label.trim();
+  if (!lab) return fallback;
+
+  const codeGuess = lab.replace(/\s/g, "").split(/[（(]/)[0] ?? "";
+  const guessed = TICKER_PRESETS.find((p) => p.id === codeGuess);
+  if (guessed) return `${guessed.id} ${shortNameFromPresetLabel(guessed.label)}`;
+
+  return lab;
+}
+
+/** PK 階梯：第一行代碼、第二行簡稱＋欄位，避免單行過長 */
+function pkStepTitleLines(side: PkSideState, fallback: string): { code: string; sub: string } {
+  const full = pkDisplayTitle(side, fallback).trim();
+  const preset =
+    side.presetId !== "none" ? TICKER_PRESETS.find((p) => p.id === side.presetId) : undefined;
+  if (preset && full.startsWith(preset.id)) {
+    const rest = full.slice(preset.id.length).trim();
+    return { code: preset.id, sub: rest ? `${rest} · 二代健保` : "二代健保" };
+  }
+  const tok = (full.split(/\s+/)[0] || fallback).trim() || fallback;
+  const rest = full.slice(tok.length).trim();
+  return { code: tok, sub: rest ? `${rest} · 二代健保` : "二代健保" };
+}
+
+/** 自試算庫帶入：張數用於預設持市值與配息；代號欄僅代碼 */
+function pkSideFromPresetId(presetId: string, lots = 1): PkSideState {
+  const preset = TICKER_PRESETS.find((p) => p.id === presetId);
+  if (!preset) {
+    return { presetId: "none", label: "", grossText: "0", ratioText: "100", marketValueText: "" };
+  }
+  const nLots = Math.max(1, Math.floor(lots));
+  const mv = defaultLotMarketValueTwd(preset, nLots);
+  const y = preset.dividendYieldPct ?? 0;
+  const grossNum =
+    mv > 0 && y > 0 ? annualDividendFromMarketValueApprox(mv, y) : Math.round(estimatedAnnualCashDividendPerLot(preset) * nLots);
+  const r54 = default54cPctFromPreset(preset);
+  return {
+    presetId: preset.id,
+    label: preset.id,
+    grossText: formatInputMoney(grossNum),
+    ratioText: String(r54),
+    marketValueText: mv > 0 ? formatInputMoney(mv) : "",
+  };
+}
+
+/** 內建三組對戰（數值由試算庫 × 張數） */
+const QUICK12_PK_SCENARIOS: readonly { id: number; label: string; title: string; a: PkSideState; b: PkSideState }[] = [
+  {
+    id: 0,
+    label: "①",
+    title: "00878 ×1 vs 2330 ×2",
+    a: pkSideFromPresetId("00878", 1),
+    b: pkSideFromPresetId("2330", 2),
+  },
+  {
+    id: 1,
+    label: "②",
+    title: "0056 ×1 vs 2330 ×2",
+    a: pkSideFromPresetId("0056", 1),
+    b: pkSideFromPresetId("2330", 2),
+  },
+  {
+    id: 2,
+    label: "③",
+    title: "2454 ×1 vs 2330 ×2",
+    a: pkSideFromPresetId("2454", 1),
+    b: pkSideFromPresetId("2330", 2),
+  },
+];
+
+function Quick12Nhi2PkHalf(props: {
+  title: string;
+  side: PkSideState;
+  setSide: Dispatch<SetStateAction<PkSideState>>;
+  snapshot: StockNhi2PkSnapshot;
+  isLight: boolean;
+  /** 二代健保試算較省：外框呼吸動畫（與下方結果一致） */
+  winnerFrame?: boolean;
+}) {
+  const { title, side, setSide, snapshot, isLight, winnerFrame = false } = props;
+
+  const applyPreset = (presetId: string) => {
+    if (presetId === "none") {
+      setSide((prev) => ({ ...prev, presetId: "none" }));
+      return;
+    }
+    const preset = TICKER_PRESETS.find((p) => p.id === presetId);
+    if (!preset) return;
+    const r54 = default54cPctFromPreset(preset);
+    const mv = defaultLotMarketValueTwd(preset, 1);
+    const mvText = mv > 0 ? formatInputMoney(mv) : "";
+    setSide((prev) => ({
+      ...prev,
+      presetId: preset.id,
+      label: preset.id,
+      marketValueText: mvText,
+      grossText: grossTextFromPresetAndRow(preset, { marketValueText: mvText }),
+      ratioText: String(r54),
+    }));
+  };
+
+  const onLabel = (raw: string) => {
+    const code = raw.trim().replace(/\s/g, "");
+    const preset = TICKER_PRESETS.find((p) => p.id === code);
+    if (preset) {
+      const r54 = default54cPctFromPreset(preset);
+      const mv = defaultLotMarketValueTwd(preset, 1);
+      const mvText = mv > 0 ? formatInputMoney(mv) : "";
+      setSide((prev) => ({
+        ...prev,
+        label: preset.id,
+        presetId: preset.id,
+        marketValueText: mvText,
+        grossText: grossTextFromPresetAndRow(preset, { marketValueText: mvText }),
+        ratioText: String(r54),
+      }));
+      return;
+    }
+    setSide((prev) => ({ ...prev, label: raw, presetId: "none" }));
+  };
+
+  const commitMarketValue = () => {
+    setSide((prev) => {
+      const formatted = formatCommittedMarketValueField(prev.marketValueText);
+      return recomputeGrossFromMarketValue({ ...prev, marketValueText: formatted });
+    });
+  };
+
+  const onMarketWheel = (e: WheelEvent<HTMLInputElement>) => {
+    if (document.activeElement !== e.currentTarget) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setSide((prev) => {
+      if (prev.presetId === "none") return prev;
+      const cur = parseMarketValueForGross(prev.marketValueText);
+      const step = wheelStepForMarketValue(cur);
+      const nextVal = Math.max(0, cur + (e.deltaY < 0 ? step : -step));
+      const nextText = nextVal > 0 ? formatInputMoney(nextVal) : "";
+      return recomputeGrossFromMarketValue({ ...prev, marketValueText: nextText });
+    });
+  };
+
+  const onMarketKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      e.currentTarget.blur();
+    }
+  };
+
+  return (
+    <div
+      className={`rounded-lg border p-2 ${isLight ? "border-slate-200 bg-white" : "border-slate-600 bg-slate-900/50"} ${winnerFrame ? styles.pkHalfWinner : ""}`}
+      data-pk-winner={winnerFrame ? "1" : undefined}
+    >
+      <p className={`${styles.pkCardTitle} mb-1.5 text-[12px] font-black ${isLight ? "text-slate-800" : "text-sky-200"}`}>{title}</p>
+      <label className={`${styles.label} mb-2`}>
+        <span>代號（選填）</span>
+        <input
+          className={styles.input}
+          value={side.label}
+          onChange={(e) => onLabel(e.target.value)}
+          placeholder="例：0050"
+          inputMode="text"
+          autoCapitalize="characters"
+        />
+      </label>
+      <label className={`${styles.label} mb-2`}>
+        <span>預設標的</span>
+        <select className={styles.select} value={side.presetId} onChange={(e) => applyPreset(e.target.value)} aria-label={`${title}：預設標的`}>
+          <option value="none">不使用預設</option>
+          {TICKER_PRESETS.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.id}｜{p.label.length > 36 ? `${p.label.slice(0, 34)}…` : p.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className={`${styles.label} mb-2`}>
+        <span>持股市值（元，選填）</span>
+        <input
+          className={`${styles.input} ${styles.mvWheelInput}`}
+          value={side.marketValueText}
+          onChange={(e) => {
+            const mv = e.target.value;
+            setSide((prev) => recomputeGrossFromMarketValue({ ...prev, marketValueText: mv }));
+          }}
+          onBlur={commitMarketValue}
+          onKeyDown={onMarketKeyDown}
+          onWheel={onMarketWheel}
+          title="滾輪上下微調；可輸入算式如 500000+200000 或 (600000-50000)*0.5 — Enter 或離開欄位結算"
+          inputMode="decimal"
+          placeholder={side.presetId !== "none" ? "市值、算式或滾輪微調→年配息" : "先選預設再填市值"}
+        />
+      </label>
+      <div className={styles.row2}>
+        <label className={styles.label}>
+          <span>年現金配息（元）</span>
+          <input
+            className={styles.input}
+            value={side.grossText}
+            onChange={(e) => setSide((prev) => ({ ...prev, grossText: e.target.value, presetId: "none", marketValueText: "" }))}
+            inputMode="decimal"
+          />
+        </label>
+        <label className={styles.label}>
+          <span>54C 占比（%）</span>
+          <input
+            className={styles.input}
+            value={side.ratioText}
+            onChange={(e) => setSide((prev) => ({ ...prev, ratioText: e.target.value, presetId: "none" }))}
+            inputMode="decimal"
+          />
+        </label>
+      </div>
+      <div className={`mt-1.5 rounded-md border px-2 py-1 text-[11px] font-black leading-tight ${isLight ? "border-amber-200 bg-amber-50 text-amber-950" : "border-amber-500/35 bg-amber-950/30 text-amber-100"}`}>
+        計入 {fmt(Math.round(snapshot.taxable54))} → 二代健保 {fmt(snapshot.nhi2)}
+        {snapshot.taxable54 < NHI2_THRESHOLD ? " · 免" : ""}
+      </div>
+    </div>
+  );
+}
+
 export function QuickCalculator12Content({ embeddedInMiniBlog = false }: { embeddedInMiniBlog?: boolean } = {}) {
   const [isLight, setIsLight] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -86,12 +422,22 @@ export function QuickCalculator12Content({ embeddedInMiniBlog = false }: { embed
   const [bonusText, setBonusText] = useState("100,000");
   const [sideText, setSideText] = useState("30,000");
   const [stockRows, setStockRows] = useState(defaultStockRows);
+  /** 二代健保 PK：兩筆單筆股利對照（與加計股票相同二代健保規則） */
+  const [pkA, setPkA] = useState<PkSideState>(() => stripLegacyLotsPkLabel({ ...QUICK12_PK_SCENARIOS[0]!.a }));
+  const [pkB, setPkB] = useState<PkSideState>(() => stripLegacyLotsPkLabel({ ...QUICK12_PK_SCENARIOS[0]!.b }));
+  const [pkScenarioIdx, setPkScenarioIdx] = useState(0);
   /** 統一在列表最後「收起／展開」全部股票列明細 */
   const [stockListCollapsed, setStockListCollapsed] = useState(false);
 
   useEffect(() => {
     if (stockRows.length === 0) setStockListCollapsed(false);
   }, [stockRows.length]);
+
+  /** 清掉舊版「代碼（n 張）」名稱（熱更新／未重整仍可能殘留） */
+  useEffect(() => {
+    setPkA((s) => stripLegacyLotsPkLabel(s));
+    setPkB((s) => stripLegacyLotsPkLabel(s));
+  }, []);
 
   const monthly = Math.max(0, parseNum(monthlyText, 45_000));
   const bonus = Math.max(0, parseNum(bonusText, 100_000));
@@ -115,6 +461,47 @@ export function QuickCalculator12Content({ embeddedInMiniBlog = false }: { embed
 
   const combined = useMemo(() => computeCombinedSalaryAndStocks(salaryInput, stockInputs), [salaryInput, stockInputs]);
 
+  const pkSnapA = useMemo(
+    () =>
+      computeStockNhi2Snapshot({
+        annualGross: parseNum(pkA.grossText, 0),
+        ratio54cPct: parseNum(pkA.ratioText, 0),
+      }),
+    [pkA],
+  );
+  const pkSnapB = useMemo(
+    () =>
+      computeStockNhi2Snapshot({
+        annualGross: parseNum(pkB.grossText, 0),
+        ratio54cPct: parseNum(pkB.ratioText, 0),
+      }),
+    [pkB],
+  );
+
+  /** 僅兩欄 PK 卡片：二代健保較低者外框動畫（平手則兩側皆不強調） */
+  const pkWinnerFrameA = pkSnapA.nhi2 < pkSnapB.nhi2;
+  const pkWinnerFrameB = pkSnapB.nhi2 < pkSnapA.nhi2;
+
+  const pkTitleA = useMemo(() => pkDisplayTitle(pkA, "上欄"), [pkA]);
+  const pkTitleB = useMemo(() => pkDisplayTitle(pkB, "下欄"), [pkB]);
+  const pkStepLinesA = useMemo(() => pkStepTitleLines(pkA, "上欄"), [pkA]);
+  const pkStepLinesB = useMemo(() => pkStepTitleLines(pkB, "下欄"), [pkB]);
+  const pkDiffPayerLines = useMemo(
+    () => pkStepTitleLines(pkSnapA.nhi2 > pkSnapB.nhi2 ? pkA : pkB, "—"),
+    [pkA, pkB, pkSnapA.nhi2, pkSnapB.nhi2],
+  );
+
+  /** PK 底部一句話：結構給 JSX，金額另用樣式凸顯 */
+  const pkPick = useMemo(() => {
+    if (pkSnapA.nhi2 === pkSnapB.nhi2) {
+      return { kind: "tie" as const };
+    }
+    const diff = Math.abs(pkSnapA.nhi2 - pkSnapB.nhi2);
+    const saver = pkSnapA.nhi2 < pkSnapB.nhi2 ? pkTitleA : pkTitleB;
+    const payer = pkSnapA.nhi2 > pkSnapB.nhi2 ? pkTitleA : pkTitleB;
+    return { kind: "pick" as const, saver, payer, diff };
+  }, [pkSnapA.nhi2, pkSnapB.nhi2, pkTitleA, pkTitleB]);
+
   const canAddStockRow = useMemo(() => {
     if (stockRows.length >= MAX_STOCK_ROWS) return false;
     if (stockRows.length === 0) return true;
@@ -125,7 +512,7 @@ export function QuickCalculator12Content({ embeddedInMiniBlog = false }: { embed
   const lhPct = Math.round((LABOR_SELF_RATE + NHI_SELF_RATE) * 10000) / 100;
 
   const switchPage = useCallback((p: number) => {
-    setCurrentPage(Math.max(0, Math.min(1, p)));
+    setCurrentPage(Math.max(0, Math.min(2, p)));
   }, []);
 
   const addStockRow = useCallback(() => {
@@ -195,20 +582,34 @@ export function QuickCalculator12Content({ embeddedInMiniBlog = false }: { embed
     setStockRows((rows) =>
       rows.map((r) => {
         if (r.id !== rowId) return r;
-        const next: StockRowState = { ...r, marketValueText };
-        if (r.presetId !== "none") {
-          const preset = TICKER_PRESETS.find((p) => p.id === r.presetId);
-          if (preset) {
-            const mv = parseNum(marketValueText, 0);
-            const y = preset.dividendYieldPct ?? 0;
-            if (mv > 0 && y > 0) {
-              next.grossText = formatInputMoney(annualDividendFromMarketValueApprox(mv, y));
-            } else if (mv <= 0) {
-              next.grossText = formatInputMoney(estimatedAnnualCashDividendPerLot(preset));
-            }
-          }
-        }
-        return next;
+        return recomputeGrossFromMarketValue({ ...r, marketValueText });
+      }),
+    );
+  }, []);
+
+  const onMarketValueBlur = useCallback((rowId: string) => {
+    setStockRows((rows) =>
+      rows.map((r) => {
+        if (r.id !== rowId) return r;
+        const formatted = formatCommittedMarketValueField(r.marketValueText);
+        return recomputeGrossFromMarketValue({ ...r, marketValueText: formatted });
+      }),
+    );
+  }, []);
+
+  const onMarketValueWheel = useCallback((rowId: string, e: WheelEvent<HTMLInputElement>) => {
+    if (document.activeElement !== e.currentTarget) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setStockRows((rows) =>
+      rows.map((r) => {
+        if (r.id !== rowId) return r;
+        if (r.presetId === "none") return r;
+        const cur = parseMarketValueForGross(r.marketValueText);
+        const step = wheelStepForMarketValue(cur);
+        const nextVal = Math.max(0, cur + (e.deltaY < 0 ? step : -step));
+        const nextText = nextVal > 0 ? formatInputMoney(nextVal) : "";
+        return recomputeGrossFromMarketValue({ ...r, marketValueText: nextText });
       }),
     );
   }, []);
@@ -218,8 +619,9 @@ export function QuickCalculator12Content({ embeddedInMiniBlog = false }: { embed
   }, []);
 
   const pageTabs = [
-    { id: 0, title: "月薪試算" },
-    { id: 1, title: "加計股票" },
+    { id: 0, title: "月薪" },
+    { id: 1, title: "股票" },
+    { id: 2, title: "PK" },
   ] as const;
 
   const shell = `${styles.shell} ${embeddedInMiniBlog ? styles.embedded : ""} ${isLight ? styles.themeLight : ""}`.trim();
@@ -250,8 +652,8 @@ export function QuickCalculator12Content({ embeddedInMiniBlog = false }: { embed
             </button>
           </div>
           <h1 className={`mt-1 text-[1.35rem] font-black leading-tight ${isLight ? "text-slate-900" : "text-white"}`}>實領薪資與稅務負擔</h1>
-          <p className={`mt-1 text-[13px] font-semibold leading-snug ${isLight ? "text-slate-600" : "text-slate-400"}`}>
-            開頁即試算。切「加計股票」可新增多筆年配息；二代健保以 54C 計入與 2 萬比（與大計算機一致）。
+          <p className={`mt-1 text-[12px] font-semibold leading-snug ${isLight ? "text-slate-600" : "text-slate-400"}`}>
+            拉數字、比兩檔二代健保，當計算機玩就好。
           </p>
         </header>
 
@@ -270,7 +672,7 @@ export function QuickCalculator12Content({ embeddedInMiniBlog = false }: { embed
                 key={tab.id}
                 type="button"
                 onClick={() => switchPage(tab.id)}
-                className={`min-h-[2.5rem] flex-1 rounded-md px-2 py-2 text-[14px] font-bold transition whitespace-nowrap ${
+                className={`min-h-[2rem] flex-1 rounded-md px-1 py-1 text-[11px] font-bold transition whitespace-nowrap ${
                   currentPage === tab.id
                     ? isLight
                       ? "bg-sky-600 text-white shadow-sm"
@@ -286,6 +688,8 @@ export function QuickCalculator12Content({ embeddedInMiniBlog = false }: { embed
           </div>
 
           <div className="space-y-3">
+              {currentPage !== 2 ? (
+              <>
               <div className={styles.panel}>
                 <p className={`text-[14px] font-black ${isLight ? "text-slate-800" : "text-slate-200"}`}>
                   {currentPage === 0 ? "薪資與獎金" : "薪資與獎金（與月薪試算共用）"}
@@ -387,11 +791,20 @@ export function QuickCalculator12Content({ embeddedInMiniBlog = false }: { embed
                                 <label className={`${styles.label} mb-2`}>
                                   <span>持股市值（元，選填）</span>
                                   <input
-                                    className={styles.input}
+                                    className={`${styles.input} ${styles.mvWheelInput}`}
                                     value={row.marketValueText ?? ""}
                                     onChange={(e) => onMarketValueChange(row.id, e.target.value)}
+                                    onBlur={() => onMarketValueBlur(row.id)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") {
+                                        e.preventDefault();
+                                        (e.target as HTMLInputElement).blur();
+                                      }
+                                    }}
+                                    onWheel={(e) => onMarketValueWheel(row.id, e)}
+                                    title="滾輪上下微調；可輸入算式如 500000+200000 — Enter 或離開欄位結算"
                                     inputMode="decimal"
-                                    placeholder={row.presetId !== "none" ? "填市值→依殖利率粗估年配息" : "先選預設標的再填市值"}
+                                    placeholder={row.presetId !== "none" ? "市值、算式或滾輪微調→年配息" : "先選預設標的再填市值"}
                                   />
                                 </label>
                                 <div className={styles.row2}>
@@ -452,9 +865,122 @@ export function QuickCalculator12Content({ embeddedInMiniBlog = false }: { embed
                   ) : null}
                 </div>
               ) : null}
+              </>
+              ) : (
+                <div className={styles.panel}>
+                  <p className={`mb-2 text-center text-[1.05rem] font-black tracking-wide ${isLight ? "text-slate-900" : "text-white"}`}>
+                    ⚔️ PK
+                  </p>
+                  <div className="mb-2 flex gap-1">
+                    {QUICK12_PK_SCENARIOS.map((s) => {
+                      const active = pkScenarioIdx === s.id;
+                      return (
+                        <button
+                          key={s.id}
+                          type="button"
+                          title={s.title}
+                          aria-label={`帶入對戰組 ${s.title}`}
+                          onClick={() => {
+                            setPkA(stripLegacyLotsPkLabel({ ...s.a }));
+                            setPkB(stripLegacyLotsPkLabel({ ...s.b }));
+                            setPkScenarioIdx(s.id);
+                          }}
+                          className={`min-h-0 flex-1 rounded-md border px-0.5 py-1.5 text-center text-[13px] font-black leading-none transition ${
+                            active
+                              ? isLight
+                                ? "border-sky-500 bg-sky-500 text-white shadow-sm"
+                                : "border-sky-400 bg-sky-600 text-white shadow-[0_0_8px_rgba(56,189,248,0.35)]"
+                              : isLight
+                                ? "border-slate-200 bg-white text-slate-800 hover:border-sky-300"
+                                : "border-slate-600 bg-slate-900/50 text-sky-100 hover:border-slate-500"
+                          }`}
+                        >
+                          {s.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Quick12Nhi2PkHalf
+                      title={pkTitleA}
+                      side={pkA}
+                      setSide={setPkA}
+                      snapshot={pkSnapA}
+                      isLight={isLight}
+                      winnerFrame={pkWinnerFrameA}
+                    />
+                    <Quick12Nhi2PkHalf
+                      title={pkTitleB}
+                      side={pkB}
+                      setSide={setPkB}
+                      snapshot={pkSnapB}
+                      isLight={isLight}
+                      winnerFrame={pkWinnerFrameB}
+                    />
+                  </div>
+                </div>
+              )}
 
-              <section className={styles.steps} aria-label="試算結果階梯">
-                <h2 className={styles.stepsTitle}>試算結果（階梯式）</h2>
+              <section
+                className={styles.steps}
+                aria-label={currentPage === 2 ? "PK 結果" : "試算結果階梯"}
+              >
+                <h2 className={styles.stepsTitle}>{currentPage === 2 ? "PK！" : "試算結果（階梯式）"}</h2>
+                {currentPage === 2 ? (
+                  <>
+                    <div className={`${styles.step} ${styles.stepL1}`}>
+                      <div className={styles.pkStepLabelStack}>
+                        <div className={styles.pkStepLineCode}>{pkStepLinesA.code}</div>
+                        <div className={styles.pkStepLineSub}>{pkStepLinesA.sub}</div>
+                      </div>
+                      <div className={`${styles.stepValue} ${styles.gov}`}>NT$ {fmt(pkSnapA.nhi2)}</div>
+                    </div>
+                    <div className={`${styles.step} ${styles.stepL1}`}>
+                      <div className={styles.pkStepLabelStack}>
+                        <div className={styles.pkStepLineCode}>{pkStepLinesB.code}</div>
+                        <div className={styles.pkStepLineSub}>{pkStepLinesB.sub}</div>
+                      </div>
+                      <div className={`${styles.stepValue} ${styles.gov}`}>NT$ {fmt(pkSnapB.nhi2)}</div>
+                    </div>
+                    <div className={`${styles.step} ${styles.stepL2} ${styles.pkDiffStep}`}>
+                      <div className={styles.stepLabel}>差多少</div>
+                      {pkSnapA.nhi2 === pkSnapB.nhi2 ? (
+                        <div className={`${styles.stepValue} ${styles.muted}`}>平手</div>
+                      ) : (
+                        <>
+                          <div className={styles.pkDiffLead}>
+                            <span
+                              className={styles.pkDiffCode}
+                              title={pkSnapA.nhi2 > pkSnapB.nhi2 ? pkTitleA : pkTitleB}
+                            >
+                              {pkDiffPayerLines.code}
+                            </span>
+                            <span className={styles.pkDiffVerb}>多付（二代健保）</span>
+                          </div>
+                          <div className={`${styles.stepValue} ${styles.gov} ${styles.pkDiffAmount}`}>
+                            NT$ {fmt(Math.abs(pkSnapA.nhi2 - pkSnapB.nhi2))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    <div className={styles.pkHintBox} role="status">
+                      {pkPick.kind === "tie" ? (
+                        <p className={styles.pkHintLead}>平手，兩邊一樣。</p>
+                      ) : (
+                        <>
+                          <p className={styles.pkHintLead}>
+                            這局偏 <strong>{pkPick.saver}</strong>
+                          </p>
+                          <p className={styles.pkHintNum} aria-label={`約省 ${fmt(pkPick.diff)} 元`}>
+                            NT$ {fmt(pkPick.diff)}
+                          </p>
+                          <p className={styles.pkHintSub}>比 {pkPick.payer} 省</p>
+                        </>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <>
                 <div className={styles.taxHero} role="region" aria-label="綜合所得稅試算摘要">
                   <div className={styles.taxHeroLabel}>綜合所得稅（全年，示意）</div>
                   <div className={`${styles.taxHeroAmount} ${styles.gov}`}>
@@ -504,7 +1030,7 @@ export function QuickCalculator12Content({ embeddedInMiniBlog = false }: { embed
                         const name = row.label.trim() || `第 ${i + 1} 筆`;
                         return (
                           <li key={row.id}>
-                            {name}：54C 計入 {fmt(d.taxable54)} → 二代 {fmt(d.nhi2)}
+                            {name}：54C 計入 {fmt(d.taxable54)} → 二代健保 {fmt(d.nhi2)}
                           </li>
                         );
                       })}
@@ -539,6 +1065,8 @@ export function QuickCalculator12Content({ embeddedInMiniBlog = false }: { embed
                 <p className={styles.note}>
                   紅色為公費與稅；綠色為落袋。綜所為簡化扣除與累進，與實際申報可能不同。
                 </p>
+                  </>
+                )}
               </section>
           </div>
         </section>

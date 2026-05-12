@@ -94,6 +94,25 @@ export type CombinedSalaryStockResult = SalaryTaxResult & {
   stockDetails: StockDividendDetail[];
 };
 
+export type StockNhi2PkSnapshot = {
+  annualGross: number;
+  ratio54cPct: number;
+  /** 用於與 2 萬門檻比較之金額（年現金股利 × 54C%） */
+  taxable54: number;
+  /** 二代健保補充保費（單筆、與加計股票列相同規則） */
+  nhi2: number;
+};
+
+/** 單筆股利：54C 計入與二代健保（與「加計股票」每列相同），供 PK 分頁專用。 */
+export function computeStockNhi2Snapshot(row: StockDividendRowInput): StockNhi2PkSnapshot {
+  const g = Math.max(0, Math.round(row.annualGross));
+  const rPct = Math.min(100, Math.max(0, row.ratio54cPct));
+  const r = rPct / 100;
+  const taxable54 = g * r;
+  const nhi2 = nhi2FromTaxable54cBase(taxable54);
+  return { annualGross: g, ratio54cPct: rPct, taxable54, nhi2 };
+}
+
 function nhi2FromTaxable54cBase(taxable54: number): number {
   const t = Math.max(0, taxable54);
   if (t < NHI2_THRESHOLD) return 0;

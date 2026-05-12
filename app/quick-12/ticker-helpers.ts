@@ -39,3 +39,14 @@ export function annualDividendFromMarketValueApprox(marketValue: number, yieldPc
   if (mv <= 0 || y <= 0) return 0;
   return Math.round(mv * (y / 100));
 }
+
+/**
+ * PK／持股市值欄預設：試算庫僅有單一「參考股價」，無價量分佈時以
+ * 「每股參考價 × 1000 股 × 張數」當常見一張面額名義市值（教學試算用；非全市場統計中位數）。
+ */
+export function defaultLotMarketValueTwd(p: TickerPreset, lots = 1): number {
+  const n = Math.max(1, Math.floor(lots));
+  const price = p.price ?? 0;
+  if (price <= 0) return 0;
+  return Math.round(price * 1000 * n);
+}
