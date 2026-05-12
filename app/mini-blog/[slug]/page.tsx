@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BlogMiniCalculatorEmbed } from "../../blog/blog-mini-calculator-embed";
+import { WF_BLOG_CALCULATOR_CTA_ID } from "../../blog/blog-calculator-cta";
 import { BlogScheduledPlaceholder } from "../../blog/blog-scheduled-placeholder";
 import {
   getQuick1ExclusivePostBySlug,
@@ -9,6 +10,7 @@ import {
   QUICK1_EXCLUSIVE_POSTS,
   type Quick1ExclusivePost,
 } from "../posts/quick1-exclusive";
+import { QUICK12_DISPLAY_TITLE } from "@/app/quick-12/display-title";
 import styles from "../../blog/blog.module.css";
 
 type PageProps = {
@@ -79,11 +81,11 @@ export default async function MiniBlogPostPage({ params }: PageProps) {
                       : post.calculatorRoute === "/quick-11"
                         ? "破產計算機"
                         : post.calculatorRoute === "/quick-12"
-                          ? "小額貸款代價計算機"
+                          ? QUICK12_DISPLAY_TITLE
         : "存股複利計算機";
 
   return (
-    <article className={styles.wrap}>
+    <article className={styles.wrap} data-mini-blog-route={post.calculatorRoute}>
       <div className={styles.postMetaRow}>
         <Link href="/mini-blog" className={styles.back} prefetch={false}>
           ← 小計算機專屬文章列表
@@ -104,8 +106,8 @@ export default async function MiniBlogPostPage({ params }: PageProps) {
             <div className={styles.article}>
               <section key={firstSection.heading}>
                 <h2>{firstSection.heading}</h2>
-                {firstSection.paragraphs.map((paragraph) => (
-                  <p key={paragraph} className={styles.grafTight}>
+                {firstSection.paragraphs.map((paragraph, pIdx) => (
+                  <p key={`${firstSection.heading}-${pIdx}`} className={styles.grafTight}>
                     {paragraph}
                   </p>
                 ))}
@@ -126,14 +128,22 @@ export default async function MiniBlogPostPage({ params }: PageProps) {
                 note={post.calculatorNote}
                 miniBlogSlug={post.slug}
               />
+              <div className={styles.articleAdjacentEmbedFooter}>
+                <p className={styles.articleAdjacentEmbedFooterText}>
+                  你可以在<strong>財富自由計算機</strong>把每期須扣除、稅費與達標年期放在同一條時間軸比較，避免只看一個報酬率數字做決策。
+                </p>
+                <Link id={WF_BLOG_CALCULATOR_CTA_ID} href="/" className={styles.cta} target="_blank" rel="noopener noreferrer" prefetch={false}>
+                  前往財富自由計算機（另開分頁）→
+                </Link>
+              </div>
             </div>
 
             <div className={styles.article}>
               {restSections.map((section) => (
                 <section key={section.heading}>
                   <h2>{section.heading}</h2>
-                  {section.paragraphs.map((paragraph) => (
-                    <p key={paragraph} className={styles.grafTight}>
+                  {section.paragraphs.map((paragraph, pIdx) => (
+                    <p key={`${section.heading}-${pIdx}`} className={styles.grafTight}>
                       {paragraph}
                     </p>
                   ))}

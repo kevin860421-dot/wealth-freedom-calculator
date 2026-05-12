@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState, type Dispatch, type Keyboard
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
 import { TICKER_PRESETS, type TickerPreset } from "@/app/ticker-presets";
 import { NHI2_THRESHOLD } from "@/lib/dividend-tax-sandbox";
+import { QUICK12_DISPLAY_TITLE } from "./display-title";
 import {
   computeCombinedSalaryAndStocks,
   computeSalaryTaxBurden,
@@ -414,18 +415,41 @@ function Quick12Nhi2PkHalf(props: {
   );
 }
 
-export function QuickCalculator12Content({ embeddedInMiniBlog = false }: { embeddedInMiniBlog?: boolean } = {}) {
+export function QuickCalculator12Content({
+  embeddedInMiniBlog = false,
+  initialPage,
+  initialPkScenarioIdx = 0,
+}: {
+  embeddedInMiniBlog?: boolean;
+  /** mini-blog 文內試算：0 月薪、1 股票、2 PK */
+  initialPage?: 0 | 1 | 2;
+  /** 僅在 initialPage 為 PK 時使用；對應 QUICK12_PK_SCENARIOS 索引 */
+  initialPkScenarioIdx?: number;
+} = {}) {
   const [isLight, setIsLight] = useState(false);
-  const [currentPage, setCurrentPage] = useState(0);
+  const embedPage = embeddedInMiniBlog ? (initialPage ?? 0) : 0;
+  const pkIdxInit =
+    embeddedInMiniBlog && embedPage === 2
+      ? Math.max(
+          0,
+          Math.min(QUICK12_PK_SCENARIOS.length - 1, Math.floor(Number(initialPkScenarioIdx) || 0)),
+        )
+      : 0;
+
+  const [currentPage, setCurrentPage] = useState(embedPage);
 
   const [monthlyText, setMonthlyText] = useState("45,000");
   const [bonusText, setBonusText] = useState("100,000");
   const [sideText, setSideText] = useState("30,000");
   const [stockRows, setStockRows] = useState(defaultStockRows);
   /** 二代健保 PK：兩筆單筆股利對照（與加計股票相同二代健保規則） */
-  const [pkA, setPkA] = useState<PkSideState>(() => stripLegacyLotsPkLabel({ ...QUICK12_PK_SCENARIOS[0]!.a }));
-  const [pkB, setPkB] = useState<PkSideState>(() => stripLegacyLotsPkLabel({ ...QUICK12_PK_SCENARIOS[0]!.b }));
-  const [pkScenarioIdx, setPkScenarioIdx] = useState(0);
+  const [pkA, setPkA] = useState<PkSideState>(() =>
+    stripLegacyLotsPkLabel({ ...QUICK12_PK_SCENARIOS[pkIdxInit]!.a }),
+  );
+  const [pkB, setPkB] = useState<PkSideState>(() =>
+    stripLegacyLotsPkLabel({ ...QUICK12_PK_SCENARIOS[pkIdxInit]!.b }),
+  );
+  const [pkScenarioIdx, setPkScenarioIdx] = useState(pkIdxInit);
   /** 統一在列表最後「收起／展開」全部股票列明細 */
   const [stockListCollapsed, setStockListCollapsed] = useState(false);
 
@@ -512,7 +536,7 @@ export function QuickCalculator12Content({ embeddedInMiniBlog = false }: { embed
   const lhPct = Math.round((LABOR_SELF_RATE + NHI_SELF_RATE) * 10000) / 100;
 
   const switchPage = useCallback((p: number) => {
-    setCurrentPage(Math.max(0, Math.min(2, p)));
+    setCurrentPage(Math.max(0, Math.min(2, p)) as 0 | 1 | 2);
   }, []);
 
   const addStockRow = useCallback(() => {
@@ -618,6 +642,10 @@ export function QuickCalculator12Content({ embeddedInMiniBlog = false }: { embed
     setStockRows((rows) => rows.map((r) => (r.id === rowId ? { ...r, ratioText, presetId: "none" } : r)));
   }, []);
 
+  const q12Dash = QUICK12_DISPLAY_TITLE.indexOf("-");
+  const q12TitleFirst = q12Dash === -1 ? QUICK12_DISPLAY_TITLE : QUICK12_DISPLAY_TITLE.slice(0, q12Dash + 1);
+  const q12TitleSecond = q12Dash === -1 ? "" : QUICK12_DISPLAY_TITLE.slice(q12Dash + 1);
+
   const pageTabs = [
     { id: 0, title: "月薪" },
     { id: 1, title: "股票" },
@@ -639,7 +667,9 @@ export function QuickCalculator12Content({ embeddedInMiniBlog = false }: { embed
           }`}
         >
           <div className="flex items-start justify-between gap-2">
-            <p className={`text-[15px] font-black tracking-wide ${isLight ? "text-sky-800" : "text-sky-300"}`}>財富自由計算機 · 第 12 台</p>
+            <p className={`text-[15px] font-black tracking-wide ${isLight ? "text-sky-800" : "text-sky-300"}`}>
+              財富自由計算機 · 第 12 台
+            </p>
             <button
               type="button"
               onClick={() => setIsLight((v) => !v)}
@@ -651,9 +681,16 @@ export function QuickCalculator12Content({ embeddedInMiniBlog = false }: { embed
               {isLight ? "深" : "淺"}
             </button>
           </div>
-          <h1 className={`mt-1 text-[1.35rem] font-black leading-tight ${isLight ? "text-slate-900" : "text-white"}`}>實領薪資與稅務負擔</h1>
-          <p className={`mt-1 text-[12px] font-semibold leading-snug ${isLight ? "text-slate-600" : "text-slate-400"}`}>
-            拉數字、比兩檔二代健保，當計算機玩就好。
+          <h1
+            className={`mt-1 text-[1.12rem] font-black leading-snug sm:text-[1.28rem] ${isLight ? "text-slate-900" : "text-white"}`}
+          >
+            <span className="block sm:inline">{q12TitleFirst}</span>
+            {q12TitleSecond ? (
+              <span className="block sm:inline sm:ml-0">{q12TitleSecond}</span>
+            ) : null}
+          </h1>
+          <p className={`mt-2 text-[12px] font-semibold leading-relaxed ${isLight ? "text-slate-600" : "text-slate-400"}`}>
+            月薪、年終、股利，先丟同一鍋試算；數字對齊了，心裡才不會亂。
           </p>
         </header>
 

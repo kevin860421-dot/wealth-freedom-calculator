@@ -2,6 +2,10 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
+  /** 供 client 讀取（mini-blog 排程預覽等）；正式 production build 會內嵌為 `production`。 */
+  env: {
+    NEXT_PUBLIC_VERCEL_ENV: process.env.VERCEL_ENV ?? "",
+  },
   /**
    * React Compiler 會明顯加重 dev 編譯（尤其像 postflow/library 這種超大 client page）。
    * 僅在 NODE_ENV === "development" 時關閉；`next build` 等其餘情況維持開啟。

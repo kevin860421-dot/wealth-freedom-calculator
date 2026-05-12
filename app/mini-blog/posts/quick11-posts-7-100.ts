@@ -76,9 +76,10 @@ function buildSeed(
   const principalZh = formatPrincipalZhTW(loan.amount);
   const title =
     `${loan.label}${tab.title}划算嗎？${principalZh}、年利率 ${loan.annualRate}% 實測怎麼看${roundNote}`.trim();
-  const subtitle = `${principalHint}；開啟文末試算後建議先查看「${tab.title}」單元的對照。`;
-  const seoTitle = `${loan.label}${tab.title}試算｜破產計算機｜${pickSeo(loanKey, serial, "a")}`;
-  const metaDescription = `${tab.hook} 本篇試算條件含 ${loan.icon} ${loan.label}、${tab.title}。延伸可對照：${pickSeo(loanKey, serial, "a")}、${pickSeo(loanKey, serial, "b")}。情境試算僅供參考，以契約為準。`;
+  const subtitle = `有時不是繳不起，是繳完才發現心很空——${principalHint}；開啟文末試算後建議先查看「${tab.title}」單元的對照。`;
+  const seoCore = `${pickSeo(loanKey, serial, "a")} × ${tab.title}`;
+  const seoTitle = `破產計算機｜2026 ${seoCore}與 DTI 破產預警`;
+  const metaDescription = `${tab.hook} 很多人拖到 DTI 變色才願意面對；本篇試算條件含 ${loan.icon} ${loan.label}、${tab.title}。延伸可對照：${pickSeo(loanKey, serial, "a")}、${pickSeo(loanKey, serial, "b")}。情境試算僅供參考，以契約為準。`;
 
   return {
     slug,
@@ -90,7 +91,7 @@ function buildSeed(
     keywordA: pickSeo(loanKey, serial, "a"),
     keywordB: pickSeo(loanKey, serial, "b"),
     keywordC: pickSeo(loanKey, serial, "c"),
-    closeQuestion: `若「${tab.title}」下的數字比你預期更硬，你會先調本金、年期，還是先拉高每月多還？`,
+    closeQuestion: `若「${tab.title}」那頁數字讓你心裡一沉，你會先動本金、年期，還是先承認自己需要多留一點生活縫隙？`,
     calculatorRoute: "/quick-11",
     calculatorName: "破產計算機",
     calculatorNote: `本篇試算條件：文末試算開啟後會先顯示「${tab.title}」試算單元；若要回到與本文一致的預設本金／利率，請在試算頁選 ${loan.icon} ${loan.label} 情境。`,
@@ -115,16 +116,90 @@ function formatTaipeiIso(ms: number): string {
   return `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}:${map.second}+08:00`;
 }
 
-/** 破產計算機 100 篇公開時間：自 5/10 中午過後起，每日最多 2 篇（12:30、18:00 台北），順序對齊支柱 6 → 量產 94 */
+/** 破產計算機 100 篇：前 6 篇維持 5/10～5/12 每日兩檔；自 5/13 起改為每日 2～3 篇、時刻錯開（避主要連假），降低規律訊號。 */
 const QUICK11_PUBLISH_SLOT_COUNT = 100;
+const QUICK11_LEGACY_SLOT_COUNT = 6;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const QUICK11_FIRST_SLOT_OF_DAY_MS = Date.parse("2026-05-10T12:30:00+08:00");
-/** 同日第二篇 18:00（距 12:30 為 5.5 小時） */
 const QUICK11_SECOND_SLOT_OFFSET_MS = 5.5 * 60 * 60 * 1000;
 
-export const QUICK11_ALL_100_PUBLISH_SLOTS: readonly string[] = Array.from(
-  { length: QUICK11_PUBLISH_SLOT_COUNT },
-  (_, i) => {
+const QUICK11_POST_MAY13_EXCLUDE_YMD = new Set([
+  "2026-06-19",
+  "2026-06-20",
+  "2026-06-21",
+  "2026-09-25",
+  "2026-09-26",
+  "2026-09-27",
+  "2026-09-28",
+  "2026-10-09",
+  "2026-10-10",
+  "2026-10-11",
+  "2026-10-24",
+  "2026-10-25",
+  "2026-10-26",
+  "2026-12-25",
+  "2026-12-26",
+  "2026-12-27",
+]);
+
+function taipeiYmdParts(ms: number): { y: string; mo: string; d: string } {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Taipei",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(ms));
+  const map = Object.fromEntries(parts.filter((p) => p.type !== "literal").map((p) => [p.type, p.value])) as Record<
+    string,
+    string
+  >;
+  return { y: map.year, mo: map.month, d: map.day };
+}
+
+function formatTaipeiIsoFromParts(y: string, mo: string, d: string, hour: number, minute: number, second: number): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${y}-${mo}-${d}T${pad(hour)}:${pad(minute)}:${pad(second)}+08:00`;
+}
+
+/** 5/13 起：每日 2～3 篇，時刻帶固定亂數偏移（仍確定性），避開連假曆日 */
+function buildQuick11SlotsFromMay13(count: number): string[] {
+  const MAY13_NOON_MS = Date.parse("2026-05-13T12:00:00+08:00");
+  const out: string[] = [];
+  let dayOffset = 0;
+  let safety = 0;
+  const clockPlans: Array<[number, number]> = [
+    [9, 7],
+    [13, 42],
+    [20, 11],
+  ];
+  while (out.length < count && safety < 520) {
+    safety += 1;
+    const dayMs = MAY13_NOON_MS + dayOffset * DAY_MS;
+    const { y, mo, d } = taipeiYmdParts(dayMs);
+    const ymd = `${y}-${mo}-${d}`;
+    if (QUICK11_POST_MAY13_EXCLUDE_YMD.has(ymd)) {
+      dayOffset += 1;
+      continue;
+    }
+    const postsToday = 2 + (dayOffset % 2);
+    const baseIdx = out.length + dayOffset * 7;
+    for (let k = 0; k < postsToday && out.length < count; k++) {
+      const [h0, m0] = clockPlans[k % clockPlans.length];
+      const jitter = (baseIdx * 19 + k * 23 + out.length * 11) % 37;
+      const minute = Math.min(59, m0 + jitter);
+      const second = 6 + ((baseIdx + k * 5) % 48);
+      out.push(formatTaipeiIsoFromParts(y, mo, d, h0, minute, second));
+    }
+    dayOffset += 1;
+  }
+  if (out.length < count) {
+    throw new Error(`[quick11] 無法產足 ${count} 個 5/13 後發文槽位（只產出 ${out.length}）`);
+  }
+  return out.slice(0, count);
+}
+
+export const QUICK11_ALL_100_PUBLISH_SLOTS: readonly string[] = (() => {
+  const legacy = Array.from({ length: QUICK11_LEGACY_SLOT_COUNT }, (_, i) => {
     const dayIndex = Math.floor(i / 2);
     const slotInDay = i % 2;
     const ms =
@@ -132,8 +207,10 @@ export const QUICK11_ALL_100_PUBLISH_SLOTS: readonly string[] = Array.from(
       dayIndex * DAY_MS +
       (slotInDay === 0 ? 0 : QUICK11_SECOND_SLOT_OFFSET_MS);
     return formatTaipeiIso(ms);
-  },
-);
+  });
+  const rest = buildQuick11SlotsFromMay13(QUICK11_PUBLISH_SLOT_COUNT - QUICK11_LEGACY_SLOT_COUNT);
+  return [...legacy, ...rest];
+})();
 
 function generate(): TopicSeed[] {
   const seeds: TopicSeed[] = [];

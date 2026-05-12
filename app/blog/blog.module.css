@@ -329,10 +329,85 @@
  * `.article p` / `.article h2` / `.article ul` 等後代選擇器覆寫試算 UI 的 Tailwind。
  * 寬度與 `.article` 同為 38rem 置中。
  */
+/* 第12台專文：副標多行、段落呼吸、節奏略鬆（對齊 [slug]/page data-mini-blog-route） */
+article[data-mini-blog-route="/quick-12"] .title {
+  font-size: clamp(1.22rem, 4.2vw, 1.7rem);
+  line-height: 1.38;
+}
+
+article[data-mini-blog-route="/quick-12"] .subtitle {
+  white-space: pre-line;
+  line-height: 1.75;
+  margin-bottom: 2rem;
+}
+
+/* 大節（H2）之間：約兩行空白＋原間距 */
+article[data-mini-blog-route="/quick-12"] .article h2 {
+  margin-top: 0;
+  margin-bottom: 1.1rem;
+  line-height: 1.45;
+}
+
+article[data-mini-blog-route="/quick-12"] .article h2:first-of-type {
+  margin-top: 2rem;
+}
+
+article[data-mini-blog-route="/quick-12"] .article section + section > h2 {
+  margin-top: calc(2 * 1.85em + 3rem);
+}
+
+article[data-mini-blog-route="/quick-12"] .articleAdjacentEmbed + .article > section:first-child > h2 {
+  margin-top: calc(2 * 1.85em + 2.5rem);
+}
+
+/* 段與段：一段落才空一行（單一段距，不要句點就換段） */
+article[data-mini-blog-route="/quick-12"] .article .grafTight {
+  margin-top: 0;
+  margin-bottom: 1.65rem;
+  line-height: 1.85;
+  font-size: 1.05rem;
+  max-width: 36rem;
+}
+
+article[data-mini-blog-route="/quick-12"] .article .grafTight:last-of-type {
+  margin-bottom: 0.25rem;
+}
+
+article[data-mini-blog-route="/quick-12"] .article ul {
+  margin: 0.35rem 0 0.5rem;
+}
+
+article[data-mini-blog-route="/quick-12"] .article li + li {
+  margin-top: 0.45rem;
+}
+
 .articleAdjacentEmbed {
   max-width: 38rem;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* 小計算機 embed 下方：主站 CTA（與試算同欄、置底於小計算區塊） */
+.articleAdjacentEmbedFooter {
+  max-width: 38rem;
+  margin: 1.25rem auto 0;
+  padding-top: 0.35rem;
+}
+
+.articleAdjacentEmbedFooterText {
+  margin: 0 0 0.85rem;
+  color: var(--morandi-text-body, #ddd4ca);
+  font-size: 1.0625rem;
+  line-height: 1.72;
+}
+
+.articleAdjacentEmbedFooterText strong {
+  color: var(--morandi-text, #f0ebe5);
+  font-weight: 600;
+}
+
+.articleAdjacentEmbedFooter .cta {
+  margin-top: 0.35rem;
 }
 
 /* 迷你部落格文內試算（無 inline style） */

@@ -6,6 +6,7 @@ import {
   isQuick1ExclusivePostPublished,
   QUICK11_ROUTE_LINK_ITEMS,
 } from "../mini-blog/posts/quick1-exclusive";
+import { QUICK12_ROUTE_LINK_ITEMS } from "../mini-blog/posts/quick12-posts-2-100";
 
 type QuickRoute =
   | "/quick-1"
@@ -1047,9 +1048,10 @@ const QUICK_ROUTE_LINKS: Record<QuickRoute, readonly { href: string; title: stri
       description: "下一次大跌照流程走。",
     },
   ],
-  /** 第 1～100 篇資料源 {@link QUICK11_ROUTE_LINK_ITEMS}；折疊區僅顯示已到 publishAtIso 的項目（會隨時間自動變多）。 */
+  /** 第 1～100 篇資料源 {@link QUICK11_ROUTE_LINK_ITEMS}；折疊區僅顯示已到 publishAtIso 的項目（本機 dev／Vercel Preview 可略過排程）。 */
   "/quick-11": QUICK11_ROUTE_LINK_ITEMS,
-  "/quick-12": [],
+  /** 第 1～100 篇資料源 {@link QUICK12_ROUTE_LINK_ITEMS}；5/15 起每日 1～3 檔、時刻錯開 */
+  "/quick-12": QUICK12_ROUTE_LINK_ITEMS,
 };
 
 export function QuickBlogLinksToggle({ quickRoute, title = "📚 本台小計算機延伸文章（點我展開）" }: QuickBlogLinksToggleProps) {
@@ -1075,7 +1077,7 @@ export function QuickBlogLinksToggle({ quickRoute, title = "📚 本台小計算
           marginTop: 10,
           display: "grid",
           gap: 8,
-          ...(quickRoute === "/quick-11"
+          ...(quickRoute === "/quick-11" || quickRoute === "/quick-12"
             ? { maxHeight: "min(70vh, 520px)", overflowY: "auto", paddingRight: 4 }
             : {}),
         }}

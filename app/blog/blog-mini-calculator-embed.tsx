@@ -6,6 +6,7 @@
  */
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { quick11EmbedPresetFromSlug } from "../quick-11/loan-scenarios";
+import { getQuick12EmbedTarget } from "../mini-blog/posts/quick12-posts-2-100";
 import styles from "./blog.module.css";
 import "./mini-calculator-embed.css";
 
@@ -49,6 +50,7 @@ function resolveCalculator(route: string) {
 export function BlogMiniCalculatorEmbed({ route, title, note, miniBlogSlug }: Props) {
   const Calculator = resolveCalculator(route);
   const quick11Anchor = route === "/quick-11" && miniBlogSlug ? quick11EmbedPresetFromSlug(miniBlogSlug) : undefined;
+  const quick12Embed = route === "/quick-12" && miniBlogSlug ? getQuick12EmbedTarget(miniBlogSlug) : undefined;
   const [shouldMount, setShouldMount] = useState(false);
   const mountRef = useRef<HTMLDivElement | null>(null);
 
@@ -96,7 +98,11 @@ export function BlogMiniCalculatorEmbed({ route, title, note, miniBlogSlug }: Pr
                   </div>
                 ) : route === "/quick-12" ? (
                   <div className="not-prose isolate w-full min-w-0">
-                    <Calculator embeddedInMiniBlog />
+                    <Calculator
+                      embeddedInMiniBlog
+                      initialPage={quick12Embed?.page}
+                      initialPkScenarioIdx={quick12Embed?.pkScenarioIdx}
+                    />
                   </div>
                 ) : (
                   <Calculator />

@@ -1,0 +1,33 @@
+---
+description: mini-blog 節點（Quick-12 量產＋發佈時間不重疊驗證）；改排程或改文前對照
+globs:
+  - app/mini-blog/posts/quick12-posts-2-100.ts
+  - app/mini-blog/posts/quick1-exclusive.ts
+  - app/quick-12/QuickCalculator12Content.tsx
+  - app/blog/blog-mini-calculator-embed.tsx
+  - app/components/quick-blog-links-toggle.tsx
+  - scripts/check-mini-blog-publish-overlap.ts
+alwaysApply: false
+---
+
+# 第 12 台 mini-blog「節點」（Quick-12）
+
+使用者鎖定之基準（**未明講勿整批重寫**）：
+
+1. **篇數與 slug**：首篇 `quick12-take-home-salary-nhi2-intro`；第 2～100 篇為 `quick12-s002`～`quick12-s100`（程式產出於 `quick12-posts-2-100.ts`）。
+2. **發文排程**：`QUICK12_PUBLISH_DATES` — 首篇 `2026-05-14T09:00:00+08:00`；自 **5/15** 起 **每日 1～3 篇**（循環 1、2、3）、時段 + jitter、避開與第 11 台量產相同的連假曆日集合。
+3. **語氣與 SEO**：與首篇同 **四段 SEO 骨架**（`…（示意）｜台灣萬萬稅-稅金和二代健保｜…｜財富自由計算機`）；內文以 **感觸** 為優先；`buildSectionsQuick12` / `buildQuick12ExclusiveSections` 在 `quick1-exclusive.ts`。
+4. **勿套用 quick-1～10 投資型 May10 模板**：`investingMay10Arch` 已排除 `/quick-12`，避免第 12 台出現「月投／年化」那套前言。
+5. **文內試算**：`getQuick12EmbedTarget(slug)` → `BlogMiniCalculatorEmbed` 傳入 `QuickCalculator12Content` 的 `initialPage`（0 月薪／1 股票／2 PK）與 PK 時的 `initialPkScenarioIdx`（對應內建三組 PK）。
+6. **側邊／折疊連結**：`quick-blog-links-toggle.tsx` 的 `/quick-12` 使用 `QUICK12_ROUTE_LINK_ITEMS`（與第 11 台相同可捲清單）。
+
+延伸第 12 台文章或改排程時，**先讀** `quick12-posts-2-100.ts` 再改 `quick1-exclusive.ts`，避免 slug 數與 `QUICK12_ALL_PUBLISH_SLOTS` 長度不一致導致 throw。
+
+---
+
+## 全 mini-blog 發佈時間不重疊（節點）
+
+- **規則**：同日多篇可；**不可**兩篇文章共用同一 `publishAtIso` 字串（時分秒＋時區須區分）。
+- **驗證腳本**：`scripts/check-mini-blog-publish-overlap.ts`（掃 `QUICK1_EXCLUSIVE_POSTS`）。
+- **指令**：`npm run check:mini-blog-publish` 或 `npx tsx --tsconfig tsconfig.json scripts/check-mini-blog-publish-overlap.ts`
+- **節點紀錄**：曾以腳本確認全數專文 **無重複時間戳**（改動各台 `*_PUBLISH_DATES` 或槽位產生器後應重跑）。

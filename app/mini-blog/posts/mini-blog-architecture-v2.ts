@@ -12,6 +12,11 @@
  */
 
 import type { Quick1ExclusiveSection, TopicSeed } from "./topic-types";
+import { QUICK12_DISPLAY_TITLE } from "@/app/quick-12/display-title";
+import {
+  miniBlogInvestingHumanPreamble,
+  publishAtUsesHumanStoryOpening,
+} from "@/lib/human-story-opening";
 
 /** 給文件／助理用的架構說明（非執行邏輯） */
 export const MINI_BLOG_ARCHITECTURE_SPEC = [
@@ -66,7 +71,7 @@ export function getTrialConditionsLineForRoute(route: CalcRoute): string {
     case "/quick-11":
       return `本篇為破產計算機專文，試算條件請以文內「本篇試算條件」段落為準。${disclaimer}`;
     case "/quick-12":
-      return `本篇試算條件（與文末試算開頁預設一致）：月薪（投保薪資）NT$ 45,000、年終／獎金 NT$ 100,000、兼職／股利 NT$ 30,000。${disclaimer}`;
+      return `本篇試算條件（與文末「${QUICK12_DISPLAY_TITLE}」開頁預設一致）：月薪（投保薪資）NT$ 45,000、年終／獎金 NT$ 100,000、兼職／股利 NT$ 30,000；可再加計多筆股票配息，或以 PK 並排比對兩檔二代健保假設。情境示意，非稅務申報結論；實際以法令與機關核定為準。`;
     default:
       return `本篇試算條件請以文末計算機開頁預設為起點再微調。${disclaimer}`;
   }
@@ -95,7 +100,7 @@ export function defaultCalculatorNoteAfterMay10(route: CalcRoute): string {
     case "/quick-10":
       return "文末試算開頁預設為月投 20,000、10 年、年化 7%、崩盤 -30%。";
     case "/quick-12":
-      return "文末試算開頁預設為月薪 45,000、年終 100,000、兼職／股利 30,000。";
+      return `文末「${QUICK12_DISPLAY_TITLE}」開頁預設為月薪 45,000、年終 100,000、兼職／股利 30,000。`;
     default:
       return "請以文末試算開頁預設為起點，再依個案調整參數。";
   }
@@ -106,32 +111,59 @@ export function buildMiniBlogSectionsInvestingV2(
   seed: TopicSeed,
   calculatorName: string,
   route: CalcRoute,
+  publishAtIso?: string,
 ): Quick1ExclusiveSection[] {
   const trial = getTrialConditionsLineForRoute(route);
-  return [
-    {
-      heading: "前言",
-      paragraphs: [
+  const human = publishAtIso && publishAtUsesHumanStoryOpening(publishAtIso);
+
+  const intro = human
+    ? [
+        miniBlogInvestingHumanPreamble(seed),
+        trial,
+        `情境數字只用來對齊假設，不是保證報酬；重點是你能不能長期執行、以及現金流是否留緩衝。`,
+        `請下滑開啟文末「${calculatorName}」：開頁預設即為上文條件，建議一次只改一個變數做對照。`,
+      ]
+    : [
         `這篇把「${seed.focus}」拉回可核對的數字：先別談口號，先用與文末試算一致的條件把矛盾講清楚。`,
         trial,
         `情境數字只用來對齊假設，不是保證報酬；重點是你能不能長期執行、以及現金流是否留緩衝。`,
         `請下滑開啟文末「${calculatorName}」：開頁預設即為上文條件，建議一次只改一個變數做對照。`,
-      ],
+      ];
+
+  const view = human
+    ? [
+        `社群很愛用最樂觀的年化帶你「做夢」；但更常見的人生劇本是：你想多投一點，生活先伸手；你想把路走快一點，手續費與稅費先教你做人。與其吵哪個數字最準，不如把「${seed.keywordA}」和「${seed.keywordB}」先放進同一張表，看清楚誰在拖累路徑。`,
+        `你如果只記得「長期會好」，卻不記得長期中間會痛，計畫通常撐不到長期。試算不是要你變悲觀，是讓你把取捨寫清楚，尤其是「${seed.keywordC}」這種最容易被低估的假設。`,
+      ]
+    : [
+        "提高投入、拉長年限、或調整報酬假設，本質都是取捨：你需要的是能活下去的配置，而不是一次填到最樂觀。",
+        "所以試算的目的不是堆數字自我安慰，而是把「每月扣多少、最後落到哪裡、能不能承受波動」對齊成可行節奏。",
+      ];
+
+  const guide = human
+    ? [
+        `請在「${calculatorName}」核對月投入、年期、報酬假設與（若有）目標月領、標的或情境參數；先確認與你的規劃接近，再開始調參。`,
+        `若想延伸思考「${seed.keywordA}」與「${seed.keywordB}」怎麼影響結論，建議留在同一試算裡、一次只動一個條件。`,
+        `也別忽略「${seed.keywordC}」：把它放進表裡比空談口號更能避開誤判；你至少知道自己漏了哪一塊。`,
+      ]
+    : [
+        `請在「${calculatorName}」核對月投入、年期、報酬假設與（若有）目標月領、標的或情境參數；先確認與你的規劃接近，再開始調參。`,
+        `若想延伸思考「${seed.keywordA}」與「${seed.keywordB}」怎麼影響結論，建議留在同一試算裡、一次只動一個條件。`,
+        `也別忽略「${seed.keywordC}」這類常見假設：把它放進表裡比空談口號更能避開誤判。`,
+      ];
+
+  return [
+    {
+      heading: "前言",
+      paragraphs: intro,
     },
     {
       heading: "理財觀點",
-      paragraphs: [
-        "提高投入、拉長年限、或調整報酬假設，本質都是取捨：你需要的是能活下去的配置，而不是一次填到最樂觀。",
-        "所以試算的目的不是堆數字自我安慰，而是把「每月扣多少、最後落到哪裡、能不能承受波動」對齊成可行節奏。",
-      ],
+      paragraphs: view,
     },
     {
       heading: "操作指南",
-      paragraphs: [
-        `請在「${calculatorName}」核對月投入、年期、報酬假設與（若有）目標月領、標的或情境參數；先確認與你的規畫接近，再開始調參。`,
-        `若想延伸思考「${seed.keywordA}」與「${seed.keywordB}」怎麼影響結論，建議留在同一試算裡、一次只動一個條件。`,
-        `也別忽略「${seed.keywordC}」這類常見假設：把它放進表裡比空談口號更能避開誤判。`,
-      ],
+      paragraphs: guide,
     },
   ];
 }

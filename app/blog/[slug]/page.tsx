@@ -13,6 +13,7 @@ import {
   isBlogPostPublished,
   type BlogPostRegistryEntry,
 } from "../posts/registry";
+import { extendedBlogHumanLeadParagraph, publishAtUsesHumanStoryOpening } from "@/lib/human-story-opening";
 import styles from "../blog.module.css";
 
 export const dynamic = "force-dynamic";
@@ -85,6 +86,12 @@ export default async function ExtendedSeriesPage({ params }: PageProps) {
 
       <h1 className={styles.title}>{post.title}</h1>
       <p className={styles.subtitle}>{post.subtitle}</p>
+
+      {publishAtUsesHumanStoryOpening(registry.publishAtIso) ? (
+        <div className={styles.article}>
+          <p className={styles.grafTight}>{extendedBlogHumanLeadParagraph(post, registry)}</p>
+        </div>
+      ) : null}
 
       <CalculatorHeroPreview />
 

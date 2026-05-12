@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ContactUsPanel } from "./contact-us-panel";
 import { useStats } from "./stats-provider";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { QUICK12_DISPLAY_TITLE } from "./quick-12/display-title";
 import styles from "./footer-stats-strip.module.css";
 
 const SHARE_TITLE = "財富自由計算機";
@@ -23,7 +24,7 @@ function quickCalculatorLabel(n: number): string {
   if (n === 9) return "第9台｜延遲享樂計算機 2";
   if (n === 10) return "第10台｜複利美夢 VS 崩盤現實 計算機";
   if (n === 11) return "第11台｜破產計算機";
-  if (n === 12) return "第12台｜小額貸款代價計算機";
+  if (n === 12) return `第12台｜${QUICK12_DISPLAY_TITLE}`;
   return `第${n}台｜小計算機（建置中）`;
 }
 

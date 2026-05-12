@@ -1,10 +1,19 @@
+import { QUICK12_DISPLAY_TITLE } from "@/app/quick-12/display-title";
+import { HUMAN_STORY_ANON_NOTE_LOAN, publishAtUsesHumanStoryOpening } from "@/lib/human-story-opening";
 import { formatPrincipalZhTW, getQuick11LoanPresetBySlug, parseQuick11SlugEmbed } from "../../quick-11/loan-scenarios";
 import {
   buildMiniBlogSectionsInvestingV2,
   defaultCalculatorNoteAfterMay10,
+  getTrialConditionsLineForRoute,
   miniBlogUsesMay10Architecture,
 } from "./mini-blog-architecture-v2";
 import { QUICK11_ALL_100_PUBLISH_SLOTS, QUICK11_POSTS_7_TO_100 } from "./quick11-posts-7-100";
+import {
+  QUICK12_PK_SCENARIO_TITLES,
+  QUICK12_POSTS_2_TO_100,
+  QUICK12_PUBLISH_DATES,
+  getQuick12EmbedTarget,
+} from "./quick12-posts-2-100";
 import type { Quick1ExclusiveSection, TopicSeed } from "./topic-types";
 
 export type { Quick1ExclusiveSection, TopicSeed } from "./topic-types";
@@ -294,7 +303,7 @@ const QUICK10_PUBLISH_DATES: Record<string, string> = {
   "quick10-crash-reality-longterm-discipline": "2026-12-26T09:00:00+08:00",
 };
 
-/** 破產計算機 100 篇：與 {@link QUICK11_ALL_100_PUBLISH_SLOTS} 同序（支柱 6 → 量產 94）；自 5/10 起每日最多 2 篇（12:30／18:00） */
+/** 破產計算機 100 篇：與 {@link QUICK11_ALL_100_PUBLISH_SLOTS} 同序（支柱 6 → 量產 94）；5/10～5/12 每日兩檔，5/13 起每日 2～3 檔、時刻錯開 */
 const QUICK11_PILLAR_SLUGS: readonly string[] = [
   "quick11-scooter-loan-high-rate-trap",
   "quick11-car-loan-rate-years-impact",
@@ -3092,10 +3101,57 @@ const TOPIC_SEEDS: TopicSeed[] = [
     calculatorName: "複利美夢 VS 崩盤現實 計算機",
   },
   {
+    slug: "quick12-take-home-salary-nhi2-intro",
+    title: QUICK12_DISPLAY_TITLE,
+    subtitle:
+      "給常問「我月薪不是挺高，怎麼還是存不下來」的上班族：先別急著檢討自己，很多時候是「毛額好看、手領普通」。\n\n你要對齊的是：勞健保自付、二代健保補充保費（常跟單筆入帳門檻有關）、以及綜所稅累進一起來的全年感。",
+    seoTitle: `二代健保補充保費・實領薪試算（示意）｜${QUICK12_DISPLAY_TITLE}｜勞健保綜所稅｜財富自由計算機`,
+    metaDescription:
+      "薪資／年終／股利與二代健保、綜所稅同一條線試算：預設月薪投保4.5萬、年終10萬、兼職或股利3萬；可加計多筆股票配息或PK兩檔補充保費假設。情境示意非報稅結論，銜接財富自由計算機主站看每期須扣除與達標年期。",
+    focus: "二代健保補充保費與實領薪的落差",
+    keywordA: "二代健保補充保費試算",
+    keywordB: "實領薪資怎麼算",
+    keywordC: "綜所稅累進試算",
+    closeQuestion: "你最近一次拿「薪轉入帳」去對「扣繳憑單」，覺得差最多的是哪一塊？",
+    calculatorRoute: "/quick-12",
+    calculatorName: QUICK12_DISPLAY_TITLE,
+    calculatorNote:
+      "預設跟開頁一樣：月薪投保 45,000、年終 100,000、兼職／股利 30,000。想加股利就切「股票」，想比兩邊二代健保就切「PK」。",
+    customSections: [
+      {
+        heading: "前言",
+        paragraphs: [
+          "薪水入帳先爽一下、月底對帳又覺得白忙；年終一進帳更高興，隔月看扣繳簡訊才開始罵人——很多人不是不懂「手領怎麼來」，是情緒先跑在數字前面。（以下為常見情境之化名敘述，非可指涉之特定真人真事；數字與稅負以試算頁及法令為準。）說真的，很多人規劃預算第一句都是「我月薪多少」；這句話沒錯啦，但「月薪」常常只是故事的一半。你真正要花的是「手領」：扣完勞健保、二代健保補充保費，再來還有綜所稅那種，年底才跟你算總帳的。很多人不是不會賺，是「扣完還剩多少」沒先講清楚，預算就做在雲上。",
+          "本篇試算條件先跟你在同一起點：月薪（投保薪資）45,000、年終與獎金 100,000、兼職或股利那塊先用 30,000。勞健保我用簡化自付率；二代健保跟大計算機同一套門檻與 2.11% 示意；綜所稅用累進差額示意。以上都是「情境」，不是報稅結論；真的報稅，還是以法令跟核定為準。",
+          "這台在做的事很直白：把毛額先講完，再一格一格看政府跟你收什麼，最後看落袋剩多少。你往下拉開文末試算，開頁數字跟上文一樣；你一次只改一個欄位就好，差多少會比較好看。若你已經準備談「定期定額、配息、每期須扣除、達標年期」，文末也會引你去財富自由計算機主站接續算。",
+        ],
+      },
+      {
+        heading: "心裡那句老實話（二代健保跟稅）",
+        paragraphs: [
+          "補充保費那種，常常是你看到入帳很高興，隔天簡訊像在提醒你「別太高興」。綜所稅又是另一種，它不一定是每月跟你收，但它會讓你一整年「以為多出來的」變少；所以我很在意：薪資、年終、股利，不要分開自我感覺良好。",
+          "你如果真的有多筆股票配息，就去「股票」分頁慢慢加；你想搞清楚「二代健保到底差在哪」，就用「PK」兩邊排排站。我這裡不教你報稅，也不取代會計師；我們只是把扣款講清楚，讓你下決定時心裡有數。",
+        ],
+      },
+      {
+        heading: "三步，慢慢對",
+        paragraphs: [
+          "第一步，先看文末試算有沒有先落在預設那三個數字。第二步，選你今天最痛的那條路：股票路、PK 路，選一條就好。第三步，改一個數字，看一眼結果，改回來，再改下一個。",
+        ],
+        bullets: [
+          "投保薪資跟「我實際上班領的」差太多的話，先問自己是不是只看帳號毛額。",
+          "年終一調，累進稅跟補充保費的脾氣會一起變，別用單一月薪反推全年。",
+          "試算完，截個圖或抄數字，下次對扣繳憑單會快很多。",
+        ],
+      },
+    ],
+  },
+  ...QUICK12_POSTS_2_TO_100,
+  {
     slug: "quick11-scooter-loan-high-rate-trap",
     title: "機車貸 5 萬也要認真算：利率一高，總利息很咬人",
     subtitle: "本金不大≠成本不大；先把總利息跟本金擺在一起看，再決定要不要簽。",
-    seoTitle: "機車貸5萬試算｜年利率14%情境｜破產計算機總利息與月付",
+    seoTitle: "破產計算機｜2026 機車貸5萬 × 高利率試算與 DTI 破產預警",
     metaDescription:
       "本篇試算條件：本金5萬元、年利率14%、年期4年、月收入約3.6萬（與文末試算「🛵 機車貸」預設情境相同）。對照月付與總利息，避免只看分期表面便宜。",
     focus: "機車貸／利率陷阱",
@@ -3112,7 +3168,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     slug: "quick11-car-loan-rate-years-impact",
     title: "車貸 80 萬：利率差 1%，月付與總利息差多少？",
     subtitle: "先把本金與年期固定，再動利率，你才看得到真正的敏感度。",
-    seoTitle: "車貸80萬試算｜利率4.2%情境｜破產計算機總利息與月付對照",
+    seoTitle: "破產計算機｜2026 車貸80萬 × 利率敏感度試算與 DTI 破產預警",
     metaDescription:
       "本篇試算條件：本金80萬元、年利率4.2%、年期7年、月收入約6.5萬（與文末試算「🚗 汽車貸」預設情境相同）。示範利率±1%對總利息的影響。",
     focus: "車貸利率年期",
@@ -3129,7 +3185,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     slug: "quick11-credit-loan-8pct-cashflow-total-interest",
     title: "信貸 50 萬、年利率 8%：總利息其實很有感",
     subtitle: "信用貸款最致命的是固定月付磨掉緩衝，以及總利息被時間放大。",
-    seoTitle: "信用貸款50萬試算8%｜破產計算機｜月付與總利息",
+    seoTitle: "破產計算機｜2026 信貸50萬 × 月付與總利息試算與 DTI 破產預警",
     metaDescription:
       "本篇試算條件：本金50萬元、年利率8%、年期5年、月收入約5.5萬（與文末試算「💳 信貸」預設情境相同）。先看總利息再談月付爽不爽。",
     focus: "信用貸款利率",
@@ -3146,7 +3202,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     slug: "quick11-mortgage-11m-annuity-vs-equal-principal",
     title: "房貸 1100 萬：本息均攤跟本金均攤差在哪？",
     subtitle: "同一筆本金，還款曲線不同；選的是現金流版型，不是誰比較高尚。",
-    seoTitle: "房貸1100萬試算｜年利率2.2%｜本息均攤與本金均攤對照",
+    seoTitle: "破產計算機｜2026 房貸1100萬本息／本金均攤試算與 DTI 破產預警",
     metaDescription:
       "本篇試算條件：本金1100萬元、年利率2.2%、年期30年、月收入約12萬（與文末試算「🏠 房貸」預設情境相同）。對照兩種均攤的前幾年月付與總利息。",
     focus: "房貸均攤方式",
@@ -3163,7 +3219,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     slug: "quick11-student-loan-payment-stress",
     title: "學貸約 45 萬進入還款：固定月付像房租一樣黏人",
     subtitle: "利率不高不代表壓力不大——占收入比太高，你就失去換跑道緩衝。",
-    seoTitle: "就學貸款45萬試算｜年利率1.9%｜破產計算機與月收支對照",
+    seoTitle: "破產計算機｜2026 就學貸款45萬 × 月收支對照與 DTI 破產預警",
     metaDescription:
       "本篇試算條件：本金45萬元、年利率1.9%、年期10年、月收入約4.2萬（與文末試算「🎓 學貸」預設情境相同）。先看還款占收入比，再談理想生活。",
     focus: "就學貸款還款",
@@ -3180,7 +3236,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     slug: "quick11-renovation-loan-plus-mortgage-cashflow",
     title: "裝潢貸 100 萬：房貸已在咬現金流時，別先被風格洗腦",
     subtitle: "先看清這一筆的月付與總利息，再決定木皮與坪數要不要升級。",
-    seoTitle: "裝潢貸款100萬試算｜年利率3.5%｜破產計算機現金流",
+    seoTitle: "破產計算機｜2026 裝潢貸100萬 × 現金流試算與 DTI 破產預警",
     metaDescription:
       "本篇試算條件：本金100萬元、年利率3.5%、年期10年、月收入約7.5萬（與文末試算「🛠️ 裝潢貸」預設情境相同）。另請把房貸月付手動加總後再評估。",
     focus: "裝潢貸款現金流",
@@ -3210,15 +3266,15 @@ function buildSectionsQuick11(seed: TopicSeed, calculatorName: string): Quick1Ex
     {
       heading: "前言",
       paragraphs: [
-        `談「${seed.focus}」時，最常見的落差是只看月付爽不爽，沒把總利息與占收入比例放在一起。`,
-        "若你正在猶豫要不要加速還款、或想先把負債壓在可控範圍，接下來用同一組可核對的試算條件，把選擇題講得具體一點。",
+        `談「${seed.focus}」時，我常聽到一句話：「月付還好。」那種「還好」有時不是數學上真的輕，而是我們先把自己說服，好讓簽名那一刻不那麼難看。`,
+        `可心裡真正發毛的，往往是夜深人靜才浮上來：總利息到底堆到哪裡、DTI 若再擠一點，生活還有沒有縫？接下來用同一組可核對的試算條件，把那句「還好」攤開成看得懂的數字。`,
       ],
     },
     {
       heading: "理財觀點",
       paragraphs: [
-        "多還款與保留現金之間，取捨常在機會成本：少付利息能降低總成本，但也會改變你可運用的緩衝與其他規畫空間。",
-        "所以試算的目的不是堆數字自我安慰，而是把「每期扣款、總成本、能不能長期扛住」對齊成你願意承擔的節奏。",
+        "多還款與保留現金之間，很少是非黑即白；比較像你在選一種『能承受的不舒服』——有人怕利息像細沙漏不完，有人怕手邊太薄遇到意外先崩。",
+        "試算不是要你變悲觀，是讓你誠實：把每期扣款、總成本、以及你願意交換的生活彈性寫在同一條時間軸上，你才有資格說自己選過。",
       ],
     },
     {
@@ -3232,11 +3288,26 @@ function buildSectionsQuick11(seed: TopicSeed, calculatorName: string): Quick1Ex
   ];
 }
 
+function prependQuick11HumanLead(publishAtIso: string, paras: string[]): string[] {
+  if (!publishAtUsesHumanStoryOpening(publishAtIso)) return paras;
+  const lead = `學弟當初掛在嘴邊那句「月付還好」，常常是半年後最想吵架的開頭；不是誰變心，是固定支出把生活餘裕磨到見底。${HUMAN_STORY_ANON_NOTE_LOAN}`;
+  return [lead, ...paras];
+}
+
 /** 第 11 台專文：段落內嵌試算條件（與 loan-scenarios 預設一致），用語為讀者向。 */
-function buildQuick11ExclusiveSections(slug: string, seed: TopicSeed, calculatorName: string): Quick1ExclusiveSection[] {
+function buildQuick11ExclusiveSections(
+  slug: string,
+  seed: TopicSeed,
+  calculatorName: string,
+  publishAtIso: string,
+): Quick1ExclusiveSection[] {
   const preset = getQuick11LoanPresetBySlug(slug);
   const base = buildSectionsQuick11(seed, calculatorName);
-  if (!preset) return base;
+  if (!preset) {
+    if (!publishAtUsesHumanStoryOpening(publishAtIso)) return base;
+    const b0 = base[0];
+    return [{ ...b0, paragraphs: prependQuick11HumanLead(publishAtIso, b0.paragraphs) }, base[1], base[2]];
+  }
 
   const principalZh = formatPrincipalZhTW(preset.amount);
   const incomeLabel = `NT$ ${preset.monthlyIncome.toLocaleString("zh-TW")}`;
@@ -3258,11 +3329,11 @@ function buildQuick11ExclusiveSections(slug: string, seed: TopicSeed, calculator
     const hookExt = [
       `這篇把「${preset.label}」與「${tabTitle}」放在同一個決策框架：先把固定月付與總利息看清楚，再談你要的是省息、還是保留現金流。`,
       trialConditions,
-      `若月收入約在 ${incomeLabel} 這個級距，利率或月付每差一點，長期都可能反映在總利息與生活緩衝上。試算不是為了堆數字，而是幫你把「每月該還多少、利息會累到哪裡」對齊成可執行的還款規畫。`,
+      `若月收入約在 ${incomeLabel} 這個級距，利率或月付每差一點，長期都可能反映在總利息與生活緩衝上。試算不是為了堆數字，而是幫你把「每月該還多少、利息會累到哪裡」對齊成可執行的還款規劃。`,
       `請下滑開啟文末「${calculatorName}」：進入後會以本篇條件為起點，並先開啟「${tabTitle}」試算單元。請優先看該單元的月付與總利息；想再比較提前多還或不同均攤方式，可在同一試算內切換其他單元。`,
     ];
     return [
-      { heading: base[0].heading, paragraphs: hookExt },
+      { heading: base[0].heading, paragraphs: prependQuick11HumanLead(publishAtIso, hookExt) },
       base[1],
       base[2],
     ];
@@ -3318,17 +3389,99 @@ function buildQuick11ExclusiveSections(slug: string, seed: TopicSeed, calculator
         `請下滑開啟文末「${calculatorName}」，先看這筆裝潢貸的月付與總利息，再決定風格與坪數要不要收斂。`,
       ];
       break;
-    default:
-      return base;
+    default: {
+      if (!publishAtUsesHumanStoryOpening(publishAtIso)) return base;
+      const b0 = base[0];
+      return [{ ...b0, paragraphs: prependQuick11HumanLead(publishAtIso, b0.paragraphs) }, base[1], base[2]];
+    }
   }
 
   return [
     {
       heading: base[0].heading,
-      paragraphs: hook,
+      paragraphs: prependQuick11HumanLead(publishAtIso, hook),
     },
     base[1],
     base[2],
+  ];
+}
+
+const QUICK12_ANON_NOTE =
+  "（以下為常見對話情境之化名敘述，非可指涉之特定真人真事；扣繳與補充保費以試算頁及法令為準。）";
+
+function prependQuick12HumanLead(publishAtIso: string, paras: string[]): string[] {
+  if (!publishAtUsesHumanStoryOpening(publishAtIso)) return paras;
+  const lead = `同事嘴上常說「稅又沒多少」，真正把薪轉與扣繳憑單疊一起看時，沉默往往比吵架久。${QUICK12_ANON_NOTE}`;
+  return [lead, ...paras];
+}
+
+/** 第 12 台專文：前言／心裡老實話／三步（感觸向，與首篇語氣對齊）。 */
+function buildSectionsQuick12(seed: TopicSeed, calculatorName: string): Quick1ExclusiveSection[] {
+  return [
+    {
+      heading: "前言",
+      paragraphs: [
+        `談「${seed.focus}」時，我常聽到一句心底話：「我知道要規劃啦，只是每次看到補充保費跟累進兩個詞就累。」`,
+        `那種累不是懶，是不想承認：毛額的好看，不等於手領能支撐你想要的生活版本。`,
+        `接下來用與文末「${calculatorName}」一致的預設數字，把那句「我應該還行」攤成看得懂的階梯。`,
+      ],
+    },
+    {
+      heading: "心裡那句老實話（手領與稅費）",
+      paragraphs: [
+        "很多人不是不懂公式，是情緒先替你下結論。入帳那天你會放大可支配，報稅季你又突然變保守——兩種極端都會讓預算失真。",
+        "我在意的是同一件事：薪資、年終、股利，別分開自我感覺良好；要痛就一次痛在試算裡，別分十二個月慢慢驚訝。",
+      ],
+    },
+    {
+      heading: "三步，慢慢對",
+      paragraphs: [
+        "先把文末試算開在與本文一致的分頁，核對月薪、年終、兼職／股利那一欄。",
+        "再只改一個欄位：先動年終、或先動股利，看階梯上補充保費與綜所示意怎麼動。",
+        "最後若你已有持股，到「股票」慢慢加成列；想比兩檔就到「PK」排排站。",
+      ],
+      bullets: [
+        "投保薪資若常跟實薪差一截，先別急著自我說服「差不多」。",
+        "年終與兼職同一年進帳，累進那階常常一起被提醒。",
+        "試算截圖留存，對扣繳憑單會省下很多爭辯力氣。",
+      ],
+    },
+  ];
+}
+
+function buildQuick12ExclusiveSections(
+  slug: string,
+  seed: TopicSeed,
+  calculatorName: string,
+  publishAtIso: string,
+): Quick1ExclusiveSection[] {
+  const emb = getQuick12EmbedTarget(slug);
+  const pageName = emb ? (["月薪", "股票", "PK"] as const)[emb.page]! : "月薪";
+  const trial = getTrialConditionsLineForRoute("/quick-12");
+  const pkLine =
+    emb && emb.page === 2
+      ? `請特別用內建 PK「${QUICK12_PK_SCENARIO_TITLES[emb.pkScenarioIdx]}」看兩側二代健保差異；想換標的再在欄位內微調。`
+      : `建議先停留在「${pageName}」：${
+          emb?.page === 1
+            ? "把股利加成列拉進全年，很多落差會在這裡浮現。"
+            : "把勞健保、補充保費與綜所示意先對齊成『全年那一口氣』。"
+        }`;
+
+  const hook: string[] = [
+    `${seed.keywordA}與${seed.keywordB}最常一起浮上心頭，不是你太貪，是你想把「扣完還剩多少」講成同一套語言。`,
+    trial,
+    pkLine,
+    `請下滑開啟文末「${calculatorName}」：本文已幫你把開啟位置對到「${pageName}」${
+      emb?.page === 2 ? "與對應 PK 情境" : ""
+    }，仍請以預設 45,000／100,000／30,000 為起點，一次只改一格。`,
+  ];
+
+  const base = buildSectionsQuick12(seed, calculatorName);
+  const b0 = base[0]!;
+  return [
+    { ...b0, paragraphs: prependQuick12HumanLead(publishAtIso, [...hook, ...b0.paragraphs]) },
+    base[1]!,
+    base[2]!,
   ];
 }
 
@@ -3415,7 +3568,12 @@ function getReorderedPublishAt(route: NonNullable<TopicSeed["calculatorRoute"]>,
 export const QUICK1_EXCLUSIVE_POSTS: Quick1ExclusivePost[] = TOPIC_SEEDS.map((seed, idx) => {
   const calculatorRoute = seed.calculatorRoute ?? "/quick-1";
   const calculatorName =
-    seed.calculatorName ?? (calculatorRoute === "/quick-11" ? "破產計算機" : "存股複利計算機");
+    seed.calculatorName ??
+    (calculatorRoute === "/quick-11"
+      ? "破產計算機"
+      : calculatorRoute === "/quick-12"
+        ? QUICK12_DISPLAY_TITLE
+        : "存股複利計算機");
   const reorderedPublishAt = getReorderedPublishAt(calculatorRoute, seed.slug);
   const fallbackDate = PUBLISH_DATES[idx] ?? (() => {
     const baseMs = Date.parse("2026-05-04T01:00:00.000Z");
@@ -3425,7 +3583,9 @@ export const QUICK1_EXCLUSIVE_POSTS: Quick1ExclusivePost[] = TOPIC_SEEDS.map((se
   const scheduledAt =
     calculatorRoute === "/quick-11" && QUICK11_PUBLISH_DATES[seed.slug]
       ? QUICK11_PUBLISH_DATES[seed.slug]
-      : reorderedPublishAt ??
+      : calculatorRoute === "/quick-12" && QUICK12_PUBLISH_DATES[seed.slug]
+        ? QUICK12_PUBLISH_DATES[seed.slug]
+        : reorderedPublishAt ??
         (calculatorRoute === "/quick-2"
           ? (QUICK2_PUBLISH_DATES[seed.slug] ?? fallbackDate)
           : calculatorRoute === "/quick-3"
@@ -3446,7 +3606,7 @@ export const QUICK1_EXCLUSIVE_POSTS: Quick1ExclusivePost[] = TOPIC_SEEDS.map((se
                           ? (QUICK10_PUBLISH_DATES[seed.slug] ?? fallbackDate)
                           : fallbackDate);
   const investingMay10Arch =
-    miniBlogUsesMay10Architecture(scheduledAt) && calculatorRoute !== "/quick-11";
+    miniBlogUsesMay10Architecture(scheduledAt) && calculatorRoute !== "/quick-11" && calculatorRoute !== "/quick-12";
 
   return {
     slug: seed.slug,
@@ -3467,15 +3627,19 @@ export const QUICK1_EXCLUSIVE_POSTS: Quick1ExclusivePost[] = TOPIC_SEEDS.map((se
     sections:
       seed.customSections ??
       (calculatorRoute === "/quick-11"
-        ? buildQuick11ExclusiveSections(seed.slug, seed, calculatorName)
-        : investingMay10Arch
-          ? buildMiniBlogSectionsInvestingV2(seed, calculatorName, calculatorRoute)
-          : buildSections(seed, calculatorName)),
+        ? buildQuick11ExclusiveSections(seed.slug, seed, calculatorName, scheduledAt)
+        : calculatorRoute === "/quick-12"
+          ? buildQuick12ExclusiveSections(seed.slug, seed, calculatorName, scheduledAt)
+          : investingMay10Arch
+            ? buildMiniBlogSectionsInvestingV2(seed, calculatorName, calculatorRoute, scheduledAt)
+            : buildSections(seed, calculatorName)),
     closeQuestion: seed.closeQuestion,
     disclaimer:
       calculatorRoute === "/quick-11"
         ? "本文為情境試算與經驗分享，非借款、授信或投資建議；實際利率、核貸條件與契約以金融機構及法令為準。"
-        : "本文為情境試算與經驗分享，非投資建議；實際結果受市場、費用、稅務與個人行為影響。",
+        : calculatorRoute === "/quick-12"
+          ? "本文為情境試算與經驗分享，非報稅或稅務諮詢；所得、扣繳與補充保費以實際法令與機關核定為準。"
+          : "本文為情境試算與經驗分享，非投資建議；實際結果受市場、費用、稅務與個人行為影響。",
   };
 });
 
@@ -3483,11 +3647,16 @@ export function getQuick1ExclusivePostBySlug(slug: string): Quick1ExclusivePost 
   return QUICK1_EXCLUSIVE_POSTS.find((post) => post.slug === slug);
 }
 
-/** 開發模式可用 NEXT_PUBLIC_BLOG_PREVIEW_ALL=true 暫時略過排程 */
+/**
+ * 未到 publishAtIso 仍顯示內容（僅預覽環境）。
+ * - 本機 `npm run dev`：一律略過排程。
+ * - Vercel Preview：略過排程（需 `next.config` 注入 `NEXT_PUBLIC_VERCEL_ENV`）。
+ * - Vercel / 正式 Production：維持到點才公開。
+ */
 function isSchedulePreviewBypassed(): boolean {
-  if (process.env.NODE_ENV !== "development") return false;
-  const v = process.env.NEXT_PUBLIC_BLOG_PREVIEW_ALL;
-  return v === "1" || v === "true";
+  if (process.env.NODE_ENV === "development") return true;
+  if (process.env.NEXT_PUBLIC_VERCEL_ENV === "preview") return true;
+  return false;
 }
 
 export function isQuick1ExclusivePostPublished(publishAtIso: string, now: Date = new Date()): boolean {

@@ -1,27 +1,10 @@
-export type ExtendedSection = {
-  heading: string;
-  paragraphs: string[];
-  bullets?: string[];
-};
+import type { ExtendedSeriesPost } from "./series-post-types";
 
-export type ExtendedSeriesPost = {
-  slug: string;
-  seriesNo: number;
-  seriesLabel: string;
-  title: string;
-  subtitle: string;
-  seoTitle: string;
-  metaDescription: string;
-  calculatorMode?: "embed" | "direct-link";
-  calculatorRoute: string;
-  calculatorTitle: string;
-  calculatorNote: string;
-  sections: ExtendedSection[];
-  closeQuestion: string;
-  disclaimer: string;
-};
+export type { ExtendedSection, ExtendedSeriesPost } from "./series-post-types";
 
-export const EXTENDED_SERIES_POSTS: ExtendedSeriesPost[] = [
+import { FIRE_SEO_LONGTAIL_2026_POSTS } from "./fire-seo-longtail-2026-posts";
+
+const LEGACY_EXTENDED_SERIES_POSTS: ExtendedSeriesPost[] = [
   {
     slug: "duel-iphone15-buy-or-invest",
     seriesNo: 19,
@@ -406,6 +389,12 @@ export const EXTENDED_SERIES_POSTS: ExtendedSeriesPost[] = [
     closeQuestion: "如果你只做一個改變，願不願意把下個月 10% 消費改成投資？",
     disclaimer: "本文為理財教育分享，非投資建議；實際退休年期與資產成果請依個人情境與市場表現為準。",
   },
+];
+
+/** 新 SEO 長尾系列置前，列表／查詢仍以 slug 為準 */
+export const EXTENDED_SERIES_POSTS: ExtendedSeriesPost[] = [
+  ...FIRE_SEO_LONGTAIL_2026_POSTS,
+  ...LEGACY_EXTENDED_SERIES_POSTS,
 ];
 
 export function getExtendedSeriesPostBySlug(slug: string): ExtendedSeriesPost | undefined {
