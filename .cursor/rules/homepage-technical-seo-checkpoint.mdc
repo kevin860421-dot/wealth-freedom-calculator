@@ -1,0 +1,40 @@
+---
+description: 首頁大計算機 Technical SEO 節點（metadata 與 SoftwareApplication + FAQPage JSON-LD）
+globs: app/layout.tsx
+alwaysApply: false
+---
+
+# 首頁大計算機 SEO 節點
+
+編輯 `app/layout.tsx` 的 `<head>`、`metadata` 或 JSON-LD 前，先對照本節點。
+
+## 目前鎖定狀態
+
+1. **首頁 metadata title**
+   - `財富自由計算機｜試算退休年期與Excel | 財富自由計算機`
+
+2. **首頁 metadata description**
+   - 聚焦 `財富自由計算機`、`財富自由模擬器`、`財富計算機`、`財富自由計算機excel`、`點樣用財富自由計算機`。
+   - 需保留台股 ETF、稅費、二代健保、Excel 情境對照語意。
+
+3. **JSON-LD 結構化資料**
+   - 位置：`RootLayout` 內 `const structuredData = ...`，並在 `<head>` 內輸出單一：
+     `<script type="application/ld+json">`
+   - 使用 `@context: "https://schema.org"` 與單一 `@graph`，不要新增第二段互相重複的 JSON-LD。
+   - `SoftwareApplication.name`：`台灣台股 ETF 財富自由計算機`
+   - `applicationCategory`：`FinanceApplication`
+   - `operatingSystem`：`Windows, macOS, Android, iOS`
+   - `offers.price`：`0`，`priceCurrency`：`TWD`
+   - `aggregateRating.ratingValue`：`4.9`，`reviewCount`：`42`
+
+4. **FAQPage 三題**
+   - `點樣用財富自由計算機？`
+   - `這款財富自由模擬器有算進台灣的所得稅與二代健保嗎？`
+   - `這台財富自由計算機可以導出試算表檔案嗎？`
+
+5. **實作注意**
+   - Schema.org 使用正確欄位 `name`，不要寫成 `@name`。
+   - Inline JSON-LD 需保留 `.replace(/</g, "\\u003c")`，降低 script 注入風險。
+   - Google 是否顯示星星／FAQ 由 Google 決定；本專案只保證結構化資料已正確輸出。
+
+改動後請跑 `npm run build`，確認 Next.js metadata / layout 編譯通過。

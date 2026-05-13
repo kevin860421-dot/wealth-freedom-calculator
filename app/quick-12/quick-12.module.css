@@ -134,6 +134,29 @@
   min-width: 0;
 }
 
+/** 月薪欄：輸入框 + 下方獨立滑桿 */
+.salaryCol {
+  flex: 1 1 128px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.salaryRange {
+  width: 100%;
+  box-sizing: border-box;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  accent-color: #0284c7;
+  cursor: pointer;
+}
+
+.themeLight .salaryRange {
+  accent-color: #0284c7;
+}
+
 .panel {
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.22);

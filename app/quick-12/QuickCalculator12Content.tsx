@@ -38,6 +38,23 @@ function parseNum(raw: string, fallback: number): number {
   return Number.isFinite(v) ? v : fallback;
 }
 
+/** 試算中：完整算式先 eval；未完成算式則退回 fallback，避免 `45000+` 被誤 parse */
+function parseMoneyFieldLive(raw: string, fallback: number): number {
+  const ev = tryEvalArithmeticMoneyExpr(raw);
+  if (ev !== null) return ev;
+  if (hasIncompleteMoneyExpr(raw)) return fallback;
+  return parseNum(raw, fallback);
+}
+
+/** Enter／失焦：結算算式並格式化（月薪可夾投保上下限） */
+function commitMoneyText(raw: string, fallback: number, min: number, max: number | null): string {
+  const ev = tryEvalArithmeticMoneyExpr(raw);
+  let n = Math.round(ev !== null ? ev : parseNum(raw, fallback));
+  n = Math.max(min, n);
+  if (max !== null) n = Math.min(max, n);
+  return formatInputMoney(n);
+}
+
 /** 持股市值算式：去千分位、全形運算子 → 可 eval 片段 */
 function normalizeMoneyExprForEval(raw: string): string {
   return raw
@@ -463,9 +480,33 @@ export function QuickCalculator12Content({
     setPkB((s) => stripLegacyLotsPkLabel(s));
   }, []);
 
-  const monthly = Math.max(0, parseNum(monthlyText, 45_000));
-  const bonus = Math.max(0, parseNum(bonusText, 100_000));
-  const side = Math.max(0, parseNum(sideText, 30_000));
+  const commitMonthlyField = useCallback(() => {
+    setMonthlyText((t) => commitMoneyText(t, 45_000, INSURED_SALARY_MIN, INSURED_SALARY_MAX));
+  }, []);
+
+  const commitBonusField = useCallback(() => {
+    setBonusText((t) => commitMoneyText(t, 100_000, 0, null));
+  }, []);
+
+  const commitSideField = useCallback(() => {
+    setSideText((t) => commitMoneyText(t, 30_000, 0, null));
+  }, []);
+
+  const onSalaryMoneyKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>, commit: () => void) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      commit();
+      e.currentTarget.blur();
+    }
+  }, []);
+
+  const monthly = Math.max(0, parseMoneyFieldLive(monthlyText, 45_000));
+  const bonus = Math.max(0, parseMoneyFieldLive(bonusText, 100_000));
+  const side = Math.max(0, parseMoneyFieldLive(sideText, 30_000));
+
+  const monthlySliderValue = Math.min(INSURED_SALARY_MAX, Math.max(INSURED_SALARY_MIN, monthly));
+  const bonusSliderMax = Math.max(1_000_000, Math.ceil(bonus / 100_000) * 100_000);
+  const bonusSliderValue = Math.min(bonusSliderMax, Math.max(0, bonus));
 
   const salaryInput = useMemo(
     () => ({ monthlyInsuredSalary: monthly, annualBonus: bonus, sideIncome: side }),
@@ -732,18 +773,74 @@ export function QuickCalculator12Content({
                   {currentPage === 0 ? "薪資與獎金" : "薪資與獎金（與月薪試算共用）"}
                 </p>
                 <div className={styles.row2}>
-                  <label className={styles.label}>
-                    <span>月薪（投保薪資）</span>
-                    <input className={styles.input} value={monthlyText} onChange={(e) => setMonthlyText(e.target.value)} inputMode="decimal" />
-                  </label>
-                  <label className={styles.label}>
-                    <span>年終／獎金（單筆）</span>
-                    <input className={styles.input} value={bonusText} onChange={(e) => setBonusText(e.target.value)} inputMode="decimal" />
-                  </label>
+                  <div className={styles.salaryCol}>
+                    <label className={styles.label}>
+                      <span>月薪（投保薪資）</span>
+                      <input
+                        className={styles.input}
+                        value={monthlyText}
+                        onChange={(e) => setMonthlyText(e.target.value)}
+                        onBlur={commitMonthlyField}
+                        onKeyDown={(e) => onSalaryMoneyKeyDown(e, commitMonthlyField)}
+                        inputMode="decimal"
+                        title="可輸入算式如 45000+5000 或 (48000-2000)*1；Enter 或離開欄位結算"
+                      />
+                    </label>
+                    <input
+                      type="range"
+                      className={styles.salaryRange}
+                      min={INSURED_SALARY_MIN}
+                      max={INSURED_SALARY_MAX}
+                      step={100}
+                      value={monthlySliderValue}
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        if (!Number.isFinite(v)) return;
+                        setMonthlyText(formatInputMoney(Math.round(v)));
+                      }}
+                      aria-label="月薪（投保薪資）滑桿微調"
+                    />
+                  </div>
+                  <div className={styles.salaryCol}>
+                    <label className={styles.label}>
+                      <span>年終／獎金（單筆）</span>
+                      <input
+                        className={styles.input}
+                        value={bonusText}
+                        onChange={(e) => setBonusText(e.target.value)}
+                        onBlur={commitBonusField}
+                        onKeyDown={(e) => onSalaryMoneyKeyDown(e, commitBonusField)}
+                        inputMode="decimal"
+                        title="可輸入算式；Enter 或離開欄位結算"
+                      />
+                    </label>
+                    <input
+                      type="range"
+                      className={styles.salaryRange}
+                      min={0}
+                      max={bonusSliderMax}
+                      step={1000}
+                      value={bonusSliderValue}
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        if (!Number.isFinite(v)) return;
+                        setBonusText(formatInputMoney(Math.round(v)));
+                      }}
+                      aria-label="年終／獎金（單筆）滑桿微調"
+                    />
+                  </div>
                 </div>
                 <label className={styles.label}>
                   <span>兼職／其他現金（單筆）</span>
-                  <input className={styles.input} value={sideText} onChange={(e) => setSideText(e.target.value)} inputMode="decimal" />
+                  <input
+                    className={styles.input}
+                    value={sideText}
+                    onChange={(e) => setSideText(e.target.value)}
+                    onBlur={commitSideField}
+                    onKeyDown={(e) => onSalaryMoneyKeyDown(e, commitSideField)}
+                    inputMode="decimal"
+                    title="可輸入算式；Enter 或離開欄位結算"
+                  />
                 </label>
                 {currentPage === 1 ? (
                   <p className={`text-[12px] leading-snug ${isLight ? "text-amber-800" : "text-amber-200/90"}`}>
