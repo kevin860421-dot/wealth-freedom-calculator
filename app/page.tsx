@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FooterStatsStrip } from "./footer-stats-strip";
+import dynamic from "next/dynamic";
 import {
   buildSnapshotFromInputs,
   getDefaultCalculatorRepository,
@@ -9,7 +9,6 @@ import {
   type PayoutFrequencyPersist,
 } from "../lib/calculator-persistence";
 import { OPEN_LOAD_TARGET_MODAL_EVENT } from "../lib/watchlist-modal-events";
-import { LoadTargetModal, SaveTargetModal } from "./components/saved-target-modals";
 import {
   TICKER_PRESETS,
   buildTickerDividendMonthsMap,
@@ -20,15 +19,26 @@ import {
   getPublishedBlogPosts,
   getHomeFooterBlogPosts,
 } from "./blog/posts/registry";
-import { HomeFooterWatchlistSection } from "./components/home-footer-watchlist-section";
 import { MobileGoalSettingSection } from "./components/mobile-goal-setting-section";
 import heroGold from "./components/hero-gold-title.module.css";
 import { MobileHeroSection } from "./components/mobile-hero-section";
 import { MobileStockParamsSection } from "./components/mobile-stock-params-section";
 import type { StockParamsAdvancedBlockProps } from "./components/stock-params-advanced-block";
-import { TaxSettingsDesktopClassicLeftColumn } from "./components/manual-tax-block";
-import { MobileNhi2ImpactBlock } from "./components/mobile-nhi2-impact-block";
-import { TaxSettingsLeftPanel, type TaxSettingsMode } from "./components/tax-settings-panel";
+import type { TaxSettingsMode } from "./components/tax-settings-panel";
+
+const LazyFooterStatsStrip = dynamic(() => import("./footer-stats-strip").then((mod) => mod.FooterStatsStrip), { ssr: false });
+const LazySaveTargetModal = dynamic(() => import("./components/saved-target-modals").then((mod) => mod.SaveTargetModal), { ssr: false });
+const LazyLoadTargetModal = dynamic(() => import("./components/saved-target-modals").then((mod) => mod.LoadTargetModal), { ssr: false });
+const LazyHomeFooterWatchlistSection = dynamic(
+  () => import("./components/home-footer-watchlist-section").then((mod) => mod.HomeFooterWatchlistSection),
+  { ssr: false },
+);
+const LazyTaxSettingsDesktopClassicLeftColumn = dynamic(
+  () => import("./components/manual-tax-block").then((mod) => mod.TaxSettingsDesktopClassicLeftColumn),
+  { ssr: false },
+);
+const LazyTaxSettingsLeftPanel = dynamic(() => import("./components/tax-settings-panel").then((mod) => mod.TaxSettingsLeftPanel), { ssr: false });
+const LazyMobileNhi2ImpactBlock = dynamic(() => import("./components/mobile-nhi2-impact-block").then((mod) => mod.MobileNhi2ImpactBlock), { ssr: false });
 
 /** 各標的除息月份（與 ticker-presets 同步） */
 const ETF_DIVIDEND_MONTHS = buildTickerDividendMonthsMap();
@@ -4671,7 +4681,7 @@ export default function Home() {
 
           {/* 手機：我的自選股 / PWA 安裝引導（往上移到主流程中） */}
           <div className="mt-2">
-            <HomeFooterWatchlistSection />
+            <LazyHomeFooterWatchlistSection />
           </div>
         </div>
 
@@ -4716,7 +4726,7 @@ export default function Home() {
             <h2 style={{ fontSize: 24, fontWeight: 600, color: "#e5e7eb", margin: "0 0 8px 0" }}>股金設定與試算</h2>
             {/* 桌機：重構前經典稅金版面（與 sticky 勾選一致，不受稅務模式自動同步影響） */}
             <div id="desktop-tax-settings-row">
-              <TaxSettingsDesktopClassicLeftColumn
+              <LazyTaxSettingsDesktopClassicLeftColumn
                 applyTaxInTable={applyTaxInTable}
                 setApplyTaxInTable={setApplyTaxInTable}
                 taxBracketRate={taxBracketRate}
@@ -4901,7 +4911,7 @@ export default function Home() {
             <div id="mobile-tax-settings-row">
               <div style={{ display: "flex", flexWrap: "wrap", alignItems: "stretch", gap: 12, marginBottom: 0 }}>
                 <div style={{ flex: "1 1 280px", minWidth: 0, display: "flex", flexDirection: "column", padding: "10px 12px", background: "rgba(0,0,0,0.45)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10 }}>
-                  <TaxSettingsLeftPanel
+                  <LazyTaxSettingsLeftPanel
                     taxSettingsMode={taxSettingsMode}
                     onTaxSettingsModeChange={setTaxSettingsMode}
                     applyTaxInTable={applyTaxInTable}
@@ -4945,7 +4955,7 @@ export default function Home() {
                     opacity: taxSettingsMode === "manual" ? 0.92 : 1,
                   }}
                 >
-                    <MobileNhi2ImpactBlock
+                    <LazyMobileNhi2ImpactBlock
                     taxSettingsMode={taxSettingsMode}
                     applyNhi2InTable={applyNhi2InTable}
                     setApplyNhi2InTable={setApplyNhi2InTable}
@@ -5306,9 +5316,9 @@ export default function Home() {
               </span>
             ))}
           </div>
-          <FooterStatsStrip />
+          <LazyFooterStatsStrip />
           <div className="hidden md:block">
-            <HomeFooterWatchlistSection />
+            <LazyHomeFooterWatchlistSection />
           </div>
           {/* 廣告預留區（僅佔位，日後可替換為廣告元件） */}
           <div
@@ -5552,12 +5562,12 @@ export default function Home() {
       </div>
       {clientMounted ? (
         <>
-          <SaveTargetModal
+          <LazySaveTargetModal
             open={saveTargetModalOpen}
             onClose={() => setSaveTargetModalOpen(false)}
             snapshot={currentCalculatorSnapshot}
           />
-          <LoadTargetModal
+          <LazyLoadTargetModal
             open={loadTargetModalOpen}
             onClose={() => setLoadTargetModalOpen(false)}
             onApply={applyCalculatorSnapshot}
