@@ -5,7 +5,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
 import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
-import { clampNum, fvMonthly } from "@/lib/quick-calculator-math";
+import { clampNum } from "@/lib/quick-calculator-math";
 import { quickChartYearTicks } from "@/lib/quick-chart-series";
 import {
   buildInstallmentTipContent,
@@ -19,8 +19,41 @@ import {
   TIP_FONT_MAX_PX,
 } from "./logic";
 
-export function QuickCalculator8View() {
-  const investAnnualPct = 7;
+const DEFAULT_INVEST_ANNUAL_PCT = 7;
+const DEFAULT_TAIWAN_PERCEIVED_INFLATION_PCT = 3;
+
+function fvMonthlyQuick8({
+  annualReturnPct,
+  months,
+  monthlyContribution,
+}: {
+  annualReturnPct: number;
+  months: number;
+  monthlyContribution: number;
+}): number {
+  const r = clampNum(annualReturnPct, -99, 99) / 100 / 12;
+  const c = Math.max(0, Number.isFinite(monthlyContribution) ? monthlyContribution : 0);
+  const mMax = Math.max(0, Math.trunc(months));
+  let bal = 0;
+  for (let m = 1; m <= mMax; m++) {
+    bal = bal * (1 + r) + c;
+  }
+  return Math.max(0, bal);
+}
+
+export function QuickCalculator8View({
+  initialInflationAdjusted = false,
+  initialInflationPct = DEFAULT_TAIWAN_PERCEIVED_INFLATION_PCT,
+}: {
+  initialInflationAdjusted?: boolean;
+  initialInflationPct?: number;
+}) {
+  const [investAnnualPct, setInvestAnnualPct] = useState(DEFAULT_INVEST_ANNUAL_PCT);
+  const [inflationPct, setInflationPct] = useState(() => clampNum(initialInflationPct, 0, 10));
+  const [inflationAdjusted, setInflationAdjusted] = useState(initialInflationAdjusted);
+  const effectiveAnnualPct = inflationAdjusted
+    ? investAnnualPct - inflationPct
+    : investAnnualPct;
 
   const [shareState, setShareState] = useState<"idle" | "copied">("idle");
   /** 首屏固定 0 避免 SSR/CSR 隨機不一致；掛載後再抽一句（不輪播） */
@@ -105,6 +138,13 @@ export function QuickCalculator8View() {
       url.searchParams.set("inst", String(monthlyInstallment));
       url.searchParams.set("invest", String(monthlyInvest));
       url.searchParams.set("y", String(years));
+      if (inflationAdjusted) {
+        url.searchParams.set("inflation", "true");
+        url.searchParams.set("inflation_rate", String(inflationPct));
+      } else {
+        url.searchParams.delete("inflation");
+        url.searchParams.delete("inflation_rate");
+      }
       const nav = navigator as unknown as { share?: (v: { url?: string }) => Promise<void> };
       if (typeof nav.share === "function") {
         await nav.share({ url: url.toString() });
@@ -140,33 +180,33 @@ export function QuickCalculator8View() {
   // 核心邏輯（照你指定）
   const result = useMemo(() => {
     const m = yearsClamped * 12;
-    const currentAssets = fvMonthly({ annualReturnPct: investAnnualPct, months: m, initial: 0, monthlyContribution });
-    const delayedAssets = fvMonthly({ annualReturnPct: investAnnualPct, months: m, initial: 0, monthlyContribution: totalPrice });
+    const currentAssets = fvMonthlyQuick8({ annualReturnPct: effectiveAnnualPct, months: m, monthlyContribution });
+    const delayedAssets = fvMonthlyQuick8({ annualReturnPct: effectiveAnnualPct, months: m, monthlyContribution: totalPrice });
     const loss = delayedAssets - currentAssets;
     return { currentAssets, delayedAssets, loss };
-  }, [investAnnualPct, monthlyContribution, totalPrice, yearsClamped]);
+  }, [effectiveAnnualPct, monthlyContribution, totalPrice, yearsClamped]);
 
   /** 橫軸僅顯示 ≤ 設定年限之刻度（與主試算終點一致） */
   const yearsList = useMemo(() => quickChartYearTicks(yearsClamped), [yearsClamped]);
 
   const series = useMemo(() => {
-    const a = yearsList.map((y) => fvMonthly({ annualReturnPct: investAnnualPct, months: y * 12, initial: 0, monthlyContribution }));
-    const b = yearsList.map((y) => fvMonthly({ annualReturnPct: investAnnualPct, months: y * 12, initial: 0, monthlyContribution: totalPrice }));
+    const a = yearsList.map((y) => fvMonthlyQuick8({ annualReturnPct: effectiveAnnualPct, months: y * 12, monthlyContribution }));
+    const b = yearsList.map((y) => fvMonthlyQuick8({ annualReturnPct: effectiveAnnualPct, months: y * 12, monthlyContribution: totalPrice }));
     return { a, b };
-  }, [investAnnualPct, monthlyContribution, totalPrice, yearsList]);
+  }, [effectiveAnnualPct, monthlyContribution, totalPrice, yearsList]);
 
   /** 圖上方里程碑：1 年、5 年（若未超過上限）、以及「設定年限」終點 */
   const chartMilestoneRows = useMemo(() => {
     const at = (y: number) => {
       const months = y * 12;
-      const normal = fvMonthly({ annualReturnPct: investAnnualPct, months, initial: 0, monthlyContribution });
-      const delayed = fvMonthly({ annualReturnPct: investAnnualPct, months, initial: 0, monthlyContribution: totalPrice });
+      const normal = fvMonthlyQuick8({ annualReturnPct: effectiveAnnualPct, months, monthlyContribution });
+      const delayed = fvMonthlyQuick8({ annualReturnPct: effectiveAnnualPct, months, monthlyContribution: totalPrice });
       return { year: y, normal, delayed };
     };
     const cap = yearsClamped;
     const ys = [...new Set([1, Math.min(5, cap), cap].filter((y) => y >= 1 && y <= cap))].sort((a, b) => a - b);
     return ys.map((y) => at(y));
-  }, [investAnnualPct, monthlyContribution, totalPrice, yearsClamped]);
+  }, [effectiveAnnualPct, monthlyContribution, totalPrice, yearsClamped]);
 
   const chartMilestoneColors = [
     "rgba(252, 211, 77, 0.98)",
@@ -279,16 +319,20 @@ export function QuickCalculator8View() {
           <div
             className="quick8-title-gradient"
             style={{
-              fontSize: 30,
+              fontSize: inflationAdjusted ? 23 : 30,
               fontWeight: 950,
               marginTop: 10,
               lineHeight: 1.12,
-              whiteSpace: "nowrap",
+              minHeight: 60,
+              display: "flex",
+              alignItems: "center",
+              whiteSpace: inflationAdjusted ? "normal" : "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
+              wordBreak: "keep-all",
             }}
           >
-            ⏳ 延遲享樂計算機
+            {inflationAdjusted ? "⏳【慘遭通膨考驗】延遲享樂計算機" : "⏳ 延遲享樂計算機"}
           </div>
         </div>
 
@@ -568,7 +612,7 @@ export function QuickCalculator8View() {
                   </button>
                 </div>
                 <div style={{ fontSize: 12, opacity: 0.82, fontWeight: 800, whiteSpace: "nowrap", flexShrink: 0 }}>
-                  年化利率預設{investAnnualPct}%
+                  目前年化{investAnnualPct.toFixed(1).replace(/\.0$/, "")}%
                 </div>
               </div>
               <input
@@ -595,12 +639,137 @@ export function QuickCalculator8View() {
               />
             </div>
 
+            <div style={{ padding: 9, borderRadius: 14, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ fontSize: 16, opacity: 0.9, fontWeight: 900 }}>年化利率</div>
+                <div style={{ fontSize: 16, opacity: 0.82, fontWeight: 800, whiteSpace: "nowrap" }}>
+                  {inflationAdjusted
+                    ? `實質 ${effectiveAnnualPct.toFixed(1).replace(/\.0$/, "")}%`
+                    : `預估 ${investAnnualPct.toFixed(1).replace(/\.0$/, "")}%`}
+                </div>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={15}
+                step={0.5}
+                value={investAnnualPct}
+                onChange={(e) => setInvestAnnualPct(Number(e.target.value))}
+                aria-label="年化利率拉條"
+                style={{
+                  display: "block",
+                  width: "100%",
+                  maxWidth: "100%",
+                  minWidth: 0,
+                  boxSizing: "border-box",
+                  marginTop: 6,
+                  height: 24,
+                }}
+              />
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 2 }}>
+                <div style={{ fontSize: 14, opacity: inflationAdjusted ? 0.95 : 0.74, fontWeight: 900 }}>通膨率</div>
+                <div style={{ fontSize: 14, opacity: inflationAdjusted ? 0.95 : 0.74, fontWeight: 900, whiteSpace: "nowrap" }}>
+                  {inflationPct.toFixed(1).replace(/\.0$/, "")}%
+                </div>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={10}
+                step={0.5}
+                value={inflationPct}
+                onChange={(e) => setInflationPct(Number(e.target.value))}
+                aria-label="通膨率拉條"
+                style={{
+                  display: "block",
+                  width: "100%",
+                  maxWidth: "100%",
+                  minWidth: 0,
+                  boxSizing: "border-box",
+                  marginTop: 4,
+                  height: 22,
+                  opacity: inflationAdjusted ? 1 : 0.72,
+                }}
+              />
+              <div
+                role="tablist"
+                aria-label="資產顯示模式"
+                style={{
+                  marginTop: 6,
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 4,
+                  width: "100%",
+                  height: 50,
+                  padding: 4,
+                  borderRadius: 999,
+                  background: "rgba(2,6,23,0.72)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  boxSizing: "border-box",
+                }}
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={!inflationAdjusted}
+                  onClick={() => setInflationAdjusted(false)}
+                  style={{
+                    minWidth: 0,
+                    height: 42,
+                    borderRadius: 999,
+                    border: "none",
+                    background: !inflationAdjusted ? "linear-gradient(135deg, rgba(59,130,246,0.95), rgba(14,165,233,0.82))" : "transparent",
+                    color: !inflationAdjusted ? "#ffffff" : "rgba(226,232,240,0.78)",
+                    fontSize: 14,
+                    fontWeight: 950,
+                    lineHeight: 1.15,
+                    cursor: "pointer",
+                    padding: "0 8px",
+                    boxShadow: !inflationAdjusted ? "0 8px 18px rgba(37,99,235,0.28)" : "none",
+                  }}
+                >
+                  預估資產金額
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={inflationAdjusted}
+                  onClick={() => setInflationAdjusted(true)}
+                  style={{
+                    minWidth: 0,
+                    height: 42,
+                    borderRadius: 999,
+                    border: "none",
+                    background: inflationAdjusted ? "linear-gradient(135deg, rgba(245,158,11,0.95), rgba(239,68,68,0.78))" : "transparent",
+                    color: inflationAdjusted ? "#ffffff" : "rgba(226,232,240,0.78)",
+                    fontSize: 13,
+                    fontWeight: 950,
+                    lineHeight: 1.12,
+                    cursor: "pointer",
+                    padding: "0 8px",
+                    boxShadow: inflationAdjusted ? "0 8px 18px rgba(245,158,11,0.24)" : "none",
+                    textShadow: inflationAdjusted ? "0 1px 2px rgba(0,0,0,0.55)" : "none",
+                  }}
+                >
+                  扣除通膨
+                  <br />
+                  （換算真實購買力）
+                </button>
+              </div>
+              <div style={{ marginTop: 6, fontSize: 11, lineHeight: 1.35, color: inflationAdjusted ? "rgba(252,211,77,0.95)" : "rgba(148,163,184,0.9)", fontWeight: 800 }}>
+                {inflationAdjusted
+                  ? `實質利率 = ${investAnnualPct.toFixed(1).replace(/\.0$/, "")}% - ${inflationPct.toFixed(1).replace(/\.0$/, "")}%`
+                  : "通膨率可先調好，切換右邊才扣除。"}
+              </div>
+            </div>
+
             <QuickDualLineChart
               years={yearsList}
               seriesA={series.a}
               seriesB={series.b}
-              legendA="照買照付（照常月投入）"
-              legendB="延遲享樂（分期改投入）"
+              title={inflationAdjusted ? `淨值折線圖（扣除${inflationPct.toFixed(1).replace(/\.0$/, "")}%通膨）` : "淨值折線圖"}
+              legendA={inflationAdjusted ? "照買照付（實質購買力）" : "照買照付（照常月投入）"}
+              legendB={inflationAdjusted ? "延遲享樂（實質購買力）" : "延遲享樂（分期改投入）"}
               colorA="rgba(196, 122, 122, 0.92)"
               colorB="rgba(106, 165, 184, 0.92)"
               showPointValues
@@ -621,7 +790,7 @@ export function QuickCalculator8View() {
                       fill={chartMilestoneColors[i % chartMilestoneColors.length]}
                       fontWeight="900"
                     >
-                      {row.year}年資產：{formatSmartUnit(row.normal)} / {formatSmartUnit(row.delayed)}
+                      {row.year}年{inflationAdjusted ? "實質購買力" : "資產"}：{formatSmartUnit(row.normal)} / {formatSmartUnit(row.delayed)}
                     </text>
                   ))}
                 </>

@@ -8,6 +8,8 @@ alwaysApply: false
 
 編輯 `app/layout.tsx` 的 `<head>`、`metadata` 或 JSON-LD 前，先對照本節點。
 
+可回復版本請看：`docs/HOMEPAGE-TECHNICAL-SEO-CHECKPOINT.md`。該文件保存可直接貼回 `app/layout.tsx` 的 metadata、structuredData 與 `<script type="application/ld+json">` 片段。
+
 ## 目前鎖定狀態
 
 1. **首頁 metadata title**

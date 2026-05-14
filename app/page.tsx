@@ -65,6 +65,320 @@ const NZ_TARGET_YEAR = 2028;
 
 type PayoutFrequency = "month" | "quarter" | "semiannual" | "year";
 
+type EtfLandingCode =
+  | "0050"
+  | "0056"
+  | "006208"
+  | "00631R"
+  | "00679B"
+  | "00713"
+  | "00878"
+  | "00915"
+  | "00918"
+  | "00919"
+  | "00929"
+  | "00934"
+  | "00936"
+  | "00939"
+  | "00940"
+  | "00943"
+  | "00946"
+  | "2330"
+  | "VOO";
+
+type EtfLandingPreset = {
+  code: EtfLandingCode;
+  h1: string;
+  banner: string;
+  annualReturn: number;
+  payoutFrequency: PayoutFrequency;
+  ratio54cPct: number;
+  label: string;
+  payoutText?: string;
+  h1Override?: string;
+  monthly?: number;
+  single?: number;
+  shares?: number;
+  targetMonthly?: number;
+  scenarioCategory?: string;
+};
+
+const ETF_PROFILE_CONFIG: Record<
+  EtfLandingPreset["code"],
+  Pick<EtfLandingPreset, "code" | "annualReturn" | "payoutFrequency" | "ratio54cPct" | "label" | "payoutText" | "h1Override">
+> = {
+  "0050": {
+    code: "0050",
+    annualReturn: 8.5,
+    payoutFrequency: "semiannual",
+    ratio54cPct: 100,
+    label: "元大台灣50",
+    h1Override: "【0050 定期定額專用】台股市值型 ETF 財富自由試算",
+  },
+  "0056": {
+    code: "0056",
+    annualReturn: 6.5,
+    payoutFrequency: "quarter",
+    ratio54cPct: 100,
+    label: "元大高股息",
+    h1Override: "【0056 高股息專用】股利再投入與二代健保試算",
+  },
+  "006208": {
+    code: "006208",
+    annualReturn: 8.5,
+    payoutFrequency: "semiannual",
+    ratio54cPct: 100,
+    label: "富邦台50",
+    h1Override: "【006208 台50專用】長期市值型 ETF 複利試算",
+  },
+  "00631R": {
+    code: "00631R",
+    annualReturn: 15,
+    payoutFrequency: "year",
+    ratio54cPct: 0,
+    label: "元大台灣50正2",
+    payoutText: "不配息",
+    h1Override: "【00631R 正二教專用】大盤槓桿長期複利壓力測試",
+  },
+  "00679B": {
+    code: "00679B",
+    annualReturn: 4.5,
+    payoutFrequency: "quarter",
+    ratio54cPct: 0,
+    label: "元大美債20年",
+    h1Override: "【00679B 長債大戶專用】海外所得與實質複利試算機",
+  },
+  "00713": {
+    code: "00713",
+    annualReturn: 6.5,
+    payoutFrequency: "quarter",
+    ratio54cPct: 95,
+    label: "元大台灣高息低波",
+    h1Override: "【00713 高息低波專用】退休現金流與稅費壓力測試",
+  },
+  "00878": {
+    code: "00878",
+    annualReturn: 6.5,
+    payoutFrequency: "quarter",
+    ratio54cPct: 100,
+    label: "國泰永續高股息",
+    h1Override: "【00878 存股專用】月領被動收入與股利再投入試算",
+  },
+  "00915": {
+    code: "00915",
+    annualReturn: 6.8,
+    payoutFrequency: "quarter",
+    ratio54cPct: 95,
+    label: "凱基優選高股息30",
+    h1Override: "【00915 高股息專用】季配息與稅後複利試算",
+  },
+  "00918": {
+    code: "00918",
+    annualReturn: 7.0,
+    payoutFrequency: "quarter",
+    ratio54cPct: 95,
+    label: "大華優利高填息30",
+    h1Override: "【00918 高填息專用】股利現金流與補充保費試算",
+  },
+  "00919": {
+    code: "00919",
+    annualReturn: 7.0,
+    payoutFrequency: "quarter",
+    ratio54cPct: 100,
+    label: "群益台灣精選高息",
+    h1Override: "【00919 月領退休專用】高股息 ETF 達標年期試算",
+  },
+  "00929": {
+    code: "00929",
+    annualReturn: 7.0,
+    payoutFrequency: "month",
+    ratio54cPct: 100,
+    label: "復華台灣科技優息",
+    h1Override: "【00929 月配息專用】二代健保免扣門檻壓力測試",
+  },
+  "00934": {
+    code: "00934",
+    annualReturn: 7.2,
+    payoutFrequency: "month",
+    ratio54cPct: 90,
+    label: "中信成長高股息",
+    h1Override: "【00934 月配息專用】成長高股息稅後複利試算",
+  },
+  "00936": {
+    code: "00936",
+    annualReturn: 7.0,
+    payoutFrequency: "month",
+    ratio54cPct: 90,
+    label: "台新永續高息中小",
+    h1Override: "【00936 中小高息專用】月配息與摩擦成本試算",
+  },
+  "00939": {
+    code: "00939",
+    annualReturn: 7.2,
+    payoutFrequency: "month",
+    ratio54cPct: 90,
+    label: "統一台灣高息動能",
+    h1Override: "【00939 高息動能專用】月配息再投入試算",
+  },
+  "00940": {
+    code: "00940",
+    annualReturn: 6.8,
+    payoutFrequency: "month",
+    ratio54cPct: 100,
+    label: "元大台灣價值高息",
+    h1Override: "【00940 價值高息專用】月配息與稅後現金流試算",
+  },
+  "00943": {
+    code: "00943",
+    annualReturn: 7.5,
+    payoutFrequency: "month",
+    ratio54cPct: 90,
+    label: "兆豐電子高息等權",
+    h1Override: "【00943 電子高息專用】月配息與科技股複利試算",
+  },
+  "00946": {
+    code: "00946",
+    annualReturn: 8.0,
+    payoutFrequency: "month",
+    ratio54cPct: 90,
+    label: "群益科技高息成長",
+    h1Override: "【00946 科技高息專用】月配息與成長股壓力測試",
+  },
+  "2330": {
+    code: "2330",
+    annualReturn: 10.5,
+    payoutFrequency: "quarter",
+    ratio54cPct: 95,
+    label: "台積電",
+    h1Override: "【2330 台積電專用】科技股股利與實質複利試算",
+  },
+  "VOO": {
+    code: "VOO",
+    annualReturn: 9.0,
+    payoutFrequency: "quarter",
+    ratio54cPct: 0,
+    label: "Vanguard標普500 (VOO)",
+    h1Override: "【VOO 美股 FIRE 專用】4% 法則與資產累積試算器",
+  },
+};
+
+type GoldenScenarioConfig = {
+  category: "奈米小資流" | "單筆歐印流" | "二代健保2萬元卡關壓測流" | "夢想月領退休流" | "科技業大戶節稅與實質複利流" | "隱藏版高流量硬核場景";
+  code: EtfLandingPreset["code"];
+  monthly?: number;
+  single?: number;
+  shares?: number;
+  targetMonthly?: number;
+  ratio54cPct?: number;
+  h1Override?: string;
+};
+
+const GOLDEN_ETF_SCENARIOS: readonly GoldenScenarioConfig[] = [
+  { category: "奈米小資流", code: "0050", monthly: 3000, ratio54cPct: 60 },
+  { category: "奈米小資流", code: "00878", monthly: 5000, ratio54cPct: 35 },
+  { category: "奈米小資流", code: "00929", monthly: 3000, ratio54cPct: 45 },
+  { category: "單筆歐印流", code: "0050", single: 500000, ratio54cPct: 60 },
+  { category: "單筆歐印流", code: "00878", single: 1000000, ratio54cPct: 35 },
+  { category: "單筆歐印流", code: "2330", single: 500000, ratio54cPct: 95 },
+  { category: "二代健保2萬元卡關壓測流", code: "00929", shares: 35000, ratio54cPct: 45 },
+  { category: "二代健保2萬元卡關壓測流", code: "00878", shares: 40000, ratio54cPct: 35 },
+  { category: "二代健保2萬元卡關壓測流", code: "00919", shares: 30000, ratio54cPct: 40 },
+  { category: "夢想月領退休流", code: "00878", targetMonthly: 30000, ratio54cPct: 35 },
+  { category: "夢想月領退休流", code: "00919", targetMonthly: 50000, ratio54cPct: 40 },
+  { category: "夢想月領退休流", code: "0056", targetMonthly: 30000, ratio54cPct: 45 },
+  { category: "科技業大戶節稅與實質複利流", code: "0050", shares: 100000, ratio54cPct: 60 },
+  { category: "科技業大戶節稅與實質複利流", code: "00878", shares: 300000, ratio54cPct: 35 },
+  { category: "科技業大戶節稅與實質複利流", code: "2330", shares: 50000, ratio54cPct: 95 },
+  { category: "隱藏版高流量硬核場景", code: "00631R", monthly: 10000, ratio54cPct: 0, h1Override: "【00631R 正二教專用】大盤槓桿長期複利壓力測試" },
+  { category: "隱藏版高流量硬核場景", code: "VOO", monthly: 15000, ratio54cPct: 0, h1Override: "【VOO 美股 FIRE 專用】4% 法則與資產累積試算器" },
+  { category: "隱藏版高流量硬核場景", code: "00679B", shares: 100000, ratio54cPct: 0, h1Override: "【00679B 長債大戶專用】海外所得與實質複利試算機" },
+] as const;
+
+function formatLandingAmount(n: number): string {
+  return Math.max(0, Math.round(n)).toLocaleString("zh-TW");
+}
+
+function buildEtfLandingCopy(preset: Omit<EtfLandingPreset, "h1" | "banner">): Pick<EtfLandingPreset, "h1" | "banner"> {
+  const payoutText = preset.payoutText ?? payoutFrequencyText(preset.payoutFrequency);
+  if (preset.monthly != null) {
+    return {
+      h1: preset.h1Override ?? `【${preset.code} 定期定額 ${formatLandingAmount(preset.monthly)}元 專用】長期資產複利試算`,
+      banner: `本頁已預先帶入 ${preset.code}（${preset.label}）的報酬率 ${preset.annualReturn}%、${payoutText}、54C ${preset.ratio54cPct}% 與每月投入 ${formatLandingAmount(preset.monthly)} 元，請直接微調你的定期定額金額。`,
+    };
+  }
+  if (preset.shares != null) {
+    return {
+      h1: preset.h1Override ?? `【${preset.code} 持有 ${formatLandingAmount(preset.shares)}股 專用】二代健保與稅務壓力測試`,
+      banner: `本頁已預先帶入 ${preset.code}（${preset.label}）持有 ${formatLandingAmount(preset.shares)} 股、${payoutText} 與 54C ${preset.ratio54cPct}%；系統會以參考股價換算為現有資產，協助壓測二代健保與稅務門檻。`,
+    };
+  }
+  if (preset.single != null) {
+    return {
+      h1: preset.h1Override ?? `【${preset.code} 單筆歐印 ${formatLandingAmount(preset.single)}元 專用】複利資產試算`,
+      banner: `本頁已預先帶入 ${preset.code}（${preset.label}）單筆投入 ${formatLandingAmount(preset.single)} 元、報酬率 ${preset.annualReturn}%、${payoutText} 與 54C ${preset.ratio54cPct}%，方便你直接看歐印後的長期複利路徑。`,
+    };
+  }
+  if (preset.targetMonthly != null) {
+    return {
+      h1: preset.h1Override ?? `【${preset.code} 挑戰月領 ${formatLandingAmount(preset.targetMonthly)}元 專用】達標年期模擬`,
+      banner: `本頁已預先帶入 ${preset.code}（${preset.label}）與目標月領 ${formatLandingAmount(preset.targetMonthly)} 元，請調整本金與定期定額，檢查達標年期是否符合你的退休節奏。`,
+    };
+  }
+  return {
+    h1: preset.h1Override ?? `【${preset.code} 專用】台股 ETF 財富自由與實質複利壓力測試`,
+    banner: `本頁已預先帶入 ${preset.code}（${preset.label}）的報酬率 ${preset.annualReturn}%、${payoutText} 與 54C ${preset.ratio54cPct}% 稅費參數，請直接輸入您的定期定額金額。`,
+  };
+}
+
+function payoutFrequencyText(f: PayoutFrequency): string {
+  if (f === "month") return "月配息";
+  if (f === "quarter") return "季配息";
+  if (f === "semiannual") return "半年配";
+  return "年配息";
+}
+
+function parsePositiveIntParam(sp: URLSearchParams, key: string): number | undefined {
+  const raw = sp.get(key)?.replace(/,/g, "").trim();
+  if (!raw) return undefined;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : undefined;
+}
+
+function getEtfLandingPresetFromSearch(search: string): EtfLandingPreset | null {
+  const sp = new URLSearchParams(search);
+  const raw = sp.get("etf")?.trim();
+  if (!raw) return null;
+  const code = raw.toUpperCase() as EtfLandingPreset["code"];
+  const base = ETF_PROFILE_CONFIG[code];
+  if (!base) return null;
+
+  const monthly = parsePositiveIntParam(sp, "monthly");
+  const single = parsePositiveIntParam(sp, "single");
+  const shares = parsePositiveIntParam(sp, "shares");
+  const targetMonthly = parsePositiveIntParam(sp, "target_monthly");
+  const exact = GOLDEN_ETF_SCENARIOS.find(
+    (s) =>
+      s.code === code &&
+      (s.monthly == null || s.monthly === monthly) &&
+      (s.single == null || s.single === single) &&
+      (s.shares == null || s.shares === shares) &&
+      (s.targetMonthly == null || s.targetMonthly === targetMonthly) &&
+      [s.monthly, s.single, s.shares, s.targetMonthly].some((v) => v != null),
+  );
+
+  const merged = {
+    ...base,
+    monthly: exact?.monthly ?? monthly,
+    single: exact?.single ?? single,
+    shares: exact?.shares ?? shares,
+    targetMonthly: exact?.targetMonthly ?? targetMonthly,
+    ratio54cPct: exact?.ratio54cPct ?? base.ratio54cPct,
+    h1Override: exact?.h1Override ?? base.h1Override,
+    scenarioCategory: exact?.category,
+  };
+  return { ...merged, ...buildEtfLandingCopy(merged) };
+}
+
 type SimulationResult = {
   milestone30000Index: number | null;
   milestone150000Index: number | null;
@@ -502,6 +816,7 @@ export default function Home() {
   const [targetYearsToAchieve, setTargetYearsToAchieve] = useState("20");
   const [stickyBarPinned, setStickyBarPinned] = useState(false);
   const [stickyBarVisible, setStickyBarVisible] = useState(false);
+  const [etfLandingPreset, setEtfLandingPreset] = useState<EtfLandingPreset | null>(null);
   /** 僅在客戶端掛載後為 true，避免 createPortal 與 SSR 初次 HTML 不一致（Hydration error） */
   const [clientMounted, setClientMounted] = useState(false);
   useEffect(() => {
@@ -773,6 +1088,51 @@ export default function Home() {
 
   useEffect(() => {
     if (!clientMounted) return;
+    const queryPreset = getEtfLandingPresetFromSearch(window.location.search);
+    if (queryPreset) {
+      skipTaxSyncFromIncomeRef.current = true;
+      setEtfLandingPreset(queryPreset);
+      setSelectedEtf(queryPreset.code);
+      setEtfCodeFilter("");
+      setAnnualReturnRate(queryPreset.annualReturn);
+      setDividendYieldPct("");
+      setStockDividendPct("");
+      setRateSource("annual");
+      setPayoutFrequency(queryPreset.payoutFrequency);
+      setNthPeriod((prev) => (prev > maxNthPeriod ? maxNthPeriod : prev));
+      if (queryPreset.monthly != null) {
+        setMonthlyContribution(formatLandingAmount(queryPreset.monthly));
+        setMonthlyExtra("0");
+      }
+      if (queryPreset.single != null) {
+        const amount = formatLandingAmount(queryPreset.single);
+        setInitialPrincipal(amount);
+        setCurrentPrincipalStr(amount);
+        setMonthlyContribution("0");
+        setMonthlyExtra("0");
+      }
+      if (queryPreset.shares != null) {
+        const presetInfo = TICKER_PRESETS.find((p) => p.id === queryPreset.code);
+        const marketValue = Math.round(queryPreset.shares * (presetInfo?.price ?? 0));
+        if (marketValue > 0) {
+          const amount = formatLandingAmount(marketValue);
+          setInitialPrincipal(amount);
+          setCurrentPrincipalStr(amount);
+          setMonthlyContribution("0");
+          setMonthlyExtra("0");
+        }
+      }
+      if (queryPreset.targetMonthly != null) {
+        setTargetQuarterIncome(formatLandingAmount(queryPreset.targetMonthly));
+      }
+      setEtfRatioEstimates((prev) => ({
+        ...prev,
+        [queryPreset.code]: String(queryPreset.ratio54cPct),
+      }));
+      setStorageReady(true);
+      return;
+    }
+    setEtfLandingPreset(null);
     const repo = getDefaultCalculatorRepository();
     const s = repo.load();
     if (s) {
@@ -823,6 +1183,7 @@ export default function Home() {
    */
   useEffect(() => {
     if (!clientMounted || !storageReady) return;
+    if (etfLandingPreset) return;
     const snap = buildSnapshotFromInputs({
       initialPrincipal,
       monthlyContribution,
@@ -2293,6 +2654,8 @@ export default function Home() {
       : "ghost";
 
   const currentYear = new Date().getFullYear();
+  const heroTitle = etfLandingPreset?.h1 ?? "財富自由計算機";
+  const etfLandingBanner = etfLandingPreset?.banner ?? null;
 
   const cardStyle: React.CSSProperties = {
     padding: 20,
@@ -2301,6 +2664,18 @@ export default function Home() {
     background: "rgba(15,23,42,0.6)",
     boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
     backdropFilter: "blur(12px)",
+  };
+  const etfLandingBannerStyle: React.CSSProperties = {
+    borderRadius: 14,
+    border: "1px solid rgba(56,189,248,0.38)",
+    background:
+      "linear-gradient(135deg, rgba(14,165,233,0.18), rgba(20,184,166,0.1)), rgba(15,23,42,0.76)",
+    boxShadow: "0 12px 34px rgba(14,165,233,0.16)",
+    color: "#dffbff",
+    padding: "12px 14px",
+    fontSize: 13,
+    fontWeight: 800,
+    lineHeight: 1.65,
   };
   const tableCellBase: React.CSSProperties = {
     padding: "1px 1px",
@@ -3414,7 +3789,7 @@ export default function Home() {
             <div style={{ fontSize: 11, color: "#39ff14", textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>
               WEALTH FREEDOM
             </div>
-            <h1 className={heroGold.desktopH1}>財富自由計算機</h1>
+            <h1 className={heroGold.desktopH1}>{heroTitle}</h1>
             <p style={{ fontSize: 13, color: "#9ca3af", marginTop: 8, marginBottom: 0 }}>
               月領 {targetQuarterIncomeNum.toLocaleString("zh-TW")}，不是夢，是複利紀律。
             </p>
@@ -3518,6 +3893,11 @@ export default function Home() {
         {/* 3️⃣ GOAL SETTING CARD - 滾超過此區才顯示懸停橫幅（建議每月投入／達成所需資產／目標月領拉桿） */}
         <div id="desktop-goal-setting" ref={(el) => { goalSettingCardRef.current = el; }} style={{ ...cardStyle }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {etfLandingBanner ? (
+              <div style={etfLandingBannerStyle} role="note" aria-label={`${etfLandingPreset?.code} 專用表單預設提示`}>
+                {etfLandingBanner}
+              </div>
+            ) : null}
             <h2 style={{ fontSize: 24, fontWeight: 600, color: "#e5e7eb", margin: 0 }}>目標設定</h2>
 
             <div style={{ display: "flex", alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
@@ -4235,6 +4615,7 @@ export default function Home() {
 
         <div id="mobile-app-view">
           <MobileHeroSection
+            title={heroTitle}
             fireEtaStr={fireEtaStr}
             achievementPercent={achievementPercent}
             targetQuarterIncomeNum={targetQuarterIncomeNum}
@@ -4246,6 +4627,11 @@ export default function Home() {
               totalDividends: simulationAtTargetYears.totalDividends,
             }}
           />
+          {etfLandingBanner ? (
+            <div className="mx-3 mb-3" style={etfLandingBannerStyle} role="note" aria-label={`${etfLandingPreset?.code} 專用表單預設提示`}>
+              {etfLandingBanner}
+            </div>
+          ) : null}
           <MobileGoalSettingSection
             targetQuarterIncome={targetQuarterIncome}
             setTargetQuarterIncome={setTargetQuarterIncome}
@@ -4977,6 +5363,65 @@ export default function Home() {
               合作／廣告欄位預留
             </span>
           </div>
+          <section
+            aria-labelledby="employee-etf-faq-heading"
+            style={{
+              ...cardStyle,
+              lineHeight: 1.8,
+            }}
+          >
+            <h2
+              id="employee-etf-faq-heading"
+              style={{ fontSize: 24, fontWeight: 700, color: "#e5e7eb", margin: "0 0 14px" }}
+            >
+              上班族最常搜尋的 ETF 存股常見問題 (FAQ)
+            </h2>
+            <p style={{ margin: "0 0 18px", color: "#9ca3af", fontSize: 14 }}>
+              這裡不談空泛理財雞湯，只整理上班族做 ETF 存股、月領被動收入、二代健保與正二槓桿試算時，最容易算錯的五個問題。
+            </p>
+            <ol style={{ display: "flex", flexDirection: "column", gap: 18, margin: 0, paddingLeft: 22 }}>
+              <li style={{ paddingLeft: 4 }}>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: "#f5c451", margin: "0 0 8px" }}>
+                  問題一：00878、00919 存到幾張可以退休？如何規劃月領 3 萬被動收入？
+                </h3>
+                <p style={{ margin: 0, color: "#d1d5db", fontSize: 14 }}>
+                  很多年輕上班族常搜尋 00878 存到幾張可以退休。以目標月領 3 萬高股息為例，利用本站的 ETF 複利計算機，輸入每月定期定額一萬，系統會自動幫你試算除權息股利再投入後，需要多少張數與達標年期才能完成小資族被動收入規劃。
+                </p>
+              </li>
+              <li style={{ paddingLeft: 4 }}>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: "#f5c451", margin: "0 0 8px" }}>
+                  問題二：00929 與高股息 ETF 的二代健保免扣門檻（2萬元）怎麼算？
+                </h3>
+                <p style={{ margin: 0, color: "#d1d5db", fontSize: 14 }}>
+                  單期配息超過 2 萬元就會被扣 2.11% 的二代健保補充保費。存股族在網上瘋傳的 00929 二代健保免扣門檻，關鍵在於搞懂 54C 應稅股利占比。本大計算機直接幫你把 54C 占比、8.5% 抵減稅額與二代健保門檻鎖定，輸入預計持有張數即可精準進行壓力測試，避免股利被稅費白白吃掉。
+                </p>
+              </li>
+              <li style={{ paddingLeft: 4 }}>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: "#f5c451", margin: "0 0 8px" }}>
+                  問題三：長期投資存股，選 0050 定期定額還是買正二（00631R）開槓桿？
+                </h3>
+                <p style={{ margin: 0, color: "#d1d5db", fontSize: 14 }}>
+                  在 PTT 與論壇上熱議的 0050 定期定額試算與正二（00631R）槓桿流抉擇，核心差異在於稅務流失。00631R 台灣50正2屬於期貨型 ETF 不發股利，能做到 54C 占比為 0% 且免疫二代健保。在本工具中，你可以將兩者下修報酬率進行壓力測試，看看到底誰的實質複利資產成長最驚人。
+                </p>
+              </li>
+              <li style={{ paddingLeft: 4 }}>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: "#f5c451", margin: "0 0 8px" }}>
+                  問題四：手上有閒錢，應該先還清房貸、信貸，還是拿去買 ETF 定期定額存股？
+                </h3>
+                <p style={{ margin: 0, color: "#d1d5db", fontSize: 14 }}>
+                  這在理財社群上是天天熱議的話題。許多人搜尋「有錢先還房貸還是存股」或「借信貸買 00878 划算嗎」。核心關鍵在於你的實質利差空間。利用本站的槓桿抉擇計算機，你可以輸入貸款利率與 ETF 預估報酬率，它會自動幫你扣除台灣的股利所得稅與二代健保費，幫你精準評估利用低利貸款進行套利是否真的具備實質利差，避免盲目開槓桿導致財務翻車。
+                </p>
+              </li>
+              <li style={{ paddingLeft: 4 }}>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: "#f5c451", margin: "0 0 8px" }}>
+                  問題五：高股息 ETF 換成月配息（如 00929）或季配息，頻繁配息會有哪些缺點？
+                </h3>
+                <p style={{ margin: 0, color: "#d1d5db", fontSize: 14 }}>
+                  配息頻率越高（例如從半年配改成月配息），每次配息被銀行扣除的匯費與股利再投入的手續費次數就越多。網路上常有人搜尋「月配息缺點」與「手續費損耗」，本萬萬稅計算機直接將配息頻率與每期扣除資金明細化。如果每期定期定額投入的金額不夠大，頻繁配息產生的摩擦成本會嚴重吃掉你的複利速度，你必須看扣完稅費後的再投入，才是最真實的財富自由年期。
+                </p>
+              </li>
+            </ol>
+          </section>
           <section
             aria-labelledby="legal-disclaimer-heading"
             style={{

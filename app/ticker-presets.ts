@@ -23,50 +23,74 @@ export const TICKER_PRESETS: TickerPreset[] = [
     {
       id: "0050",
       label: "元大台灣50（0050）- ETF - 半年配 - 參考",
-      annualReturn: 7,
+      annualReturn: 8.5,
       frequency: "semiannual" as TickerFrequency,
       price: 155,
       dividendPerPeriod: 1.85,
       dividendYieldPct: 2.4,
       stockDividendPct: 4.6,
       dividendMonths: [1, 7],
-      ratio54c: "20"
+      ratio54c: "100"
     },
     {
       id: "0056",
       label: "元大高股息（0056）- ETF - 季配 - 參考",
-      annualReturn: 7.5,
+      annualReturn: 6.5,
       frequency: "quarter" as TickerFrequency,
       price: 37.5,
       dividendPerPeriod: 0.97,
       dividendYieldPct: 10,
       stockDividendPct: 0,
       dividendMonths: [1, 4, 7, 10],
-      ratio54c: "15"
+      ratio54c: "100"
     },
     {
       id: "006208",
       label: "富邦台50（006208）- ETF - 半年配 - 參考",
-      annualReturn: 7,
+      annualReturn: 8.5,
       frequency: "semiannual" as TickerFrequency,
       price: 95,
       dividendPerPeriod: 1.4,
       dividendYieldPct: 2.9,
       stockDividendPct: 4.1,
       dividendMonths: [7, 11],
-      ratio54c: "10"
+      ratio54c: "100"
+    },
+    {
+      id: "00631R",
+      label: "元大台灣50正2（00631R）- ETF - 不配息 - 參考",
+      annualReturn: 15,
+      frequency: "year" as TickerFrequency,
+      price: 230,
+      dividendPerPeriod: 0,
+      dividendYieldPct: 0,
+      stockDividendPct: 15,
+      dividendMonths: [],
+      ratio54c: "0"
+    },
+    {
+      id: "00679B",
+      label: "元大美債20年（00679B）- ETF - 季配 - 參考",
+      annualReturn: 4.5,
+      frequency: "quarter" as TickerFrequency,
+      price: 30,
+      dividendPerPeriod: 0.24,
+      dividendYieldPct: 3.2,
+      stockDividendPct: 1.3,
+      dividendMonths: [1, 4, 7, 10],
+      ratio54c: "0"
     },
     {
       id: "00878",
       label: "國泰永續高股息（00878）- ETF - 季配 - 參考",
-      annualReturn: 7.2,
+      annualReturn: 6.5,
       frequency: "quarter" as TickerFrequency,
       price: 21.75,
       dividendPerPeriod: 0.4,
       dividendYieldPct: 7.4,
       stockDividendPct: 0,
       dividendMonths: [2, 5, 8, 11],
-      ratio54c: "15"
+      ratio54c: "100"
     },
     {
       id: "00900",
@@ -83,38 +107,38 @@ export const TICKER_PRESETS: TickerPreset[] = [
     {
       id: "00919",
       label: "群益台灣精選高息（00919）- ETF - 季配 - 參考",
-      annualReturn: 8,
+      annualReturn: 7,
       frequency: "quarter" as TickerFrequency,
       price: 23,
       dividendPerPeriod: 0.3,
       dividendYieldPct: 5.2,
       stockDividendPct: 2.8,
       dividendMonths: [3, 6, 9, 12],
-      ratio54c: "10"
+      ratio54c: "100"
     },
     {
       id: "00929",
-      label: "復華台灣科技高股息（00929）- ETF - 月配 - 參考",
-      annualReturn: 8,
+      label: "復華台灣科技優息（00929）- ETF - 月配 - 參考",
+      annualReturn: 7,
       frequency: "month" as TickerFrequency,
       price: 18.7,
       dividendPerPeriod: 0.08,
       dividendYieldPct: 5.1,
       stockDividendPct: 2.9,
       dividendMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-      ratio54c: "10"
+      ratio54c: "100"
     },
     {
       id: "00934",
       label: "中信成長高股息（00934）- ETF - 月配 - 參考",
-      annualReturn: 7.5,
+      annualReturn: 7.2,
       frequency: "month" as TickerFrequency,
       price: 22,
       dividendPerPeriod: 0.1,
       dividendYieldPct: 5.4,
       stockDividendPct: 2.1,
       dividendMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-      ratio54c: "5"
+      ratio54c: "90"
     },
     {
       id: "00935",
@@ -130,15 +154,15 @@ export const TICKER_PRESETS: TickerPreset[] = [
     },
     {
       id: "00940",
-      label: "元大台灣價值高息（00940）- ETF - 季配 - 參考",
-      annualReturn: 7.5,
-      frequency: "quarter" as TickerFrequency,
+      label: "元大台灣價值高息（00940）- ETF - 月配 - 參考",
+      annualReturn: 6.8,
+      frequency: "month" as TickerFrequency,
       price: 9.5,
       dividendPerPeriod: 0.12,
       dividendYieldPct: 5.1,
       stockDividendPct: 2.4,
-      dividendMonths: [1, 4, 7, 10],
-      ratio54c: "5"
+      dividendMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      ratio54c: "100"
     },
     {
       id: "00646",
@@ -150,6 +174,18 @@ export const TICKER_PRESETS: TickerPreset[] = [
       dividendYieldPct: 2.9,
       stockDividendPct: 4.2,
       dividendMonths: [2, 5, 8, 11]
+    },
+    {
+      id: "VOO",
+      label: "Vanguard標普500 (VOO) - ETF - 季配 - 參考",
+      annualReturn: 9,
+      frequency: "quarter" as TickerFrequency,
+      price: 500,
+      dividendPerPeriod: 1.8,
+      dividendYieldPct: 1.4,
+      stockDividendPct: 7.6,
+      dividendMonths: [3, 6, 9, 12],
+      ratio54c: "0"
     },
     {
       id: "00662",
@@ -198,13 +234,14 @@ export const TICKER_PRESETS: TickerPreset[] = [
     {
       id: "00713",
       label: "元大台灣高息低波（00713）- ETF - 季配 - 參考",
-      annualReturn: 8,
+      annualReturn: 6.5,
       frequency: "quarter" as TickerFrequency,
       price: 52,
       dividendPerPeriod: 0.65,
       dividendYieldPct: 5,
       stockDividendPct: 2,
-      dividendMonths: [2, 5, 8, 11]
+      dividendMonths: [2, 5, 8, 11],
+      ratio54c: "95"
     },
     {
       id: "00728",
@@ -374,24 +411,26 @@ export const TICKER_PRESETS: TickerPreset[] = [
     {
       id: "00915",
       label: "凱基優選高股息30（00915）- ETF - 季配 - 參考",
-      annualReturn: 8,
+      annualReturn: 6.8,
       frequency: "quarter" as TickerFrequency,
       price: 17,
       dividendPerPeriod: 0.22,
       dividendYieldPct: 5.2,
       stockDividendPct: 1.8,
-      dividendMonths: [2, 5, 8, 11]
+      dividendMonths: [2, 5, 8, 11],
+      ratio54c: "95"
     },
     {
       id: "00918",
       label: "大華優利高填息30（00918）- ETF - 季配 - 參考",
-      annualReturn: 8.1,
+      annualReturn: 7,
       frequency: "quarter" as TickerFrequency,
       price: 18,
       dividendPerPeriod: 0.25,
       dividendYieldPct: 5.6,
       stockDividendPct: 1.6,
-      dividendMonths: [2, 5, 8, 11]
+      dividendMonths: [2, 5, 8, 11],
+      ratio54c: "95"
     },
     {
       id: "00922",
@@ -461,36 +500,39 @@ export const TICKER_PRESETS: TickerPreset[] = [
     },
     {
       id: "00936",
-      label: "台新永續高息中小（00936）- ETF - 季配 - 參考",
-      annualReturn: 8.1,
-      frequency: "quarter" as TickerFrequency,
+      label: "台新永續高息中小（00936）- ETF - 月配 - 參考",
+      annualReturn: 7,
+      frequency: "month" as TickerFrequency,
       price: 19,
       dividendPerPeriod: 0.26,
       dividendYieldPct: 5.5,
       stockDividendPct: 1.7,
-      dividendMonths: [2, 5, 8, 11]
+      dividendMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      ratio54c: "90"
     },
     {
       id: "00939",
       label: "統一台灣高息動能（00939）- ETF - 月配 - 參考",
-      annualReturn: 7.8,
+      annualReturn: 7.2,
       frequency: "month" as TickerFrequency,
       price: 15,
       dividendPerPeriod: 0.06,
       dividendYieldPct: 4.8,
       stockDividendPct: 2,
-      dividendMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      dividendMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      ratio54c: "90"
     },
     {
       id: "00943",
-      label: "兆豐電子高息等權（00943）- ETF - 季配 - 參考",
-      annualReturn: 7.8,
-      frequency: "quarter" as TickerFrequency,
+      label: "兆豐電子高息等權（00943）- ETF - 月配 - 參考",
+      annualReturn: 7.5,
+      frequency: "month" as TickerFrequency,
       price: 20,
       dividendPerPeriod: 0.24,
       dividendYieldPct: 4.8,
       stockDividendPct: 2,
-      dividendMonths: [2, 5, 8, 11]
+      dividendMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      ratio54c: "90"
     },
     {
       id: "00944",
@@ -517,13 +559,14 @@ export const TICKER_PRESETS: TickerPreset[] = [
     {
       id: "00946",
       label: "群益台灣科技高息（00946）- ETF - 月配 - 參考",
-      annualReturn: 9.4,
+      annualReturn: 8,
       frequency: "month" as TickerFrequency,
       price: 10,
       dividendPerPeriod: 0.06,
       dividendYieldPct: 7.2,
       stockDividendPct: 1.5,
-      dividendMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      dividendMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      ratio54c: "90"
     },
     {
       id: "00947",
@@ -638,13 +681,14 @@ export const TICKER_PRESETS: TickerPreset[] = [
     {
       id: "2330",
       label: "台積電（2330）- 股票 - 季配 - 參考",
-      annualReturn: 7.7,
+      annualReturn: 10.5,
       frequency: "quarter" as TickerFrequency,
       price: 1085,
       dividendPerPeriod: 4.5,
       dividendYieldPct: 1.7,
       stockDividendPct: 5,
-      dividendMonths: [2, 5, 8, 11]
+      dividendMonths: [2, 5, 8, 11],
+      ratio54c: "95"
     },
     {
       id: "2317",

@@ -7,6 +7,7 @@ import heroGold from "./hero-gold-title.module.css";
 import styles from "./mobile-hero-section.module.css";
 
 type Props = {
+  title?: string;
   fireEtaStr: string;
   achievementPercent: number;
   targetQuarterIncomeNum: number;
@@ -22,6 +23,7 @@ const CTA_LABEL = "🔥 看節稅攻略（已幫你算好）";
  * 僅供 #mobile-app-view。手機財富自由卡片區（與桌機資料同源，不影響其他頁面）。
  */
 export function MobileHeroSection({
+  title = "財富自由計算機",
   fireEtaStr,
   achievementPercent,
   targetQuarterIncomeNum,
@@ -50,7 +52,7 @@ export function MobileHeroSection({
       {/* 1️⃣ 標題區 */}
       <header className={styles.titleBlock}>
         <p className={styles.eyebrow}>WEALTH FREEDOM</p>
-        <h1 className={heroGold.mobileH1}>財富自由計算機</h1>
+        <h1 className={heroGold.mobileH1}>{title}</h1>
       </header>
 
       {/* 2️⃣ 預估達成時間 */}
