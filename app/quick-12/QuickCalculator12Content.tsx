@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type Dispatch, type KeyboardEvent, type SetStateAction, type WheelEvent } from "react";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
+import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { TICKER_PRESETS, type TickerPreset } from "@/app/ticker-presets";
 import { NHI2_THRESHOLD } from "@/lib/dividend-tax-sandbox";
 import { QUICK12_DISPLAY_TITLE } from "./display-title";
@@ -444,9 +445,9 @@ export function QuickCalculator12Content({
   initialPkScenarioIdx?: number;
 } = {}) {
   const [isLight, setIsLight] = useState(false);
-  const embedPage = embeddedInMiniBlog ? (initialPage ?? 0) : 0;
+  const embedPage = initialPage ?? 0;
   const pkIdxInit =
-    embeddedInMiniBlog && embedPage === 2
+    embedPage === 2
       ? Math.max(
           0,
           Math.min(QUICK12_PK_SCENARIOS.length - 1, Math.floor(Number(initialPkScenarioIdx) || 0)),
@@ -1205,7 +1206,12 @@ export function QuickCalculator12Content({
           </div>
         </section>
 
-        {!embeddedInMiniBlog ? <QuickBlogLinksToggle quickRoute="/quick-12" /> : null}
+        {!embeddedInMiniBlog ? (
+          <>
+            <QuickBlogLinksToggle quickRoute="/quick-12" />
+            <QuickSeoArticle id={12} />
+          </>
+        ) : null}
 
         {!embeddedInMiniBlog ? (
           <Link href="/" className={styles.cta}>

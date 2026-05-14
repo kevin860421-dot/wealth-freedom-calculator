@@ -21,6 +21,15 @@ import {
 
 const DEFAULT_INVEST_ANNUAL_PCT = 7;
 const DEFAULT_TAIWAN_PERCEIVED_INFLATION_PCT = 3;
+const DEFAULT_QUICK8_TOTAL_PRICE = 20000;
+
+type Quick8InitialScenario = {
+  name?: string;
+  single?: number;
+  monthly?: number;
+  years?: number;
+  rate?: number;
+};
 
 function fvMonthlyQuick8({
   annualReturnPct,
@@ -44,15 +53,36 @@ function fvMonthlyQuick8({
 export function QuickCalculator8View({
   initialInflationAdjusted = false,
   initialInflationPct = DEFAULT_TAIWAN_PERCEIVED_INFLATION_PCT,
+  initialScenario,
 }: {
   initialInflationAdjusted?: boolean;
   initialInflationPct?: number;
+  initialScenario?: Quick8InitialScenario;
 }) {
-  const [investAnnualPct, setInvestAnnualPct] = useState(DEFAULT_INVEST_ANNUAL_PCT);
+  const initialTotalPrice = Math.round(
+    clampNum(
+      initialScenario?.single ?? Math.max(DEFAULT_QUICK8_TOTAL_PRICE, initialScenario?.monthly ?? 0),
+      0,
+      500000,
+    ) / 100,
+  ) * 100;
+  const initialMonthlyInstallment = Math.round(
+    clampNum(initialScenario?.monthly ?? 0, 0, initialTotalPrice) / 100,
+  ) * 100;
+  const initialMonthlyInvest = Math.max(0, initialTotalPrice - initialMonthlyInstallment);
+  const initialYears = Math.round(clampNum(initialScenario?.years ?? 20, 1, 50));
+  const scenarioName = initialScenario?.name;
+  const hasScenarioPreset = Boolean(
+    scenarioName || initialScenario?.single != null || initialScenario?.monthly != null || initialScenario?.rate != null,
+  );
+
+  const [investAnnualPct, setInvestAnnualPct] = useState(
+    clampNum(initialScenario?.rate ?? DEFAULT_INVEST_ANNUAL_PCT, 0, 15),
+  );
   const [inflationPct, setInflationPct] = useState(() => clampNum(initialInflationPct, 0, 10));
   const [inflationAdjusted, setInflationAdjusted] = useState(initialInflationAdjusted);
   const effectiveAnnualPct = inflationAdjusted
-    ? investAnnualPct - inflationPct
+    ? Math.max(0, investAnnualPct - inflationPct)
     : investAnnualPct;
 
   const [shareState, setShareState] = useState<"idle" | "copied">("idle");
@@ -65,19 +95,19 @@ export function QuickCalculator8View({
   }, []);
 
   // total monthly budget
-  const [totalPrice, setTotalPrice] = useState<number>(20000);
-  const [totalPriceText, setTotalPriceText] = useState<string>(formatTwd(20000));
+  const [totalPrice, setTotalPrice] = useState<number>(initialTotalPrice);
+  const [totalPriceText, setTotalPriceText] = useState<string>(formatTwd(initialTotalPrice));
 
   // monthly installment expense (counts as spending)
-  const [monthlyInstallment, setMonthlyInstallment] = useState<number>(0);
-  const [monthlyInstallmentText, setMonthlyInstallmentText] = useState<string>(formatTwd(0));
+  const [monthlyInstallment, setMonthlyInstallment] = useState<number>(initialMonthlyInstallment);
+  const [monthlyInstallmentText, setMonthlyInstallmentText] = useState<string>(formatTwd(initialMonthlyInstallment));
 
   // investable cashflow per month (paired with installment; sums to totalPrice)
-  const [monthlyInvest, setMonthlyInvest] = useState<number>(20000);
-  const [monthlyInvestText, setMonthlyInvestText] = useState<string>(formatTwd(20000));
+  const [monthlyInvest, setMonthlyInvest] = useState<number>(initialMonthlyInvest);
+  const [monthlyInvestText, setMonthlyInvestText] = useState<string>(formatTwd(initialMonthlyInvest));
 
-  const [years, setYears] = useState<number>(20);
-  const [yearsText, setYearsText] = useState<string>("20");
+  const [years, setYears] = useState<number>(initialYears);
+  const [yearsText, setYearsText] = useState<string>(String(initialYears));
   const yearsClamped = Math.round(clampNum(years, 1, 50));
   const installmentInvestRatio = monthlyInvest > 0 ? monthlyInstallment / monthlyInvest : 1;
   const extraRedRightShift =
@@ -138,6 +168,10 @@ export function QuickCalculator8View({
       url.searchParams.set("inst", String(monthlyInstallment));
       url.searchParams.set("invest", String(monthlyInvest));
       url.searchParams.set("y", String(years));
+      url.searchParams.set("rate", String(investAnnualPct));
+      if (scenarioName) url.searchParams.set("etf", scenarioName);
+      if (initialScenario?.single != null) url.searchParams.set("single", String(totalPrice));
+      if (monthlyInstallment > 0) url.searchParams.set("monthly", String(monthlyInstallment));
       if (inflationAdjusted) {
         url.searchParams.set("inflation", "true");
         url.searchParams.set("inflation_rate", String(inflationPct));
@@ -176,6 +210,21 @@ export function QuickCalculator8View({
   };
 
   const monthlyContribution = Math.max(0, totalPrice - monthlyInstallment);
+  const dynamicHeroTitle = useMemo(() => {
+    if (!scenarioName) {
+      return inflationAdjusted ? "⏳【慘遭通膨考驗】延遲享樂計算機" : "⏳ 延遲享樂計算機";
+    }
+    if (inflationAdjusted && (monthlyInstallment > 0 || initialScenario?.single != null)) {
+      return `⏳【慘遭通膨考驗！${scenarioName} 專用】延遲享樂計算機`;
+    }
+    if (monthlyInstallment > 0) {
+      return `⏳【${scenarioName} 定期定額 ${formatTwd(monthlyInstallment)}元 專用】延遲享樂計算機`;
+    }
+    if (initialScenario?.single != null || totalPrice > 0) {
+      return `⏳【${scenarioName} 單筆投入 ${formatTwd(totalPrice)}元 專用】延遲享樂計算機`;
+    }
+    return `⏳【${scenarioName} 專用】延遲享樂計算機`;
+  }, [inflationAdjusted, initialScenario?.single, monthlyInstallment, scenarioName, totalPrice]);
 
   // 核心邏輯（照你指定）
   const result = useMemo(() => {
@@ -319,20 +368,20 @@ export function QuickCalculator8View({
           <div
             className="quick8-title-gradient"
             style={{
-              fontSize: inflationAdjusted ? 23 : 30,
+              fontSize: dynamicHeroTitle.length > 28 ? 22 : inflationAdjusted ? 23 : 30,
               fontWeight: 950,
               marginTop: 10,
               lineHeight: 1.12,
               minHeight: 60,
               display: "flex",
               alignItems: "center",
-              whiteSpace: inflationAdjusted ? "normal" : "nowrap",
+              whiteSpace: dynamicHeroTitle.length > 28 ? "normal" : inflationAdjusted ? "normal" : "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
               wordBreak: "keep-all",
             }}
           >
-            {inflationAdjusted ? "⏳【慘遭通膨考驗】延遲享樂計算機" : "⏳ 延遲享樂計算機"}
+            {dynamicHeroTitle}
           </div>
         </div>
 
@@ -350,6 +399,23 @@ export function QuickCalculator8View({
           }}
         >
           <div style={{ display: "grid", gap: 10 }}>
+            {hasScenarioPreset ? (
+              <div
+                role="note"
+                style={{
+                  borderRadius: 14,
+                  border: "1px solid rgba(252,211,77,0.35)",
+                  background: "linear-gradient(135deg, rgba(120,53,15,0.34), rgba(15,23,42,0.55))",
+                  color: "#fde68a",
+                  padding: "10px 12px",
+                  fontSize: 12,
+                  fontWeight: 900,
+                  lineHeight: 1.55,
+                }}
+              >
+                已為您自動載入專屬財務情境！這正是您延遲享樂的真實代價，請查看下方一千萬資產折線圖，亦可自由調整滑桿。
+              </div>
+            ) : null}
             <div style={{ padding: 10, borderRadius: 14, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" }}>
               <div style={{ fontSize: 16, opacity: 0.9, fontWeight: 900 }}>總投資金額</div>
               <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 8, width: "100%", minWidth: 0 }}>

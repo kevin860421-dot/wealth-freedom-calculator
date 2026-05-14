@@ -61,8 +61,8 @@ export function QuickCalculator7View() {
   useEffect(() => {
     queueMicrotask(() => {
       const sp = new URLSearchParams(window.location.search);
-      const mRaw = sp.get("m");
-      const yRaw = sp.get("y");
+      const mRaw = sp.get("m") ?? sp.get("monthly");
+      const yRaw = sp.get("y") ?? sp.get("years");
       if (mRaw != null) {
         const v = Number(mRaw.replace(/,/g, ""));
         if (Number.isFinite(v)) {

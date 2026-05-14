@@ -149,11 +149,11 @@ export function QuickCalculator9View() {
   useEffect(() => {
     queueMicrotask(() => {
       const sp = new URLSearchParams(window.location.search);
-      const tbRaw = sp.get("tb");
-      const instRaw = sp.get("inst");
-      const iyRaw = sp.get("iy");
-      const dyRaw = sp.get("dy");
-      const apRaw = sp.get("ap");
+      const tbRaw = sp.get("tb") ?? sp.get("total_budget");
+      const instRaw = sp.get("inst") ?? sp.get("installment");
+      const iyRaw = sp.get("iy") ?? sp.get("installment_years");
+      const dyRaw = sp.get("dy") ?? sp.get("delay_years");
+      const apRaw = sp.get("ap") ?? sp.get("rate");
 
       let tb = totalBudget;
       if (tbRaw != null) {

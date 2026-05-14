@@ -50,8 +50,8 @@ export default function QuickCalculator2View() {
   useEffect(() => {
     queueMicrotask(() => {
       const sp = new URLSearchParams(window.location.search);
-      const tmRaw = sp.get("tm");
-      const miRaw = sp.get("mi");
+      const tmRaw = sp.get("tm") ?? sp.get("target_monthly");
+      const miRaw = sp.get("mi") ?? sp.get("monthly");
       if (tmRaw != null) {
         const v = Number(tmRaw.replace(/,/g, ""));
         if (Number.isFinite(v)) {

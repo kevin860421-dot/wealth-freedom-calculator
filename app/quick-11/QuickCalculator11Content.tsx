@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AnimatePresence, animate, motion } from "framer-motion";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
 import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
+import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { buildLoanSchedules, evaluateCalcInput, formatMoney, type LoanMethod, type PaymentRow } from "./logic";
 import { QUICK11_LOAN_PRESETS } from "./loan-scenarios";
@@ -2178,6 +2179,9 @@ export function QuickCalculator11Content({
             {!embeddedInMiniBlog ? (
               <div id="quick11-bankruptcy-blog" className="mt-2">
                 <QuickBlogLinksToggle quickRoute="/quick-11" title="📚 破產計算機延伸文章（點我展開）" />
+                <div className="mt-3">
+                  <QuickSeoArticle id={11} />
+                </div>
               </div>
             ) : null}
           </section>

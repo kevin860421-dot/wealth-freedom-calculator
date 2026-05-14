@@ -10,10 +10,6 @@ function siteOrigin(): string {
   );
 }
 
-/**
- * 不在畫面上顯示 SEO 長文；僅插入 Article JSON-LD，供搜尋引擎解析。
- * （頁面 title/description 仍由各 quick-N/layout 的 metadata 負責。）
- */
 export function QuickSeoArticle({ id }: { id: number }) {
   const pathname = usePathname();
   const block = QUICK_SEO_BLOCKS[id];
@@ -47,13 +43,64 @@ export function QuickSeoArticle({ id }: { id: number }) {
     return JSON.stringify(jsonLd);
   }, [block, id, pathname]);
 
-  if (!jsonLdString) return null;
+  if (!block || !jsonLdString) return null;
 
   return (
-    <script
-      type="application/ld+json"
-      // eslint-disable-next-line react/no-danger -- JSON-LD 標準寫法
-      dangerouslySetInnerHTML={{ __html: jsonLdString }}
-    />
+    <>
+      <details
+        style={{
+          borderRadius: 14,
+          border: "1px solid rgba(148,163,184,0.22)",
+          background: "rgba(15,23,42,0.52)",
+          padding: "12px 14px",
+          color: "#cbd5e1",
+          lineHeight: 1.82,
+        }}
+      >
+        <summary
+          style={{
+            cursor: "pointer",
+            color: "#e8eefc",
+            fontSize: 15,
+            lineHeight: 1.35,
+            fontWeight: 900,
+          }}
+        >
+          {block.summaryLabel}
+        </summary>
+        <section aria-labelledby={`quick-${id}-seo-article-heading`} style={{ marginTop: 12 }}>
+          <h2
+            id={`quick-${id}-seo-article-heading`}
+            style={{
+              margin: "0 0 12px",
+              color: "#e8eefc",
+              fontSize: 19,
+              lineHeight: 1.35,
+              fontWeight: 950,
+            }}
+          >
+            {block.h2}
+          </h2>
+          <div style={{ display: "grid", gap: 10, fontSize: 14 }}>
+          {block.paragraphs.map((paragraph, index) => (
+            <p key={`${id}-${index}`} style={{ margin: 0 }}>
+              {paragraph}
+            </p>
+          ))}
+          <p style={{ margin: 0, color: "rgba(191,219,254,0.92)" }}>
+            若需與首頁相同的台股 ETF／自訂標的、股利課稅、二代健保補充保費、手續費與每期須扣除等長軸試算，請前往財富自由計算機完整版。
+          </p>
+          <p style={{ margin: 0, color: "rgba(148,163,184,0.95)", fontSize: 12 }}>
+            情境試算僅供教育與自我檢視；個案仍以法令、契約與實際報酬為準。
+          </p>
+          </div>
+        </section>
+      </details>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger -- JSON-LD 標準寫法
+        dangerouslySetInnerHTML={{ __html: jsonLdString }}
+      />
+    </>
   );
 }

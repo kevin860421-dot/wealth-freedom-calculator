@@ -57,8 +57,8 @@ export default function QuickCalculator1View({ showArticleToggle = true }: Quick
   useEffect(() => {
     queueMicrotask(() => {
       const sp = new URLSearchParams(window.location.search);
-      const mRaw = sp.get("m");
-      const yRaw = sp.get("y");
+      const mRaw = sp.get("m") ?? sp.get("monthly");
+      const yRaw = sp.get("y") ?? sp.get("years");
       if (mRaw != null) {
         const v = Number(mRaw.replace(/,/g, ""));
         if (Number.isFinite(v)) {
@@ -338,8 +338,12 @@ export default function QuickCalculator1View({ showArticleToggle = true }: Quick
               <span style={{ lineHeight: 1.4, letterSpacing: "0.12em" }}>🔍 進入財富自由計算機</span>
             </Link>
 
-            {showArticleToggle ? <QuickBlogLinksToggle quickRoute="/quick-1" /> : null}
-            <QuickSeoArticle id={1} />
+            {showArticleToggle ? (
+              <>
+                <QuickBlogLinksToggle quickRoute="/quick-1" />
+                <QuickSeoArticle id={1} />
+              </>
+            ) : null}
           </div>
         </section>
       </div>

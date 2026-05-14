@@ -37,8 +37,8 @@ export default function QuickCalculator3View() {
   useEffect(() => {
     queueMicrotask(() => {
       const sp = new URLSearchParams(window.location.search);
-      const tmRaw = sp.get("tm");
-      const yRaw = sp.get("y");
+      const tmRaw = sp.get("tm") ?? sp.get("target_monthly");
+      const yRaw = sp.get("y") ?? sp.get("years");
       if (tmRaw != null) {
         const v = Number(tmRaw.replace(/,/g, ""));
         if (Number.isFinite(v)) {

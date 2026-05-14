@@ -13,6 +13,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: base, lastModified: now, changeFrequency: "weekly", priority: 1 },
     { url: `${base}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
   ];
+  for (let i = 1; i <= 12; i += 1) {
+    entries.push({
+      url: `${base}/quick-${i}`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.75,
+    });
+  }
   for (const post of getPublishedBlogPosts(now)) {
     entries.push({
       url: `${base}${blogPostPath(post.slug)}`,

@@ -108,12 +108,12 @@ export default function QuickCalculator4View() {
   useEffect(() => {
     queueMicrotask(() => {
       const sp = new URLSearchParams(window.location.search);
-      const miRaw = sp.get("mi");
-      const yRaw = sp.get("y");
+      const miRaw = sp.get("mi") ?? sp.get("monthly");
+      const yRaw = sp.get("y") ?? sp.get("years");
       const etfRaw = sp.get("etf");
-      const sy = sp.get("sy");
-      const sm = sp.get("sm");
-      const nRaw = sp.get("n");
+      const sy = sp.get("sy") ?? sp.get("start_year");
+      const sm = sp.get("sm") ?? sp.get("start_month");
+      const nRaw = sp.get("n") ?? sp.get("nth");
       if (miRaw != null) {
         const v = Number(miRaw.replace(/,/g, ""));
         if (Number.isFinite(v)) {
