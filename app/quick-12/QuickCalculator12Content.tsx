@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type Dispatch, type KeyboardEvent, type SetStateAction, type WheelEvent } from "react";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
+import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
 import { TICKER_PRESETS, type TickerPreset } from "@/app/ticker-presets";
 import { NHI2_THRESHOLD } from "@/lib/dividend-tax-sandbox";
 import { QUICK12_DISPLAY_TITLE } from "./display-title";
@@ -1209,6 +1210,7 @@ export function QuickCalculator12Content({
         {!embeddedInMiniBlog ? (
           <>
             <QuickBlogLinksToggle quickRoute="/quick-12" />
+            <QuickSeoExtras id={12} />
             <QuickSeoArticle id={12} />
           </>
         ) : null}

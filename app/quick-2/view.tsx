@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
+import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
 import { clampNum, monthsToReachTarget } from "@/lib/quick-calculator-math";
 import { ANNUAL_PCT, MONEY_MAX, MONEY_MIN, commitMoney, formatTwd, sanitizeCalcInput } from "./logic";
@@ -280,6 +281,7 @@ export default function QuickCalculator2View() {
               <span style={{ lineHeight: 1.4, letterSpacing: "0.12em" }}>🔍 進入財富自由計算機</span>
             </Link>
             <QuickBlogLinksToggle quickRoute="/quick-2" />
+            <QuickSeoExtras id={2} />
             <QuickSeoArticle id={2} />
           </div>
         </section>

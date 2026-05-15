@@ -1,0 +1,70 @@
+﻿
+> wealth-freedom-calculator@0.1.0 build
+> next build
+
+??Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+??Compiled successfully in 10.5s
+  Running TypeScript ...
+  Collecting page data using 15 workers ...
+  Generating static pages using 15 workers (0/420) ...
+  Generating static pages using 15 workers (105/420) 
+  Generating static pages using 15 workers (210/420) 
+  Generating static pages using 15 workers (315/420) 
+??Generating static pages using 15 workers (420/420) in 2.8s
+  Finalizing page optimization ...
+
+Route (app)                                                 Revalidate  Expire
+????/                                                               1m      1y
+????/_not-found                                                     1m      1y
+??? /api/stats
+??? /blog
+??? /blog/[slug]
+??? /blog/2026-dividend-tax-guide
+??? /blog/dividend-tax-54c-ratio-why-it-matters
+??? /blog/dividend-tax-credit-cap-and-timing
+??? /blog/dividend-tax-merge-vs-separate-decision
+??? /blog/dividend-tax-nhi2-threshold-strategy
+??? /blog/dividend-tax-return-filing-check
+??? /blog/etf-dividend-54c-structure
+??? /blog/household-dividend-tax-checklist
+??? /blog/painpoint-10-labor-insurance-collapse
+??? /blog/painpoint-11-middle-age-job-loss
+??? /blog/painpoint-12-stop-playing-pretend
+??? /blog/painpoint-18-parent-care-cost
+??? /blog/painpoint-6-anxiety-about-retirement
+??? /blog/painpoint-7-no-buffer-is-real-risk
+??? /blog/painpoint-8-inflation-is-silent-tax
+??? /blog/painpoint-9-cant-afford-house
+??? /blog/passive-income-fire-blueprint
+??? /blog/tax-overpay-blind-spot
+????/manifest.webmanifest
+????/mini-blog                                                      1m      1y
+????/mini-blog/[slug]                                               1m      1y
+????/mini-blog/quick1-monthly-20000-compound-playbook               1m      1y
+????/mini-blog/quick1-first-million-discipline-map                  1m      1y
+????/mini-blog/quick1-retirement-monthly-cashflow-baseline          1m      1y
+????[+397 more paths]
+????/postflow                                                       1m      1y
+??? /postflow/library
+????/quick-1                                                        1m      1y
+????/quick-10                                                       1m      1y
+??? /quick-11
+??? /quick-12
+????/quick-2                                                        1m      1y
+????/quick-3                                                        1m      1y
+????/quick-4                                                        1m      1y
+????/quick-5                                                        1m      1y
+????/quick-6                                                        1m      1y
+????/quick-7                                                        1m      1y
+??? /quick-8
+????/quick-9                                                        1m      1y
+??? /sitemap.xml
+
+
+?? (Static)   prerendered as static content
+?? (SSG)      prerendered as static HTML (uses generateStaticParams)
+?  (Dynamic)  server-rendered on demand
+

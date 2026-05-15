@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
+import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
 import { buildPrincipalVsCompoundSeries } from "@/lib/quick-chart-series";
 import { clampNum, estimatedMonthlyPayoutFromBalance, fvMonthly } from "@/lib/quick-calculator-math";
 import {
@@ -341,6 +342,7 @@ export default function QuickCalculator1View({ showArticleToggle = true }: Quick
             {showArticleToggle ? (
               <>
                 <QuickBlogLinksToggle quickRoute="/quick-1" />
+                <QuickSeoExtras id={1} />
                 <QuickSeoArticle id={1} />
               </>
             ) : null}

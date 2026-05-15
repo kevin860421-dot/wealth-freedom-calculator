@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
+import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
 import { clampNum, requiredMonthlyToReachTarget } from "@/lib/quick-calculator-math";
 import {
@@ -362,6 +363,7 @@ export default function QuickCalculator3View() {
               🔍 進入財富自由計算機
             </Link>
             <QuickBlogLinksToggle quickRoute="/quick-3" />
+            <QuickSeoExtras id={3} />
             <QuickSeoArticle id={3} />
           </div>
         </section>

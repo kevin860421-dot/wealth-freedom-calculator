@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
 import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
+import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
 import { buildPrincipalVsCompoundSeries } from "@/lib/quick-chart-series";
 import { clampNum, futureValueMonthlyContribution } from "@/lib/quick-calculator-math";
 import {
@@ -399,6 +400,7 @@ export default function QuickCalculator5View() {
               🔍 進入財富自由計算機
             </Link>
             <QuickBlogLinksToggle quickRoute="/quick-5" />
+            <QuickSeoExtras id={5} />
             <QuickSeoArticle id={5} />
           </div>
         </section>

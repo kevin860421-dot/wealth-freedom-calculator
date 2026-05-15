@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
 import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
+import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
 import { clampNum, simulateVariableContribution } from "@/lib/quick-calculator-math";
 import {
   evalCalcInputToNumber,
@@ -623,6 +624,7 @@ export function QuickCalculator9View() {
               <span style={{ lineHeight: 1.4, letterSpacing: "0.12em" }}>🔍 進入財富自由計算機</span>
             </Link>
             <QuickBlogLinksToggle quickRoute="/quick-9" />
+            <QuickSeoExtras id={9} />
             <QuickSeoArticle id={9} />
           </div>
         </section>
