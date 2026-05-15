@@ -8,6 +8,9 @@ import {
   type CalculatorSnapshotV1,
   type PayoutFrequencyPersist,
 } from "../lib/calculator-persistence";
+import { type HeavySimPayload } from "../lib/home-simulation-engine";
+import { useDebouncedValue } from "../lib/use-debounced-value";
+import { useHomeHeavySimulation } from "../lib/use-home-heavy-simulation";
 import { OPEN_LOAD_TARGET_MODAL_EVENT } from "../lib/watchlist-modal-events";
 import {
   TICKER_PRESETS,
@@ -56,6 +59,10 @@ import { createPortal } from "react-dom";
 
 /** 頁尾「版權說明」版本號（請與 package.json 的 version 對齊） */
 const APP_VERSION = "0.1.0";
+
+/** 累積表（Excel 區）初次渲染列數；往下捲動再增量載入 */
+const ACCUM_TABLE_INITIAL_ROWS = 6;
+const ACCUM_TABLE_ROWS_PER_LOAD = 6;
 
 const HOME_FOOTER_RECENT_BLOG_LIMIT = 4;
 const homeFooterBlogPosts = [...getHomeFooterBlogPosts()]
@@ -389,45 +396,6 @@ function getEtfLandingPresetFromSearch(search: string): EtfLandingPreset | null 
   return { ...merged, ...buildEtfLandingCopy(merged) };
 }
 
-type SimulationResult = {
-  milestone30000Index: number | null;
-  milestone150000Index: number | null;
-  milestoneUserTargetIndex: number | null;
-  milestone30000QuarterDividend: number | null;
-  milestone150000QuarterDividend: number | null;
-  totalDividends: number;
-  finalBalance: number;
-  nzProgressPercent: number;
-  yearsTo30000: number | null;
-  monthsTo30000: number | null;
-  yearsTo150000: number | null;
-  monthsTo150000: number | null;
-  yearsToUserTarget: number | null;
-  monthsToUserTarget: number | null;
-};
-
-type PeriodSnapshot = {
-  periodLabel: string;
-  year: number;
-  periodInYear: number;
-  balance: number;
-  shares: number;
-  lastPeriodDividend: number;
-  /** 扣所得稅與二代健保後實領（用於顯示） */
-  afterTaxDividend: number;
-  reinvestPct: number;
-  reinvestAmount: number;
-  sharesBoughtThisPeriod: number;
-  /** 該期初總資產（發息前） */
-  previousBalance: number;
-  /** 該期固定投入總額（月投+額外，已扣手續費） */
-  fixedAddThisPeriod: number;
-  /** 該期投入（買入）時的手續費 */
-  contributionFee: number;
-  /** 再投入時的手續費 */
-  reinvestFee: number;
-};
-
 const TAX_THRESHOLD = 20000; // 單期股利達 2 萬才計入扣稅
 const TAX_RATE = 0.28;
 const NHI2_THRESHOLD = 20000; // 二代健保：單筆 > 2 萬按 2.11%
@@ -503,121 +471,6 @@ function getTaxBracketByIncomeWan(incomeWan: number): number {
   return 0.40;
 }
 
-function simulate({
-  initialPrincipal,
-  monthlyContribution,
-  monthlyExtra,
-  annualReturnRate,
-  reinvestRatio,
-  payoutFrequency,
-  targetPayoutPerPeriod,
-  maxMonths: maxMonthsParam,
-  taxRate,
-}: {
-  initialPrincipal: number;
-  monthlyContribution: number;
-  monthlyExtra: number;
-  annualReturnRate: number;
-  reinvestRatio: number;
-  payoutFrequency: PayoutFrequency;
-  targetPayoutPerPeriod: number;
-  maxMonths?: number;
-  taxRate: number;
-}): SimulationResult {
-  const annualRate = annualReturnRate / 100;
-  const limitMonths = maxMonthsParam ?? MONTHS;
-  // 股利發放頻率：月 / 季 / 半年 / 年，決定複利週期
-  const intervalMonths =
-    payoutFrequency === "month"
-      ? 1
-      : payoutFrequency === "quarter"
-      ? 3
-      : payoutFrequency === "semiannual"
-      ? 6
-      : 12;
-  const periodsPerYear = 12 / intervalMonths;
-  const periodRate = annualRate / periodsPerYear;
-
-  let balance = Math.max(0, initialPrincipal - getBuyFee(initialPrincipal));
-  let totalDividends = 0;
-
-  let milestone30000Index: number | null = null;
-  let milestone150000Index: number | null = null;
-  let milestoneUserTargetIndex: number | null = null;
-  let milestone30000QuarterDividend: number | null = null;
-  let milestone150000QuarterDividend: number | null = null;
-
-  for (let month = 1; month <= limitMonths; month++) {
-    const monthlyAdd = monthlyContribution + monthlyExtra;
-    balance += Math.max(0, monthlyAdd - getBuyFee(monthlyAdd));
-
-    // 在選定的配息週期點進行「配息＋再投入」（再投入以扣所得稅與二代健保後實領計算，含手續費）
-    if (month % intervalMonths === 0) {
-      const grossReturn = balance * periodRate;
-      const { net } = getAfterTaxAndNhi2(grossReturn, taxRate);
-      const reinvest = net * (reinvestRatio / 100);
-      const payout = net - reinvest;
-      const reinvestFee = getBuyFee(reinvest);
-
-      balance += Math.max(0, reinvest - reinvestFee);
-      totalDividends += payout;
-
-      // ★ 用「總配息能力 grossReturn」判斷達標
-      if (milestone30000Index === null && grossReturn >= TARGET_Q1 - 1) {
-        milestone30000Index = month - 1;
-        milestone30000QuarterDividend = grossReturn;
-      }
-      if (milestone150000Index === null && grossReturn >= TARGET_Q2 - 1) {
-        milestone150000Index = month - 1;
-        milestone150000QuarterDividend = grossReturn;
-      }
-      if (
-        targetPayoutPerPeriod > 0 &&
-        milestoneUserTargetIndex === null &&
-        grossReturn >= targetPayoutPerPeriod - 1
-      ) {
-        milestoneUserTargetIndex = month - 1;
-      }
-    }
-  }
-
-  const getTimeTo = (
-    milestoneIndex: number | null
-  ): { years: number | null; months: number | null } => {
-    if (milestoneIndex === null) return { years: null, months: null };
-    const totalMonths = milestoneIndex + 1;
-    const years = Math.floor(totalMonths / 12);
-    const months = totalMonths % 12;
-    return { years, months };
-  };
-
-  const t30000 = getTimeTo(milestone30000Index);
-  const t150000 = getTimeTo(milestone150000Index);
-  const tUser = getTimeTo(milestoneUserTargetIndex);
-
-  const finalBalance = balance;
-  const requiredFor30000 = TARGET_Q1 / (periodRate || 0.0000001);
-  const nzProgress =
-    Math.max(0, Math.min(1, finalBalance / requiredFor30000)) * 100;
-
-  return {
-    milestone30000Index,
-    milestone150000Index,
-    milestoneUserTargetIndex,
-    milestone30000QuarterDividend,
-    milestone150000QuarterDividend,
-    totalDividends,
-    finalBalance,
-    nzProgressPercent: Math.round(nzProgress),
-    yearsTo30000: t30000.years,
-    monthsTo30000: t30000.months,
-    yearsTo150000: t150000.years,
-    monthsTo150000: t150000.months,
-    yearsToUserTarget: tUser.years,
-    monthsToUserTarget: tUser.months,
-  };
-}
-
 /** 安全解析算式（僅允許數字與 + - * / ( ) . 空格、千分位逗號），例如 4000+8000、10*2 */
 function parseFormula(s: string): number {
   if (s == null || typeof s !== "string") return 0;
@@ -650,142 +503,6 @@ function commitFormulaWithCommas(s: string): string {
   return s;
 }
 
-function getPeriodSnapshots(
-  params: {
-    initialPrincipal: number;
-    monthlyContribution: number;
-    monthlyExtra: number;
-    annualReturnRate: number;
-    reinvestRatio: number;
-    payoutFrequency: PayoutFrequency;
-    /** 該檔 ETF 實際配息月份（1～12）；未提供時依 intervalMonths 從起始月起每期發息 */
-    dividendMonths?: number[];
-  },
-  sharePrice: number,
-  maxYears: number = 20,
-  startYear: number = 2026,
-  startMonth: number = 3
-): PeriodSnapshot[] {
-  const {
-    initialPrincipal,
-    monthlyContribution,
-    monthlyExtra,
-    annualReturnRate,
-    reinvestRatio,
-    payoutFrequency,
-    dividendMonths,
-  } = params;
-  const annualRate = annualReturnRate / 100;
-  const intervalMonths =
-    payoutFrequency === "month"
-      ? 1
-      : payoutFrequency === "quarter"
-      ? 3
-      : payoutFrequency === "semiannual"
-      ? 6
-      : 12;
-  const periodsPerYear = 12 / intervalMonths;
-  const periodRate = annualRate / periodsPerYear;
-  const maxMonths = Math.min(MONTHS, maxYears * 12);
-  const snapshots: PeriodSnapshot[] = [];
-  let balance = Math.max(0, initialPrincipal - getBuyFee(initialPrincipal));
-  const monthlyAdd = monthlyContribution + monthlyExtra;
-  const monthlyAddAfterFee = Math.max(0, monthlyAdd - getBuyFee(monthlyAdd));
-
-  if (!dividendMonths || dividendMonths.length === 0) {
-    // 自訂：依起始月起每 intervalMonths 一期，每期都發息
-    let lastGrossReturn = 0;
-    for (let month = 1; month <= maxMonths; month++) {
-      balance += monthlyAddAfterFee;
-      if (month % intervalMonths === 0) {
-        const fixedAddThisPeriod = monthlyAddAfterFee * intervalMonths;
-        const previousBalance = balance - fixedAddThisPeriod;
-        const calMonth = ((month - 1 + startMonth - 1) % 12) + 1;
-        const calYear = startYear + Math.floor((month - 1 + startMonth - 1) / 12);
-        const grossReturn = balance * periodRate;
-        const { net } = getAfterTaxAndNhi2(grossReturn);
-        const reinvest = net * (reinvestRatio / 100);
-        const reinvestFee = getBuyFee(reinvest);
-        const reinvestAfterFee = Math.max(0, reinvest - reinvestFee);
-        balance += reinvestAfterFee;
-        const contributionFee = intervalMonths * getBuyFee(monthlyAdd);
-        const label =
-          payoutFrequency === "year"
-            ? `${calYear}年`
-            : `${calYear}年${calMonth}月`;
-        const periodInYear = Math.floor((month - 1) / intervalMonths) % periodsPerYear + 1;
-        const sharesBoughtThisPeriod = sharePrice > 0 ? Math.floor(reinvestAfterFee / sharePrice) : 0;
-        const totalShares = sharePrice > 0 ? Math.floor(balance / sharePrice) : 0;
-        snapshots.push({
-          periodLabel: label,
-          year: calYear,
-          periodInYear,
-          balance: Math.round(balance),
-          shares: totalShares,
-          lastPeriodDividend: lastGrossReturn,
-          afterTaxDividend: Math.round(getAfterTaxAndNhi2(lastGrossReturn).net),
-          reinvestPct: reinvestRatio,
-          reinvestAmount: Math.round(reinvestAfterFee),
-          sharesBoughtThisPeriod,
-          previousBalance: Math.round(previousBalance),
-          fixedAddThisPeriod: Math.round(fixedAddThisPeriod),
-          contributionFee: Math.round(contributionFee),
-          reinvestFee: Math.round(reinvestFee),
-        });
-        lastGrossReturn = grossReturn;
-      }
-    }
-    return snapshots;
-  }
-
-  // 有 dividendMonths：每月一列，每列顯示該期投入；僅配息月有股息，其餘月股息為 0
-  let lastDividendMonthIndex = -1;
-  for (let monthIndex = 0; monthIndex < maxMonths; monthIndex++) {
-    const calMonth = ((startMonth - 1 + monthIndex) % 12) + 1;
-    const calYear = startYear + Math.floor((startMonth - 1 + monthIndex) / 12);
-    const previousBalance = balance;
-    balance += monthlyAddAfterFee;
-    const fixedAddThisPeriod = monthlyAddAfterFee;
-
-    let grossReturn = 0;
-    let reinvestAfterFee = 0;
-    let reinvestFee = 0;
-    if (dividendMonths.includes(calMonth)) {
-      const monthsSinceLast = lastDividendMonthIndex < 0 ? monthIndex + 1 : monthIndex - lastDividendMonthIndex;
-      const periodRateForMonths = annualRate * (monthsSinceLast / 12);
-      grossReturn = balance * periodRateForMonths;
-      const { net } = getAfterTaxAndNhi2(grossReturn);
-      const reinvest = net * (reinvestRatio / 100);
-      reinvestFee = getBuyFee(reinvest);
-      reinvestAfterFee = Math.max(0, reinvest - reinvestFee);
-      balance += reinvestAfterFee;
-      lastDividendMonthIndex = monthIndex;
-    }
-
-    const contributionFee = getBuyFee(monthlyAdd);
-    const label = `${calYear}年${calMonth}月`;
-    const periodInYear = calMonth;
-    const sharesBoughtThisPeriod = sharePrice > 0 ? Math.floor(reinvestAfterFee / sharePrice) : 0;
-    const totalShares = sharePrice > 0 ? Math.floor(balance / sharePrice) : 0;
-    snapshots.push({
-      periodLabel: label,
-      year: calYear,
-      periodInYear,
-      balance: Math.round(balance),
-      shares: totalShares,
-      lastPeriodDividend: grossReturn,
-      afterTaxDividend: grossReturn ? Math.round(getAfterTaxAndNhi2(grossReturn).net) : 0,
-      reinvestPct: reinvestRatio,
-      reinvestAmount: Math.round(reinvestAfterFee),
-      sharesBoughtThisPeriod,
-      previousBalance: Math.round(previousBalance),
-      fixedAddThisPeriod: Math.round(fixedAddThisPeriod),
-      contributionFee: Math.round(contributionFee),
-      reinvestFee: Math.round(reinvestFee),
-    });
-  }
-  return snapshots;
-}
 
 export default function Home() {
   const [initialPrincipal, setInitialPrincipal] = useState("0");
@@ -964,14 +681,17 @@ export default function Home() {
     const val = typeof parsed === "number" && !Number.isNaN(parsed) && parsed >= 0 ? parsed : currentPrincipalComputed;
     return Math.floor(val);
   })();
-  // 當 currentPrincipalComputed 的輸入變更時，currentPrincipalStr 會晚一輪才同步，導致模擬／建議金額跑兩次。
-  // 偵測到 computed 變更時強制使用 currentPrincipalComputed，其餘使用 currentPrincipalNum（含手動覆寫）
-  const lastPrincipalComputedRef = useRef(currentPrincipalComputed);
-  const principalForCalc = (() => {
-    const justChanged = currentPrincipalComputed !== lastPrincipalComputedRef.current;
-    lastPrincipalComputedRef.current = currentPrincipalComputed;
-    return justChanged ? currentPrincipalComputed : currentPrincipalNum;
-  })();
+  /** 試算用本金：預設跟隨試算累積值；僅在使用者手動改「當前本金」時採輸入值，避免 str 晚一拍同步而多算一輪 */
+  const principalForCalc = useMemo(() => {
+    const parsed = parseFormula(currentPrincipalStr.replace(/,/g, ""));
+    const hasManualPrincipal =
+      currentPrincipalStr.trim() !== "" &&
+      typeof parsed === "number" &&
+      !Number.isNaN(parsed) &&
+      parsed >= 0 &&
+      Math.floor(parsed) !== currentPrincipalComputed;
+    return hasManualPrincipal ? Math.floor(parsed) : currentPrincipalComputed;
+  }, [currentPrincipalStr, currentPrincipalComputed]);
   /** 總股價（試算用）：當前本金+投入+額外×12，可手動改數字或輸入加減乘除算式 */
   const computedTotalForEstimate = currentPrincipalNum + (monthlyContributionNum + monthlyExtraNum) * 12;
   const [totalPriceForEstimateStr, setTotalPriceForEstimateStr] = useState("");
@@ -1143,46 +863,54 @@ export default function Home() {
       return;
     }
     setEtfLandingPreset(null);
-    const repo = getDefaultCalculatorRepository();
-    const s = repo.load();
-    if (s) {
-      skipTaxSyncFromIncomeRef.current = true;
-      setInitialPrincipal(s.initialPrincipal);
-      setMonthlyContribution(commitFormulaWithCommas(s.monthlyContribution));
-      setMonthlyExtra(commitFormulaWithCommas(s.monthlyExtra));
-      setAnnualReturnRate(s.annualReturnRate);
-      setDividendYieldPct(s.dividendYieldPct === null ? "" : s.dividendYieldPct);
-      setStockDividendPct(s.stockDividendPct === null ? "" : s.stockDividendPct);
-      setRateSource(s.rateSource);
-      setTargetQuarterIncome(commitFormulaWithCommas(s.targetQuarterIncome));
-      setReinvestRatio(s.reinvestRatio);
-      setPayoutFrequency(s.payoutFrequency as PayoutFrequency);
-      setSelectedEtf(s.selectedEtf);
-      setDefaultYearStr(s.defaultYearStr);
-      setDefaultMonthStr(s.defaultMonthStr);
-      setInitialYearStr(s.initialYearStr);
-      setInitialMonthStr(s.initialMonthStr);
-      const clampedNth = Math.max(1, Math.min(maxNthPeriod, Math.floor(s.nthPeriod) || 1));
-      setNthPeriod(clampedNth);
-      setTargetYearsToAchieve(s.targetYearsToAchieve);
-      setTaxBracketRate(s.taxBracketRate);
-      setApplyTaxInTable(s.applyTaxInTable);
-      setApplyNhi2InTable(s.applyNhi2InTable);
-      setAnnualIncome(s.annualIncome);
-      setSeparateTaxOpen(s.separateTaxOpen);
-      setManualOverrides(s.manualOverrides && typeof s.manualOverrides === "object" ? s.manualOverrides : {});
-      setEtfRatioEstimates(
-        s.etfRatioEstimates && typeof s.etfRatioEstimates === "object" ? s.etfRatioEstimates : buildDefault54cRatioMap(),
-      );
-      // 篩選只用於縮小選項，不應隨「已選標的」鎖死清單；否則會看起來像 100 檔預設消失
-      setEtfCodeFilter("");
-    } else {
-      // 無存檔時也先把預設值套千分位（避免一開始顯示 12000/50000 這種）
-      setMonthlyContribution((v) => commitFormulaWithCommas(v));
-      setMonthlyExtra((v) => commitFormulaWithCommas(v));
-      setTargetQuarterIncome((v) => commitFormulaWithCommas(v));
+
+    const applyStoredSnapshot = () => {
+      const repo = getDefaultCalculatorRepository();
+      const s = repo.load();
+      if (s) {
+        skipTaxSyncFromIncomeRef.current = true;
+        setInitialPrincipal(s.initialPrincipal);
+        setMonthlyContribution(commitFormulaWithCommas(s.monthlyContribution));
+        setMonthlyExtra(commitFormulaWithCommas(s.monthlyExtra));
+        setAnnualReturnRate(s.annualReturnRate);
+        setDividendYieldPct(s.dividendYieldPct === null ? "" : s.dividendYieldPct);
+        setStockDividendPct(s.stockDividendPct === null ? "" : s.stockDividendPct);
+        setRateSource(s.rateSource);
+        setTargetQuarterIncome(commitFormulaWithCommas(s.targetQuarterIncome));
+        setReinvestRatio(s.reinvestRatio);
+        setPayoutFrequency(s.payoutFrequency as PayoutFrequency);
+        setSelectedEtf(s.selectedEtf);
+        setDefaultYearStr(s.defaultYearStr);
+        setDefaultMonthStr(s.defaultMonthStr);
+        setInitialYearStr(s.initialYearStr);
+        setInitialMonthStr(s.initialMonthStr);
+        const clampedNth = Math.max(1, Math.min(maxNthPeriod, Math.floor(s.nthPeriod) || 1));
+        setNthPeriod(clampedNth);
+        setTargetYearsToAchieve(s.targetYearsToAchieve);
+        setTaxBracketRate(s.taxBracketRate);
+        setApplyTaxInTable(s.applyTaxInTable);
+        setApplyNhi2InTable(s.applyNhi2InTable);
+        setAnnualIncome(s.annualIncome);
+        setSeparateTaxOpen(s.separateTaxOpen);
+        setManualOverrides(s.manualOverrides && typeof s.manualOverrides === "object" ? s.manualOverrides : {});
+        setEtfRatioEstimates(
+          s.etfRatioEstimates && typeof s.etfRatioEstimates === "object" ? s.etfRatioEstimates : buildDefault54cRatioMap(),
+        );
+        setEtfCodeFilter("");
+      } else {
+        setMonthlyContribution((v) => commitFormulaWithCommas(v));
+        setMonthlyExtra((v) => commitFormulaWithCommas(v));
+        setTargetQuarterIncome((v) => commitFormulaWithCommas(v));
+      }
+      setStorageReady(true);
+    };
+
+    if (typeof window.requestIdleCallback === "function") {
+      const idleId = window.requestIdleCallback(applyStoredSnapshot, { timeout: 2000 });
+      return () => window.cancelIdleCallback(idleId);
     }
-    setStorageReady(true);
+    const t = window.setTimeout(applyStoredSnapshot, 1);
+    return () => window.clearTimeout(t);
   }, [clientMounted, maxNthPeriod]);
 
   const persistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1525,26 +1253,27 @@ export default function Home() {
     return { shares, zhang };
   }, [selectedEtfInfo, nthPeriodEstimate.afterFee]);
 
-  const simulation = useMemo(
-    () =>
-      simulate({
-        initialPrincipal: principalForCalc,
-        monthlyContribution: monthlyContributionNum,
-        monthlyExtra: monthlyExtraNum,
-        annualReturnRate: effectiveAnnualRate,
-        reinvestRatio,
-        payoutFrequency,
-        // 目標一律為「每月想領多少」，依配息頻率換算成每期目標
-        targetPayoutPerPeriod:
-          payoutFrequency === "month"
-            ? targetQuarterIncomeNum
-            : payoutFrequency === "quarter"
-            ? targetQuarterIncomeNum * 3
-            : payoutFrequency === "semiannual"
-            ? targetQuarterIncomeNum * 6
-            : targetQuarterIncomeNum * 12,
-        taxRate: effectiveTaxRateForSim,
-      }),
+  const targetYearsNum = targetYearsToAchieveEmpty || targetYearsToAchieveNum <= 0 ? 20 : targetYearsToAchieveNum;
+
+  const heavySimPayload = useMemo(
+    (): HeavySimPayload => ({
+      principalForCalc,
+      monthlyContributionNum,
+      monthlyExtraNum,
+      effectiveAnnualRate,
+      reinvestRatio,
+      payoutFrequency,
+      targetQuarterIncomeNum,
+      effectiveTaxRateForSim,
+      targetYearsNum,
+      targetYearsToAchieveEmpty,
+      targetYearsToAchieveNum,
+      currentPrincipalNum,
+      sharePrice: selectedEtfInfo?.price ?? 100,
+      dividendMonths: selectedEtfInfo?.dividendMonths,
+      initialYear,
+      initialMonth,
+    }),
     [
       principalForCalc,
       monthlyContributionNum,
@@ -1554,43 +1283,32 @@ export default function Home() {
       payoutFrequency,
       targetQuarterIncomeNum,
       effectiveTaxRateForSim,
-    ]
+      targetYearsNum,
+      targetYearsToAchieveEmpty,
+      targetYearsToAchieveNum,
+      currentPrincipalNum,
+      selectedEtfInfo?.price,
+      selectedEtfInfo?.dividendMonths,
+      initialYear,
+      initialMonth,
+    ],
   );
 
-  // 以「目標年數」為止的模擬，用於 KPI 卡顯示（期末資產／累積股利）
-  const targetYearsNum = targetYearsToAchieveEmpty || targetYearsToAchieveNum <= 0 ? 20 : targetYearsToAchieveNum;
-  const simulationAtTargetYears = useMemo(
-    () =>
-      simulate({
-        initialPrincipal: principalForCalc,
-        monthlyContribution: monthlyContributionNum,
-        monthlyExtra: monthlyExtraNum,
-        annualReturnRate: effectiveAnnualRate,
-        reinvestRatio,
-        payoutFrequency,
-        targetPayoutPerPeriod:
-          payoutFrequency === "month"
-            ? targetQuarterIncomeNum
-            : payoutFrequency === "quarter"
-            ? targetQuarterIncomeNum * 3
-            : payoutFrequency === "semiannual"
-            ? targetQuarterIncomeNum * 6
-            : targetQuarterIncomeNum * 12,
-        maxMonths: Math.max(1, targetYearsNum) * 12,
-        taxRate: effectiveTaxRateForSim,
-      }),
-    [
-      principalForCalc,
-      monthlyContributionNum,
-      monthlyExtraNum,
-      effectiveAnnualRate,
-      reinvestRatio,
-      payoutFrequency,
-      targetQuarterIncomeNum,
-      targetYearsNum,
-      effectiveTaxRateForSim,
-    ]
-  );
+  /** localStorage／URL 還原完成前不重算，避免預設值 → 存檔值各算一輪建議月投 */
+  const debouncedHeavySimPayload = useDebouncedValue(heavySimPayload, 280, storageReady);
+  const {
+    simulation,
+    simulationAtTargetYears,
+    periodSnapshots,
+    requiredMonthlyToAchieveInYears,
+    isComputing: heavySimComputing,
+  } = useHomeHeavySimulation(debouncedHeavySimPayload, storageReady);
+
+  const suggestedMonthlyDisplay = !storageReady || heavySimComputing
+    ? "計算中…"
+    : requiredMonthlyToAchieveInYears != null
+      ? requiredMonthlyToAchieveInYears.toLocaleString("zh-TW")
+      : "—";
 
   // 達成目標「每月等值」targetQuarterIncome 時，約需總資產（與配息頻率無關：皆為 月目標×12÷年化）
   const requiredAssetsForTarget = useMemo(() => {
@@ -1598,112 +1316,6 @@ export default function Home() {
     const annualRate = effectiveAnnualRate / 100;
     return Math.round((targetQuarterIncomeNum * 12) / annualRate);
   }, [targetQuarterIncomeNum, effectiveAnnualRate]);
-
-  const requiredMonthlyToAchieveInYears = useMemo(() => {
-    if (targetYearsToAchieveEmpty || targetYearsToAchieveNum <= 0)
-      return null;
-    const targetMonths = Math.floor(targetYearsToAchieveNum * 12);
-    if (targetQuarterIncomeNum <= 0) return null;
-    let low = 0;
-    let high = 500000;
-    const targetPerPeriod =
-      payoutFrequency === "month"
-        ? targetQuarterIncomeNum
-        : payoutFrequency === "quarter"
-        ? targetQuarterIncomeNum * 3
-        : payoutFrequency === "semiannual"
-        ? targetQuarterIncomeNum * 6
-        : targetQuarterIncomeNum * 12;
-    for (let i = 0; i < 35; i++) {
-      const mid = Math.round((low + high) / 2);
-      const res = simulate({
-        initialPrincipal: principalForCalc,
-        monthlyContribution: mid,
-        monthlyExtra: monthlyExtraNum,
-        annualReturnRate: effectiveAnnualRate,
-        reinvestRatio,
-        payoutFrequency,
-        targetPayoutPerPeriod: targetPerPeriod,
-        maxMonths: targetMonths,
-        taxRate: effectiveTaxRateForSim,
-      });
-      const totalMonths =
-        res.milestoneUserTargetIndex != null
-          ? res.milestoneUserTargetIndex + 1
-          : targetMonths + 1;
-      if (totalMonths <= targetMonths) {
-        high = mid;
-      } else {
-        low = mid + 1;
-      }
-    }
-    const final = simulate({
-      initialPrincipal: principalForCalc,
-      monthlyContribution: high,
-      monthlyExtra: monthlyExtraNum,
-      annualReturnRate: effectiveAnnualRate,
-      reinvestRatio,
-      payoutFrequency,
-      targetPayoutPerPeriod: targetPerPeriod,
-      maxMonths: targetMonths,
-      taxRate: effectiveTaxRateForSim,
-    });
-    const reachMonths =
-      final.milestoneUserTargetIndex != null
-        ? final.milestoneUserTargetIndex + 1
-        : null;
-    if (reachMonths == null || reachMonths > targetMonths) return null;
-    // 若算出的「固定投入」過小（例如因已有高額外或本金），改以「從零開始」試算作為建議，讓數字合理
-    if (high < 15000 && requiredAssetsForTarget != null && requiredAssetsForTarget > 500000) {
-      let l = 0;
-      let h = 500000;
-      for (let i = 0; i < 35; i++) {
-        const mid = Math.round((l + h) / 2);
-        const res = simulate({
-          initialPrincipal: 0,
-          monthlyContribution: mid,
-          monthlyExtra: 0,
-          annualReturnRate: effectiveAnnualRate,
-          reinvestRatio,
-          payoutFrequency,
-          targetPayoutPerPeriod: targetPerPeriod,
-          maxMonths: targetMonths,
-          taxRate: effectiveTaxRateForSim,
-        });
-        const totalMonths =
-          res.milestoneUserTargetIndex != null
-            ? res.milestoneUserTargetIndex + 1
-            : targetMonths + 1;
-        if (totalMonths <= targetMonths) h = mid;
-        else l = mid + 1;
-      }
-      const verify = simulate({
-        initialPrincipal: 0,
-        monthlyContribution: h,
-        monthlyExtra: 0,
-        annualReturnRate: effectiveAnnualRate,
-        reinvestRatio,
-        payoutFrequency,
-        targetPayoutPerPeriod: targetPerPeriod,
-        maxMonths: targetMonths,
-        taxRate: effectiveTaxRateForSim,
-      });
-      if (verify.milestoneUserTargetIndex != null && verify.milestoneUserTargetIndex + 1 <= targetMonths)
-        return h;
-    }
-    return high;
-  }, [
-    targetYearsToAchieveEmpty,
-    targetYearsToAchieveNum,
-    targetQuarterIncomeNum,
-    principalForCalc,
-    monthlyExtraNum,
-    effectiveAnnualRate,
-    effectiveTaxRateForSim,
-    reinvestRatio,
-    payoutFrequency,
-    requiredAssetsForTarget,
-  ]);
 
   const intervalMonths =
     payoutFrequency === "month"
@@ -1879,40 +1491,44 @@ export default function Home() {
     ]
   );
 
-  const periodSnapshots = useMemo(
-    () =>
-      getPeriodSnapshots(
-        {
-          initialPrincipal: currentPrincipalNum,
-          monthlyContribution: monthlyContributionNum,
-          monthlyExtra: monthlyExtraNum,
-          annualReturnRate: effectiveAnnualRate,
-          reinvestRatio,
-          payoutFrequency,
-          dividendMonths: selectedEtfInfo?.dividendMonths,
-        },
-        selectedEtfInfo?.price ?? 100,
-        20,
-        initialYear,
-        initialMonth
-      ),
-    [
-      currentPrincipalNum,
-      monthlyContributionNum,
-      monthlyExtraNum,
-      effectiveAnnualRate,
-      reinvestRatio,
-      payoutFrequency,
-      selectedEtfInfo?.price,
-      selectedEtfInfo?.dividendMonths,
-      initialYear,
-      initialMonth,
-    ]
-  );
 
   useEffect(() => {
     setMobileAccumShowNextTen(false);
   }, [periodSnapshots.length]);
+
+  const [accumTableVisibleRows, setAccumTableVisibleRows] = useState(ACCUM_TABLE_INITIAL_ROWS);
+  const accumDesktopScrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setAccumTableVisibleRows(ACCUM_TABLE_INITIAL_ROWS);
+  }, [periodSnapshots]);
+
+  const accumTableRenderRowCount = Math.min(accumTableVisibleRows, periodSnapshots.length);
+
+  const handleAccumTableScroll = useCallback(
+    (e: React.UIEvent<HTMLDivElement>) => {
+      const el = e.currentTarget;
+      if (el.scrollHeight - el.scrollTop - el.clientHeight > 72) return;
+      setAccumTableVisibleRows((n) => {
+        if (n >= periodSnapshots.length) return n;
+        return Math.min(periodSnapshots.length, n + ACCUM_TABLE_ROWS_PER_LOAD);
+      });
+    },
+    [periodSnapshots.length],
+  );
+
+  useEffect(() => {
+    if (!mobileAccumFullTableModalOpen) return;
+    setAccumTableVisibleRows(ACCUM_TABLE_INITIAL_ROWS);
+  }, [mobileAccumFullTableModalOpen]);
+
+  /** 列數少於容器高度時自動多載幾列，讓捲動能觸發增量載入 */
+  useEffect(() => {
+    const el = accumDesktopScrollRef.current;
+    if (!el || accumTableVisibleRows >= periodSnapshots.length) return;
+    if (el.scrollHeight > el.clientHeight + 8) return;
+    setAccumTableVisibleRows((n) => Math.min(periodSnapshots.length, n + ACCUM_TABLE_ROWS_PER_LOAD));
+  }, [accumTableVisibleRows, periodSnapshots.length]);
 
   const noInvestBalance20y = currentPrincipalNum + (monthlyContributionNum + monthlyExtraNum) * 240;
   const investBalance20y = periodSnapshots.length > 0 ? periodSnapshots[periodSnapshots.length - 1].balance : 0;
@@ -2230,10 +1846,49 @@ export default function Home() {
 
   const getCellVal = useCallback((rowIdx: number, colKey: string, calc: number) => safeNumber(manualOverrides[`${rowIdx}_${colKey}`] ?? calc), [manualOverrides]);
 
-  /** 累積金額與股數表：桌機 tbody 與手機卡片共用之衍生欄位（不重複計算邏輯） */
+  /** 累積金額與股數表：桌機 tbody 與手機卡片共用之衍生欄位（僅建目前已顯示列數，捲動再擴充） */
   const accumulatedPeriodRowModels = useMemo(() => {
     let cumulativeDividend = 0;
-    return periodSnapshots.map((row, i) => {
+    const rowLimit = Math.min(accumTableRenderRowCount, periodSnapshots.length);
+    const models = [] as Array<{
+      row: (typeof periodSnapshots)[number];
+      i: number;
+      effectiveRateForTable: number;
+      intervalMonths: number;
+      periodsPerYearForTable: number;
+      divisorForPerPeriodTax: number;
+      ratio54C: number;
+      nhi2: number;
+      isMonthlyRows: boolean;
+      contributionDisplay: number;
+      extraDisplay: number;
+      taxableBase: number;
+      annualTaxableBase: number;
+      isLastPeriodOfYear: boolean;
+      hasAnnualData: boolean;
+      perPeriodTax: number;
+      nhi2Num: number;
+      totalDeduction: number;
+      deductionVal: number;
+      reinvestDisplayVal: number;
+      totalInflowThisPeriod: number;
+      isFirstPeriod: boolean;
+      nhi2Val: number;
+      feeVal: number;
+      balancePbVal: number;
+      balanceTifVal: number;
+      balanceBalVal: number;
+      balanceDisplayStr: string;
+      bracketDisplay: string;
+      cumulativeDividend: number;
+      netTakeHome: number;
+      dividendThisGross: number;
+      sheetRatio54cPct: number;
+      sheetTax54CLine: string;
+      sheetRefundLine: string;
+    }>;
+    for (let i = 0; i < rowLimit; i++) {
+      const row = periodSnapshots[i]!;
       const effectiveRateForTable = separateTaxOpen ? 0.28 : taxBracketRate;
       const intervalMonths =
         payoutFrequency === "month" ? 1 : payoutFrequency === "quarter" ? 3 : payoutFrequency === "semiannual" ? 6 : 12;
@@ -2303,7 +1958,7 @@ export default function Home() {
         sheetRefundLine = `${origDisplay} － ${creditDisplay} = ${displayVal.toLocaleString("zh-TW")} ${isRefund ? "(退稅額)" : "(補稅額)"}`;
       }
 
-      return {
+      models.push({
         row,
         i,
         effectiveRateForTable,
@@ -2339,10 +1994,12 @@ export default function Home() {
         sheetRatio54cPct: Math.round(ratio54C * 100),
         sheetTax54CLine,
         sheetRefundLine,
-      };
-    });
+      });
+    }
+    return models;
   }, [
     periodSnapshots,
+    accumTableRenderRowCount,
     getCellVal,
     payoutFrequency,
     selectedEtfInfo?.dividendMonths,
@@ -2435,8 +2092,7 @@ export default function Home() {
     selectedEtf,
   ]);
 
-  /** 與「下載 Excel」相同的二維陣列（含表頭），供手機完整明細彈窗預覽 */
-  const accumulatedSheetExcelMatrix = useMemo(() => {
+  const buildAccumulatedSheetExcelMatrix = useCallback((): (string | number)[][] => {
     const intervalMonths = payoutFrequency === "month" ? 1 : payoutFrequency === "quarter" ? 3 : payoutFrequency === "semiannual" ? 6 : 12;
     const periodsPerYearForTable = payoutFrequency === "month" ? 12 : payoutFrequency === "quarter" ? 4 : payoutFrequency === "semiannual" ? 2 : 1;
     const divisorForPerPeriodTax = selectedEtfInfo?.dividendMonths?.length ?? periodsPerYearForTable;
@@ -2562,12 +2218,13 @@ export default function Home() {
   const downloadTableExcel = useCallback(() => {
     void (async () => {
       const XLSX = await import("xlsx");
-      const ws = XLSX.utils.aoa_to_sheet(accumulatedSheetExcelMatrix);
+      const matrix = buildAccumulatedSheetExcelMatrix();
+      const ws = XLSX.utils.aoa_to_sheet(matrix);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "累積金額與股數");
       XLSX.writeFile(wb, `累積金額與股數表_${new Date().toISOString().slice(0, 10)}.xlsx`, { cellStyles: false });
     })();
-  }, [accumulatedSheetExcelMatrix]);
+  }, [buildAccumulatedSheetExcelMatrix]);
 
   useEffect(() => {
     if (!mobileAccumFullTableModalOpen) return;
@@ -3265,7 +2922,7 @@ export default function Home() {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 11, color: "#9ca3af", whiteSpace: "nowrap" }}>建議</span>
-              <span style={{ fontSize: 12, fontWeight: 600, color: "#f5c451" }}>{requiredMonthlyToAchieveInYears != null ? `${requiredMonthlyToAchieveInYears.toLocaleString("zh-TW")}` : "—"}</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "#f5c451" }}>{suggestedMonthlyDisplay}</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 11, color: "#9ca3af", whiteSpace: "nowrap" }}>目標</span>
@@ -4020,7 +3677,9 @@ export default function Home() {
               >
                 <span style={{ fontSize: 14, color: "#d1d5db" }}>建議每月投入</span>
                 <div style={{ fontSize: 20, fontWeight: 700, color: "#f5c451", marginTop: 6 }}>
-                  {requiredMonthlyToAchieveInYears != null ? `${requiredMonthlyToAchieveInYears.toLocaleString("zh-TW")} 元` : "—"}
+                  {suggestedMonthlyDisplay === "—" || suggestedMonthlyDisplay === "計算中…"
+                    ? suggestedMonthlyDisplay
+                    : `${suggestedMonthlyDisplay} 元`}
                 </div>
               </div>
               {/* 右欄：達成所需資產 */}
@@ -4651,6 +4310,7 @@ export default function Home() {
             payoutFrequency={payoutFrequency}
             handlePayoutFrequencyChange={handlePayoutFrequencyChange}
             requiredMonthlyToAchieveInYears={requiredMonthlyToAchieveInYears}
+            suggestedMonthlyDisplay={suggestedMonthlyDisplay}
             requiredAssetsForTarget={requiredAssetsForTarget}
             commitFormula={commitFormula}
             parseFormula={parseFormula}
@@ -5070,7 +4730,9 @@ export default function Home() {
             <h2 style={{ fontSize: 24, fontWeight: 600, color: "#e5e7eb", margin: 0, flexShrink: 0 }}>累積金額與股數表</h2>
           </div>
           <div
+            ref={accumDesktopScrollRef}
             className="hidden md:block"
+            onScroll={handleAccumTableScroll}
             style={{ overflowX: "auto", maxHeight: 360, overflowY: "auto", paddingRight: 10, boxSizing: "border-box" }}
           >
             {!mobileAccumFullTableModalOpen ? renderAccumulatedDesktopTable() : null}
@@ -5624,6 +5286,7 @@ export default function Home() {
                         </div>
                         <div
                           className="shrink-0 overflow-x-auto overflow-y-scroll bg-[#0c1222] p-2 sm:p-3"
+                          onScroll={handleAccumTableScroll}
                           style={{
                             height: "min(240px, 38vh)",
                             WebkitOverflowScrolling: "touch",

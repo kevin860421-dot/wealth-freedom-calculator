@@ -14,6 +14,8 @@ export type MobileGoalSettingSectionProps = {
   payoutFrequency: PayoutFrequency;
   handlePayoutFrequencyChange: (v: PayoutFrequency) => void;
   requiredMonthlyToAchieveInYears: number | null;
+  /** 建議月投顯示字串（含「計算中…」「—」或已格式化數字） */
+  suggestedMonthlyDisplay: string;
   requiredAssetsForTarget: number | null;
   commitFormula: (s: string) => string;
   parseFormula: (s: string) => number;
@@ -34,6 +36,7 @@ export function MobileGoalSettingSection({
   payoutFrequency,
   handlePayoutFrequencyChange,
   requiredMonthlyToAchieveInYears,
+  suggestedMonthlyDisplay,
   requiredAssetsForTarget,
   commitFormula,
   parseFormula,
@@ -229,7 +232,9 @@ export function MobileGoalSettingSection({
         <div className={styles.resultSecondary}>
           <div className={styles.resultLabel}>建議每月投入</div>
           <div className={styles.resultValueSecondary}>
-            {requiredMonthlyToAchieveInYears != null ? `${requiredMonthlyToAchieveInYears.toLocaleString("zh-TW")} 元` : "—"}
+            {suggestedMonthlyDisplay === "—" || suggestedMonthlyDisplay === "計算中…"
+              ? suggestedMonthlyDisplay
+              : `${suggestedMonthlyDisplay} 元`}
           </div>
         </div>
       </div>
