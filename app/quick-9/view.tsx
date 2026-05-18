@@ -376,10 +376,19 @@ export function QuickCalculator9View() {
                   onChange={(e) => {
                     const raw = sanitizeCalcInput(e.target.value);
                     setMonthlyInstallmentText(raw);
-                    const next = commitMoney(raw, monthlyInstallment, 0, totalBudget);
+                    if (/[+\-*/()]/.test(raw)) return;
+                    const n = parseMoneyInputToInt(raw);
+                    if (n === null) return;
+                    const inst = Math.round(clampNum(n, 0, totalBudget));
+                    const inv = Math.max(0, totalBudget - inst);
+                    setMonthlyInstallment(inst);
+                    setInvestmentBase(inv);
+                    setInvestmentBaseText(formatTwd(inv));
+                  }}
+                  onBlur={() => {
+                    const next = commitMoney(monthlyInstallmentText, monthlyInstallment, 0, totalBudget);
                     applySplitFromInstallment(next, totalBudget);
                   }}
-                  onBlur={() => setMonthlyInstallmentText(formatTwd(monthlyInstallment))}
                   style={{
                     height: 42,
                     borderRadius: 12,
@@ -405,10 +414,19 @@ export function QuickCalculator9View() {
                   onChange={(e) => {
                     const raw = sanitizeCalcInput(e.target.value);
                     setInvestmentBaseText(raw);
-                    const next = commitMoney(raw, investmentBase, 0, totalBudget);
+                    if (/[+\-*/()]/.test(raw)) return;
+                    const n = parseMoneyInputToInt(raw);
+                    if (n === null) return;
+                    const inv = Math.round(clampNum(n, 0, totalBudget));
+                    const inst = Math.max(0, totalBudget - inv);
+                    setInvestmentBase(inv);
+                    setMonthlyInstallment(inst);
+                    setMonthlyInstallmentText(formatTwd(inst));
+                  }}
+                  onBlur={() => {
+                    const next = commitMoney(investmentBaseText, investmentBase, 0, totalBudget);
                     applySplitFromInvest(next, totalBudget);
                   }}
-                  onBlur={() => setInvestmentBaseText(formatTwd(investmentBase))}
                   style={{
                     height: 42,
                     borderRadius: 12,

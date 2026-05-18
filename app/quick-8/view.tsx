@@ -506,10 +506,19 @@ export function QuickCalculator8View({
                   onChange={(e) => {
                     const raw = sanitizeCalcInput(e.target.value);
                     setMonthlyInstallmentText(raw);
-                    const next = commitMoney(raw, monthlyInstallment, 0, totalPrice);
+                    if (/[+\-*/()]/.test(raw)) return;
+                    const n = parseMoneyInputToInt(raw);
+                    if (n === null) return;
+                    const inst = Math.round(clampNum(n, 0, totalPrice));
+                    const inv = Math.max(0, totalPrice - inst);
+                    setMonthlyInstallment(inst);
+                    setMonthlyInvest(inv);
+                    setMonthlyInvestText(formatTwd(inv));
+                  }}
+                  onBlur={() => {
+                    const next = commitMoney(monthlyInstallmentText, monthlyInstallment, 0, totalPrice);
                     applySplitFromInstallment(next, totalPrice);
                   }}
-                  onBlur={() => setMonthlyInstallmentText(formatTwd(monthlyInstallment))}
                   style={{
                     height: 48,
                     borderRadius: 12,
@@ -535,10 +544,19 @@ export function QuickCalculator8View({
                   onChange={(e) => {
                     const raw = sanitizeCalcInput(e.target.value);
                     setMonthlyInvestText(raw);
-                    const next = commitMoney(raw, monthlyInvest, 0, totalPrice);
+                    if (/[+\-*/()]/.test(raw)) return;
+                    const n = parseMoneyInputToInt(raw);
+                    if (n === null) return;
+                    const inv = Math.round(clampNum(n, 0, totalPrice));
+                    const inst = Math.max(0, totalPrice - inv);
+                    setMonthlyInvest(inv);
+                    setMonthlyInstallment(inst);
+                    setMonthlyInstallmentText(formatTwd(inst));
+                  }}
+                  onBlur={() => {
+                    const next = commitMoney(monthlyInvestText, monthlyInvest, 0, totalPrice);
                     applySplitFromInvest(next, totalPrice);
                   }}
-                  onBlur={() => setMonthlyInvestText(formatTwd(monthlyInvest))}
                   style={{
                     height: 48,
                     borderRadius: 12,

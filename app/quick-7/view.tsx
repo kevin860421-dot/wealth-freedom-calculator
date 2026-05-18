@@ -8,6 +8,7 @@ import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
 import { quickChartYearTicks } from "@/lib/quick-chart-series";
 import { clampNum, futureValueMonthlyContribution } from "@/lib/quick-calculator-math";
+import { QUICK7_DISPLAY_TITLE } from "./display-title";
 import {
   carLoanVsStockPath,
   CAR_LOAN_EQUITY_SHARE,
@@ -211,13 +212,10 @@ export function QuickCalculator7View() {
               fontSize: 28,
               fontWeight: 950,
               marginTop: 10,
-              lineHeight: 1.12,
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
+              lineHeight: 1.2,
             }}
           >
-            槓桿抉擇：房貸 vs 全球股市
+            {QUICK7_DISPLAY_TITLE}
           </div>
         </div>
 
@@ -290,7 +288,7 @@ export function QuickCalculator7View() {
             </div>
 
             <div style={{ padding: 10, borderRadius: 14, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" }}>
-              <div style={{ fontSize: 16, opacity: 0.9, fontWeight: 900 }}>房貸年數／投入年數（同步）</div>
+              <div style={{ fontSize: 16, opacity: 0.9, fontWeight: 900 }}>車貸年數／試算年數（同步）</div>
               <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, rowGap: 8, justifyContent: "space-between", width: "100%", minWidth: 0 }}>
                 <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, flex: "1 1 auto", minWidth: 0 }}>
                   <div style={{ position: "relative", flex: "1 1 64px", minWidth: 48 }}>
@@ -313,7 +311,7 @@ export function QuickCalculator7View() {
                           (e.currentTarget as HTMLInputElement).blur();
                         }
                       }}
-                      aria-label="房貸與試算年數"
+                      aria-label="車貸與試算年數"
                       style={{
                         width: "100%",
                         height: 44,
@@ -375,7 +373,7 @@ export function QuickCalculator7View() {
               years={yearsList}
               seriesA={series.carPath}
               seriesB={series.stock}
-              legendA={`房貸情境（繳款中示意 ×${CAR_LOAN_EQUITY_SHARE}；結清後全進全球股市）`}
+              legendA={`車貸情境（繳款中示意 ×${CAR_LOAN_EQUITY_SHARE}；結清後全進全球股市）`}
               legendB={`直接投入全球股市（複利 ${INVEST_ANNUAL_PCT}%）`}
               colorA="rgba(196, 122, 122, 0.92)"
               colorB="rgba(106, 165, 184, 0.92)"
@@ -387,7 +385,7 @@ export function QuickCalculator7View() {
               topNotes={
                 <>
                   <text x="0" y="16" fontSize="13" fill="rgba(252, 211, 77, 0.96)" fontWeight="900">
-                    房貸／分界：{yearsClamped} 年結清後每月全額投入
+                    車貸／分界：{yearsClamped} 年結清後每月全額投入
                   </text>
                   <text x="0" y="34" fontSize="13" fill="rgba(134, 239, 172, 0.96)" fontWeight="900">
                     每月：{formatTwd(monthlyInvest)} 元
@@ -397,7 +395,7 @@ export function QuickCalculator7View() {
             />
 
             <div style={{ padding: 12, borderRadius: 14, background: "rgba(0,0,0,0.20)", border: "1px solid rgba(255,255,255,0.12)" }}>
-              <div style={{ fontSize: 16, fontWeight: 900, opacity: 0.95 }}>固定里程碑·差距（全球股市 − 房貸路徑）</div>
+              <div style={{ fontSize: 16, fontWeight: 900, opacity: 0.95 }}>固定里程碑·差距（全球股市 − 車貸路徑）</div>
               <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
                 {milestoneGaps.map((row) => (
                   <div
@@ -423,7 +421,7 @@ export function QuickCalculator7View() {
                 ))}
               </div>
               <div style={{ marginTop: 10, fontSize: 11, opacity: 0.65, fontWeight: 700, lineHeight: 1.4 }}>
-                * 情境試算僅供教育討論；房貸利率、期數與投資報酬因人而異。
+                * 情境試算僅供教育討論；車貸利率、養車成本、期數與投資報酬因人而異。第 6 台為房產／房貸情境。
               </div>
             </div>
 
@@ -448,7 +446,7 @@ export function QuickCalculator7View() {
             >
               🔍 進入財富自由計算機
             </Link>
-            <QuickBlogLinksToggle quickRoute="/quick-7" />
+            <QuickBlogLinksToggle quickRoute="/quick-7" title="📚 買車還是存股？專屬文章（點我展開）" />
             <QuickSeoExtras id={7} />
             <QuickSeoArticle id={7} />
           </div>
