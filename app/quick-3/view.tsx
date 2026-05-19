@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
+import { QuickMainCalculatorCta } from "@/app/components/quick-main-calculator-cta";
 import { clampNum, requiredMonthlyToReachTarget } from "@/lib/quick-calculator-math";
 import {
   INVEST_ANNUAL_PCT,
@@ -341,27 +342,9 @@ export default function QuickCalculator3View() {
               </div>
             </div>
 
-            <Link
-              href="/"
-              style={{
-                marginTop: 4,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                textAlign: "center",
-                textDecoration: "none",
-                padding: "22px 22px",
-                borderRadius: 14,
-                background: "#2563eb",
-                color: "white",
-                fontSize: 18,
-                fontWeight: 900,
-                lineHeight: 1.4,
-                letterSpacing: "0.12em",
-              }}
-            >
+            <QuickMainCalculatorCta quickId={3} style={{ marginTop: 4 }}>
               🔍 進入財富自由計算機
-            </Link>
+            </QuickMainCalculatorCta>
             <QuickBlogLinksToggle quickRoute="/quick-3" />
             <QuickSeoExtras id={3} />
             <QuickSeoArticle id={3} />

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { AnimatePresence, animate, motion } from "framer-motion";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
+import { QuickMainCalculatorCta } from "@/app/components/quick-main-calculator-cta";
 import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
@@ -2178,13 +2179,16 @@ export function QuickCalculator11Content({
             </div>
 
             {!embeddedInMiniBlog ? (
-              <div id="quick11-bankruptcy-blog" className="mt-2">
-                <QuickBlogLinksToggle quickRoute="/quick-11" title="📚 破產計算機延伸文章（點我展開）" />
-                <div className="mt-3">
-                  <QuickSeoExtras id={11} />
-                  <QuickSeoArticle id={11} />
+              <>
+                <QuickMainCalculatorCta quickId={11} />
+                <div id="quick11-bankruptcy-blog" className="mt-2">
+                  <QuickBlogLinksToggle quickRoute="/quick-11" title="📚 破產計算機延伸文章（點我展開）" />
+                  <div className="mt-3">
+                    <QuickSeoExtras id={11} />
+                    <QuickSeoArticle id={11} />
+                  </div>
                 </div>
-              </div>
+              </>
             ) : null}
           </section>
         </div>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
+import { QuickMainCalculatorCta } from "@/app/components/quick-main-calculator-cta";
 import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
@@ -425,27 +426,7 @@ export function QuickCalculator7View() {
               </div>
             </div>
 
-            <Link
-              href="/"
-              style={{
-                marginTop: 4,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                textAlign: "center",
-                textDecoration: "none",
-                padding: "22px 22px",
-                borderRadius: 14,
-                background: "#2563eb",
-                color: "white",
-                fontSize: 18,
-                fontWeight: 900,
-                lineHeight: 1.4,
-                letterSpacing: "0.12em",
-              }}
-            >
-              🔍 進入財富自由計算機
-            </Link>
+            <QuickMainCalculatorCta quickId={7} style={{ marginTop: 4 }} />
             <QuickBlogLinksToggle quickRoute="/quick-7" title="📚 買車還是存股？專屬文章（點我展開）" />
             <QuickSeoExtras id={7} />
             <QuickSeoArticle id={7} />

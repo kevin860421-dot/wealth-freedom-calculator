@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
+import { QuickMainCalculatorCta } from "@/app/components/quick-main-calculator-cta";
 import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
@@ -511,28 +512,7 @@ export function QuickCalculator10View() {
               />
             ) : null}
 
-            <Link
-              href="/"
-              style={{
-                marginTop: 6,
-                display: "flex",
-                flexDirection: "column",
-                gap: 10,
-                alignItems: "center",
-                textAlign: "center",
-                textDecoration: "none",
-                padding: "22px 22px",
-                borderRadius: 14,
-                background: "#2563eb",
-                color: "white",
-                fontSize: 20,
-                fontWeight: 900,
-                lineHeight: 1.4,
-                letterSpacing: "0.12em",
-              }}
-            >
-              <span style={{ lineHeight: 1.4, letterSpacing: "0.12em" }}>🔍 進入財富自由計算機</span>
-            </Link>
+            <QuickMainCalculatorCta quickId={10} style={{ fontSize: 20 }} />
             <QuickBlogLinksToggle quickRoute="/quick-10" />
             <QuickSeoExtras id={10} />
             <QuickSeoArticle id={10} />

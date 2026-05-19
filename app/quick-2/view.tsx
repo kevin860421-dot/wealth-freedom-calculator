@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
+import { QuickMainCalculatorCta } from "@/app/components/quick-main-calculator-cta";
 import { clampNum, monthsToReachTarget } from "@/lib/quick-calculator-math";
 import { ANNUAL_PCT, MONEY_MAX, MONEY_MIN, commitMoney, formatTwd, sanitizeCalcInput } from "./logic";
 
@@ -258,28 +259,7 @@ export default function QuickCalculator2View() {
               <div style={{ marginTop: 8, fontSize: 32, fontWeight: 950, color: "#93c5fd" }}>{reachYearsText} 年</div>
             </div>
 
-            <Link
-              href="/"
-              style={{
-                marginTop: 6,
-                display: "flex",
-                flexDirection: "column",
-                gap: 10,
-                alignItems: "center",
-                textAlign: "center",
-                textDecoration: "none",
-                padding: "22px 22px",
-                borderRadius: 14,
-                background: "#2563eb",
-                color: "white",
-                fontSize: 18,
-                fontWeight: 900,
-                lineHeight: 1.4,
-                letterSpacing: "0.12em",
-              }}
-            >
-              <span style={{ lineHeight: 1.4, letterSpacing: "0.12em" }}>🔍 進入財富自由計算機</span>
-            </Link>
+            <QuickMainCalculatorCta quickId={2} />
             <QuickBlogLinksToggle quickRoute="/quick-2" />
             <QuickSeoExtras id={2} />
             <QuickSeoArticle id={2} />

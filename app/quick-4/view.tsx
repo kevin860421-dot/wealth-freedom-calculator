@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
+import { QuickMainCalculatorCta } from "@/app/components/quick-main-calculator-cta";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
 import { clampNum } from "@/lib/quick-calculator-math";
@@ -553,29 +554,10 @@ export default function QuickCalculator4View() {
               <div style={{ marginTop: 8, fontSize: 32, fontWeight: 950, color: "#4ade80" }}>{formatTwd(totalAsset)}</div>
             </div>
 
-            <Link
-              href="/"
-              style={{
-                marginTop: 6,
-                display: "flex",
-                flexDirection: "column",
-                gap: 10,
-                alignItems: "center",
-                textAlign: "center",
-                textDecoration: "none",
-                padding: "22px 22px",
-                borderRadius: 14,
-                background: "#2563eb",
-                boxShadow: "0 10px 24px rgba(37,99,235,0.45)",
-                color: "white",
-                fontSize: 18,
-                fontWeight: 900,
-                lineHeight: 1.4,
-                letterSpacing: "0.12em",
-              }}
-            >
-              <span style={{ lineHeight: 1.4, letterSpacing: "0.12em" }}>🔍 進入財富自由計算機</span>
-            </Link>
+            <QuickMainCalculatorCta
+              quickId={4}
+              style={{ boxShadow: "0 10px 24px rgba(37,99,235,0.45)" }}
+            />
             <QuickBlogLinksToggle quickRoute="/quick-4" />
             <QuickSeoExtras id={4} />
             <QuickSeoArticle id={4} />
