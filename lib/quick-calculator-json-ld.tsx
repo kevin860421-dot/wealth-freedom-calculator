@@ -1,19 +1,31 @@
+import { SCHEMA_AUTHOR } from "@/lib/home-json-ld";
+import { absoluteUrl, getSiteOrigin } from "@/lib/site-origin";
 import { getQuickFaqs } from "./quick-seo-faq-data";
 import { QUICK_SEO_BLOCKS } from "./quick-seo-data";
 
-const SITE_ORIGIN = "https://wealth-freedom-calculator.vercel.app";
-
 export function quickCanonicalPath(id: number): string {
   return `/quick-${id}`;
+}
+
+function quickSoftwareName(id: number, block: (typeof QUICK_SEO_BLOCKS)[number]): string {
+  const fromTitle = block.metaTitle.split("｜")[0]?.trim();
+  if (fromTitle) return fromTitle;
+  return `第 ${id} 台小計算機`;
+}
+
+function quickOgImagePath(id: number): string {
+  return `/og-quick-${id}.jpg`;
 }
 
 export function buildQuickCalculatorJsonLd(id: number) {
   const block = QUICK_SEO_BLOCKS[id];
   if (!block) return null;
 
+  const origin = getSiteOrigin();
   const path = quickCanonicalPath(id);
-  const url = `${SITE_ORIGIN}${path}`;
-  const name = block.metaTitle.split("｜")[0] ?? `第 ${id} 台小計算機`;
+  const url = absoluteUrl(path, origin);
+  const softwareName = quickSoftwareName(id, block);
+  const image = absoluteUrl(quickOgImagePath(id), origin);
 
   const faqs = getQuickFaqs(id);
   const graph: Record<string, unknown>[] = [
@@ -26,20 +38,23 @@ export function buildQuickCalculatorJsonLd(id: number) {
       inLanguage: "zh-Hant",
       isPartOf: {
         "@type": "WebSite",
-        "@id": `${SITE_ORIGIN}/#website`,
+        "@id": `${origin}/#website`,
         name: "財富自由計算機",
-        url: SITE_ORIGIN,
+        url: origin,
       },
     },
     {
       "@type": "SoftwareApplication",
       "@id": `${url}#software`,
-      name,
+      name: softwareName,
       description: block.metaDescription,
+      image,
       applicationCategory: "FinanceApplication",
-      operatingSystem: "Windows, macOS, Android, iOS",
+      operatingSystem: "All",
+      browserRequirements: "Requires HTML5",
       isAccessibleForFree: true,
       url,
+      author: SCHEMA_AUTHOR,
       offers: {
         "@type": "Offer",
         price: "0",
@@ -52,8 +67,10 @@ export function buildQuickCalculatorJsonLd(id: number) {
     graph.push({
       "@type": "FAQPage",
       "@id": `${url}#faq`,
+      name: `${softwareName}常見問題`,
       url,
       inLanguage: "zh-Hant",
+      isPartOf: { "@id": `${url}#webpage` },
       mainEntity: faqs.map((item) => ({
         "@type": "Question",
         name: item.question,
@@ -79,7 +96,7 @@ export function QuickCalculatorJsonLd({ id }: { id: number }) {
     <script
       type="application/ld+json"
       // eslint-disable-next-line react/no-danger -- JSON-LD 標準寫法
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
     />
   );
 }

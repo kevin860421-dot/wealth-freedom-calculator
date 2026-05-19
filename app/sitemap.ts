@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { getSiteOrigin } from "@/lib/site-origin";
 import { blogPostPath, getPublishedBlogPosts } from "./blog/posts/registry";
 
 /** 動態 sitemap（App Router：app/sitemap.ts）。僅收錄乾淨路由，不含大量 query 組合。 */
@@ -19,15 +20,8 @@ const QUICK_CALCULATOR_ROUTES = [
   "quick-12",
 ] as const;
 
-function siteOrigin(): string {
-  return (
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
-  );
-}
-
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = siteOrigin();
+  const baseUrl = getSiteOrigin();
   const now = new Date();
 
   const calculatorUrls: MetadataRoute.Sitemap = QUICK_CALCULATOR_ROUTES.map((id) => ({

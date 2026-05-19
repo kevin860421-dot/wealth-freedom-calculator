@@ -2,13 +2,9 @@
 
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
+import { SCHEMA_AUTHOR } from "@/lib/home-json-ld";
+import { absoluteUrl } from "@/lib/site-origin";
 import { QUICK_SEO_BLOCKS } from "@/lib/quick-seo-data";
-
-function siteOrigin(): string {
-  return (
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://wealth-freedom-calculator.vercel.app"
-  );
-}
 
 export function QuickSeoArticle({ id }: { id: number }) {
   const pathname = usePathname();
@@ -16,9 +12,8 @@ export function QuickSeoArticle({ id }: { id: number }) {
 
   const jsonLdString = useMemo(() => {
     if (!block) return null;
-    const origin = siteOrigin();
     const path = pathname && pathname !== "" ? pathname : `/quick-${id}`;
-    const pageUrl = `${origin}${path.startsWith("/") ? path : `/${path}`}`;
+    const pageUrl = absoluteUrl(path.startsWith("/") ? path : `/${path}`);
     const articleBody = [
       ...block.paragraphs,
       "若需與首頁相同的台股 ETF／自訂標的、股利課稅、二代健保補充保費、手續費與每期須扣除等長軸試算，請前往財富自由計算機完整版：https://wealth-freedom-calculator.vercel.app/",
@@ -31,6 +26,8 @@ export function QuickSeoArticle({ id }: { id: number }) {
       headline: block.h2,
       description: block.metaDescription,
       articleBody,
+      image: absoluteUrl(`/og-quick-${id}.jpg`),
+      author: SCHEMA_AUTHOR,
       inLanguage: "zh-Hant",
       isAccessibleForFree: true,
       url: pageUrl,
