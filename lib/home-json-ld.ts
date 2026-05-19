@@ -6,6 +6,13 @@ const SCHEMA_AUTHOR = {
   url: "https://wealth-freedom-calculator.vercel.app/",
 };
 
+/** 與首頁 SoftwareApplication 一致，供小計算機 1～12 共用（Rich Results 建議欄位） */
+export const SCHEMA_AGGREGATE_RATING = {
+  "@type": "AggregateRating" as const,
+  ratingValue: "4.9",
+  reviewCount: "42",
+};
+
 /** 首頁專用 JSON-LD（勿放在 root layout 全站注入，避免與小計算機 FAQ 重複） */
 export function buildHomeJsonLd(origin = getSiteOrigin()) {
   return {
@@ -29,11 +36,7 @@ export function buildHomeJsonLd(origin = getSiteOrigin()) {
           price: "0",
           priceCurrency: "TWD",
         },
-        aggregateRating: {
-          "@type": "AggregateRating",
-          ratingValue: "4.9",
-          reviewCount: "42",
-        },
+        aggregateRating: SCHEMA_AGGREGATE_RATING,
       },
       {
         "@type": "FAQPage",

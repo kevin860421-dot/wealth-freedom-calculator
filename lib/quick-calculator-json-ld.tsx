@@ -1,4 +1,4 @@
-import { SCHEMA_AUTHOR } from "@/lib/home-json-ld";
+import { SCHEMA_AGGREGATE_RATING, SCHEMA_AUTHOR } from "@/lib/home-json-ld";
 import { absoluteUrl, getSiteOrigin } from "@/lib/site-origin";
 import { getQuickFaqs } from "./quick-seo-faq-data";
 import { QUICK_SEO_BLOCKS } from "./quick-seo-data";
@@ -60,6 +60,7 @@ export function buildQuickCalculatorJsonLd(id: number) {
         price: "0",
         priceCurrency: "TWD",
       },
+      aggregateRating: SCHEMA_AGGREGATE_RATING,
     },
   ];
 
