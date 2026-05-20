@@ -12,6 +12,8 @@ import { buildLoanSchedules, evaluateCalcInput, formatMoney, type LoanMethod, ty
 import { QUICK11_LOAN_PRESETS } from "./loan-scenarios";
 import type { Quick11EmbedPreset } from "./embed-preset";
 import goldStat from "./quick-11-golden-stat.module.css";
+import { buildRateShowdownRows } from "./rate-showdown";
+import { RateShowdownModal } from "./rate-showdown-modal";
 
 type Quick11InputStore = {
   loanAmount: number;
@@ -259,6 +261,7 @@ export function QuickCalculator11Content({
   const [stockVsInvestPctVal, setStockVsInvestPctVal] = useState(7);
   const [stockVsInvestPctText, setStockVsInvestPctText] = useState("7");
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [rateShowdownOpen, setRateShowdownOpen] = useState(false);
   const [isLight, setIsLight] = useState(false);
 
   const incomeInputRef = useRef<HTMLInputElement | null>(null);
@@ -289,6 +292,11 @@ export function QuickCalculator11Content({
   }, [loanAmount]);
 
   const output = useMemo(() => buildLoanSchedules(loanAmount, annualRate, loanYears), [loanAmount, annualRate, loanYears]);
+  const rateShowdownRows = useMemo(
+    () => buildRateShowdownRows(loanAmount, loanYears, annualRate, method),
+    [loanAmount, loanYears, annualRate, method],
+  );
+  const rateShowdownMethodLabel = method === "annuity" ? "本息均攤" : "本金平均";
   const rows = method === "annuity" ? output.annuityRows : output.equalPrincipalRows;
   const firstPayment = rows[0]?.payment ?? 0;
   const dtiRatio = monthlyIncome <= 0 ? 1 : firstPayment / monthlyIncome;
@@ -1076,6 +1084,20 @@ export function QuickCalculator11Content({
                           </div>
                         </div>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => setRateShowdownOpen(true)}
+                        className={`w-full rounded-xl border px-3 py-3 text-left transition active:scale-[0.99] ${
+                          isLight
+                            ? "border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 text-amber-950 shadow-[0_2px_10px_rgba(245,158,11,0.2)] hover:border-amber-400"
+                            : "border-amber-500/50 bg-gradient-to-r from-amber-500/15 to-red-500/10 text-amber-50 shadow-[0_0_16px_rgba(245,158,11,0.15)] hover:border-amber-400/70"
+                        }`}
+                      >
+                        <span className="block text-[15px] font-black leading-snug">🔥 利率大對決：你多繳了多少冤枉錢？</span>
+                        <span className={`mt-1 block text-[12px] font-semibold ${isLight ? "text-amber-900/80" : "text-amber-100/85"}`}>
+                          每 0.5% 一檔試到年利率 15%，總利息多送多少一眼看懂
+                        </span>
+                      </button>
                     </div>
                   ) : null}
 
@@ -2192,6 +2214,15 @@ export function QuickCalculator11Content({
             ) : null}
           </section>
         </div>
+
+        <RateShowdownModal
+          open={rateShowdownOpen}
+          onClose={() => setRateShowdownOpen(false)}
+          isLight={isLight}
+          baselineRatePct={annualRate}
+          methodLabel={rateShowdownMethodLabel}
+          rows={rateShowdownRows}
+        />
 
         <AnimatePresence>
           {isSheetOpen ? (
