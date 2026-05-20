@@ -23,7 +23,7 @@ const DEFAULT_STYLE: CSSProperties = {
   letterSpacing: "0.12em",
 };
 
-type QuickMainCalculatorCtaProps = {
+export type QuickMainCalculatorCtaProps = {
   /** 第 1～12 台小計算機編號，寫入 GA4 quick_id 與 from_page */
   quickId: number;
   className?: string;

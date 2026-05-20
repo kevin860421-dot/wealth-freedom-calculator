@@ -5,7 +5,7 @@ import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
-import { QuickMainCalculatorCta } from "@/app/components/quick-main-calculator-cta";
+import { QuickBottomCtaStack } from "@/app/components/quick-bottom-cta-stack";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
 import { buildPrincipalVsCompoundSeries } from "@/lib/quick-chart-series";
@@ -317,7 +317,7 @@ export default function QuickCalculator1View({ showArticleToggle = true }: Quick
               formatPointValue={formatTwd}
             />
 
-            <QuickMainCalculatorCta quickId={1} />
+            <QuickBottomCtaStack quickId={1} />
 
             {showArticleToggle ? (
               <>

@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
-import { QuickMainCalculatorCta } from "@/app/components/quick-main-calculator-cta";
+import { QuickBottomCtaStack } from "@/app/components/quick-bottom-cta-stack";
 import { clampNum, monthsToReachTarget } from "@/lib/quick-calculator-math";
 import { ANNUAL_PCT, MONEY_MAX, MONEY_MIN, commitMoney, formatTwd, sanitizeCalcInput } from "./logic";
 
@@ -259,7 +259,7 @@ export default function QuickCalculator2View() {
               <div style={{ marginTop: 8, fontSize: 32, fontWeight: 950, color: "#93c5fd" }}>{reachYearsText} 年</div>
             </div>
 
-            <QuickMainCalculatorCta quickId={2} />
+            <QuickBottomCtaStack quickId={2} />
             <QuickBlogLinksToggle quickRoute="/quick-2" />
             <QuickSeoExtras id={2} />
             <QuickSeoArticle id={2} />

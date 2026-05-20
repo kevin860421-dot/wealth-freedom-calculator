@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { AnimatePresence, animate, motion } from "framer-motion";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
-import { QuickMainCalculatorCta } from "@/app/components/quick-main-calculator-cta";
+import { QuickBottomCtaStack } from "@/app/components/quick-bottom-cta-stack";
 import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
@@ -2202,7 +2202,7 @@ export function QuickCalculator11Content({
 
             {!embeddedInMiniBlog ? (
               <>
-                <QuickMainCalculatorCta quickId={11} />
+                <QuickBottomCtaStack quickId={11} isLight={isLight} />
                 <div id="quick11-bankruptcy-blog" className="mt-2">
                   <QuickBlogLinksToggle quickRoute="/quick-11" title="📚 破產計算機延伸文章（點我展開）" />
                   <div className="mt-3">

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type Dispatch, type KeyboardEvent, type SetStateAction, type WheelEvent } from "react";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
-import { QuickMainCalculatorCta } from "@/app/components/quick-main-calculator-cta";
+import { QuickBottomCtaStack } from "@/app/components/quick-bottom-cta-stack";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
 import { TICKER_PRESETS, type TickerPreset } from "@/app/ticker-presets";
@@ -1216,7 +1216,7 @@ export function QuickCalculator12Content({
         ) : null}
 
         {!embeddedInMiniBlog ? (
-          <QuickMainCalculatorCta quickId={12} className={styles.cta} label="進入財富自由計算機" />
+          <QuickBottomCtaStack quickId={12} className={styles.cta} label="進入財富自由計算機" />
         ) : null}
 
         <p className={styles.disclaimer}>* 試算僅供教育討論；費率與扣除以法令與個案為準。</p>

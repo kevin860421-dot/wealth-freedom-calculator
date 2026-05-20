@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
-import { QuickMainCalculatorCta } from "@/app/components/quick-main-calculator-cta";
+import { QuickBottomCtaStack } from "@/app/components/quick-bottom-cta-stack";
 import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
@@ -915,7 +915,7 @@ export function QuickCalculator8View({
               </div>
             </div>
 
-            <QuickMainCalculatorCta quickId={8} />
+            <QuickBottomCtaStack quickId={8} />
             <QuickBlogLinksToggle quickRoute="/quick-8" />
             <QuickSeoExtras id={8} />
             <QuickSeoArticle id={8} />

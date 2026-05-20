@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
-import { QuickMainCalculatorCta } from "@/app/components/quick-main-calculator-cta";
+import { QuickBottomCtaStack } from "@/app/components/quick-bottom-cta-stack";
 import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
@@ -379,7 +379,7 @@ export default function QuickCalculator5View() {
               formatPointValue={formatTwd}
             />
 
-            <QuickMainCalculatorCta quickId={5} style={{ marginTop: 4 }} />
+            <QuickBottomCtaStack quickId={5} style={{ marginTop: 4 }} />
             <QuickBlogLinksToggle quickRoute="/quick-5" />
             <QuickSeoExtras id={5} />
             <QuickSeoArticle id={5} />

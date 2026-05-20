@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
-import { QuickMainCalculatorCta } from "@/app/components/quick-main-calculator-cta";
+import { QuickBottomCtaStack } from "@/app/components/quick-bottom-cta-stack";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
 import { clampNum } from "@/lib/quick-calculator-math";
@@ -554,7 +554,7 @@ export default function QuickCalculator4View() {
               <div style={{ marginTop: 8, fontSize: 32, fontWeight: 950, color: "#4ade80" }}>{formatTwd(totalAsset)}</div>
             </div>
 
-            <QuickMainCalculatorCta
+            <QuickBottomCtaStack
               quickId={4}
               style={{ boxShadow: "0 10px 24px rgba(37,99,235,0.45)" }}
             />
