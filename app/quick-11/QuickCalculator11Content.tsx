@@ -2534,6 +2534,57 @@ function ResultPage(props: {
   );
 }
 
+function fitTextToContainerWidth(line: HTMLElement, containerWidth: number, minPx: number, maxPx: number) {
+  if (containerWidth <= 0) return;
+  line.style.fontSize = `${maxPx}px`;
+  if (line.scrollWidth <= containerWidth) return;
+  let lo = minPx;
+  let hi = maxPx;
+  for (let i = 0; i < 24; i += 1) {
+    const mid = (lo + hi) / 2;
+    line.style.fontSize = `${mid}px`;
+    if (line.scrollWidth <= containerWidth) lo = mid;
+    else hi = mid;
+  }
+  line.style.fontSize = `${lo}px`;
+}
+
+/** 依容器寬度縮放字級（標題、欄位名等），避免手機上變成 … */
+function ShrinkFitText(props: { children: string; className?: string; minPx?: number; maxPx?: number }) {
+  const { children, className = "", minPx = 9, maxPx = 16 } = props;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const lineRef = useRef<HTMLSpanElement>(null);
+
+  const fit = useCallback(() => {
+    const container = containerRef.current;
+    const line = lineRef.current;
+    if (!container || !line) return;
+    fitTextToContainerWidth(line, container.clientWidth, minPx, maxPx);
+  }, [minPx, maxPx]);
+
+  useLayoutEffect(() => {
+    fit();
+    const id = requestAnimationFrame(() => fit());
+    return () => cancelAnimationFrame(id);
+  }, [children, fit]);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => fit());
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [fit]);
+
+  return (
+    <div ref={containerRef} className="min-w-0 w-full flex-1 overflow-hidden">
+      <span ref={lineRef} className={`block whitespace-nowrap leading-tight ${className}`} style={{ fontSize: maxPx }}>
+        {children}
+      </span>
+    </div>
+  );
+}
+
 /** 依容器寬度縮放字級，避免大數字被 ellipsis 截斷（首頁總繳利息等）。 */
 function ShrinkFitCardAmount(props: { animKey: string; children: string; minPx?: number; maxPx?: number }) {
   const { animKey, children, minPx = 9, maxPx = 21 } = props;
@@ -2544,19 +2595,7 @@ function ShrinkFitCardAmount(props: { animKey: string; children: string; minPx?:
     const container = containerRef.current;
     const line = lineRef.current;
     if (!container || !line) return;
-    const w = container.clientWidth;
-    if (w <= 0) return;
-    line.style.fontSize = `${maxPx}px`;
-    if (line.scrollWidth <= w) return;
-    let lo = minPx;
-    let hi = maxPx;
-    for (let i = 0; i < 24; i += 1) {
-      const mid = (lo + hi) / 2;
-      line.style.fontSize = `${mid}px`;
-      if (line.scrollWidth <= w) lo = mid;
-      else hi = mid;
-    }
-    line.style.fontSize = `${lo}px`;
+    fitTextToContainerWidth(line, container.clientWidth, minPx, maxPx);
   }, [minPx, maxPx]);
 
   useLayoutEffect(() => {
@@ -2611,7 +2650,9 @@ function InfoCard(props: {
   return (
     <div className={`min-w-0 rounded-lg border p-2 ${tone} flex min-h-[94px] flex-col ${ring}`.trim()}>
       <div className={ring ? goldStat.q11GoldInner : "contents"}>
-        <p className={`truncate whitespace-nowrap text-[16px] font-bold tracking-[0.04em] ${isLight ? "text-slate-600" : "text-slate-300"}`}>{title}</p>
+        <ShrinkFitText minPx={10} maxPx={16} className={`font-bold tracking-[0.04em] ${isLight ? "text-slate-600" : "text-slate-300"}`}>
+          {title}
+        </ShrinkFitText>
         {shrinkValue ? (
           <ShrinkFitCardAmount animKey={`${title}-${value}`}>{value}</ShrinkFitCardAmount>
         ) : (
@@ -2746,6 +2787,40 @@ type InputFieldProps = {
 
 function InputField(props: InputFieldProps) {
   const { compact = false, label, unit, inputRef, value, text, sliderMin, sliderMax, sliderStep, bumpStep, quickActions, presetActions, onApplyPreset, onTextChange, onCommit, onBump, onSlider, onEnterNext, isLight = false } = props;
+  const localInputRef = useRef<HTMLInputElement>(null);
+  const labelMaxPx = compact ? 13 : 16;
+  const labelMinPx = compact ? 9 : 11;
+  const inputMaxPx = compact ? 15 : 22;
+  const inputMinPx = compact ? 10 : 14;
+
+  const fitInputFont = useCallback(() => {
+    const input = localInputRef.current;
+    if (!input) return;
+    fitTextToContainerWidth(input, input.clientWidth, inputMinPx, inputMaxPx);
+  }, [inputMinPx, inputMaxPx]);
+
+  useLayoutEffect(() => {
+    fitInputFont();
+    const id = requestAnimationFrame(() => fitInputFont());
+    return () => cancelAnimationFrame(id);
+  }, [text, fitInputFont]);
+
+  useEffect(() => {
+    const input = localInputRef.current;
+    if (!input || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => fitInputFont());
+    ro.observe(input);
+    return () => ro.disconnect();
+  }, [fitInputFont]);
+
+  const setInputRefs = useCallback(
+    (el: HTMLInputElement | null) => {
+      localInputRef.current = el;
+      if (inputRef) inputRef.current = el;
+    },
+    [inputRef],
+  );
+
   return (
     <label
       className={`block rounded-lg border ${compact ? "p-1.5" : "p-2"} ${
@@ -2758,13 +2833,13 @@ function InputField(props: InputFieldProps) {
         </div>
       ) : null}
       <div className={`mb-1.5 flex items-center justify-between gap-1.5 ${compact ? "min-h-[20px]" : "min-h-[22px]"}`}>
-        <span
-          className={`min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-semibold tracking-[0.03em] ${compact ? "text-[13px]" : "text-[16px]"} ${
-            isLight ? "text-slate-900" : "text-slate-200"
-          }`}
+        <ShrinkFitText
+          minPx={labelMinPx}
+          maxPx={labelMaxPx}
+          className={`font-semibold tracking-[0.03em] ${isLight ? "text-slate-900" : "text-slate-200"}`}
         >
           {label}
-        </span>
+        </ShrinkFitText>
         <span
           className={`shrink-0 whitespace-nowrap font-semibold tracking-[0.03em] ${compact ? "text-[12px]" : "text-[15px]"} ${
             isLight ? "text-slate-600" : "text-slate-300"
@@ -2773,9 +2848,9 @@ function InputField(props: InputFieldProps) {
           {unit}
         </span>
       </div>
-      <div className="flex items-stretch gap-1.5">
+      <div className="flex min-w-0 items-stretch gap-1.5">
         <input
-          ref={inputRef}
+          ref={setInputRefs}
           value={text}
           onChange={(e) => onTextChange(sanitizeCalcInputLite(e.target.value))}
           onBlur={(e) => onCommit(e.currentTarget.value)}
@@ -2787,11 +2862,12 @@ function InputField(props: InputFieldProps) {
               else (e.currentTarget as HTMLInputElement).blur();
             }
           }}
-          className={`w-full rounded-md border font-black outline-none ${compact ? "h-9 px-1.5 text-[clamp(12px,3.1vw,15px)] tracking-[-0.015em]" : "h-10 px-3 text-[22px] tracking-[-0.01em]"} ${
+          className={`min-w-0 w-full rounded-md border font-black outline-none ${compact ? "h-9 px-1.5 tracking-[-0.015em]" : "h-10 px-3 tracking-[-0.01em]"} ${
             isLight
               ? "border-slate-200 bg-white text-slate-900 placeholder:text-slate-500/80 focus:border-sky-500"
               : "border-slate-600 bg-[#0b1220] text-slate-100 placeholder:text-slate-500 focus:border-sky-400"
           }`}
+          style={{ fontSize: inputMaxPx }}
           inputMode="decimal"
           placeholder="支援 +-*/"
         />
