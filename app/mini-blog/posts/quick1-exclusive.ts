@@ -1,4 +1,5 @@
 ﻿import { QUICK12_DISPLAY_TITLE } from "@/app/quick-12/display-title";
+import { enhanceQuick11SectionsForV2 } from "@/lib/quick11-article-enhancements";
 import { HUMAN_STORY_ANON_NOTE_LOAN, publishAtUsesHumanStoryOpening } from "@/lib/human-story-opening";
 import { formatPrincipalZhTW, getQuick11LoanPresetBySlug, parseQuick11SlugEmbed } from "../../quick-11/loan-scenarios";
 import {
@@ -3053,11 +3054,18 @@ function buildQuick11ExclusiveSections(
       `若月收入約在 ${incomeLabel} 這個級距，利率或月付每差一點，長期都可能反映在總利息與生活緩衝上。試算不是為了堆數字，而是幫你把「每月該還多少、利息會累到哪裡」對齊成可執行的還款規劃。`,
       `請下滑開啟文末「${calculatorName}」：進入後會以本篇條件為起點，並先開啟「${tabTitle}」試算單元。請優先看該單元的月付與總利息；想再比較提前多還或不同均攤方式，可在同一試算內切換其他單元。`,
     ];
-    return [
-      { heading: base[0].heading, paragraphs: prependQuick11HumanLead(publishAtIso, hookExt) },
-      base[1],
-      base[2],
-    ];
+    return enhanceQuick11SectionsForV2(
+      slug,
+      publishAtIso,
+      seed,
+      [
+        { heading: base[0].heading, paragraphs: prependQuick11HumanLead(publishAtIso, hookExt) },
+        base[1],
+        base[2],
+      ],
+      principalZh,
+      calculatorName,
+    );
   }
 
   let hook: string[];
@@ -3117,14 +3125,21 @@ function buildQuick11ExclusiveSections(
     }
   }
 
-  return [
-    {
-      heading: base[0].heading,
-      paragraphs: prependQuick11HumanLead(publishAtIso, hook),
-    },
-    base[1],
-    base[2],
-  ];
+  return enhanceQuick11SectionsForV2(
+    slug,
+    publishAtIso,
+    seed,
+    [
+      {
+        heading: base[0].heading,
+        paragraphs: prependQuick11HumanLead(publishAtIso, hook),
+      },
+      base[1],
+      base[2],
+    ],
+    principalZh,
+    calculatorName,
+  );
 }
 
 const QUICK12_ANON_NOTE =

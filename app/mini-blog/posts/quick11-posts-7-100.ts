@@ -1,5 +1,11 @@
 import type { TopicSeed } from "./topic-types";
 import {
+  buildQuick11V2MetaDescription,
+  buildQuick11V2SeoTitle,
+  buildQuick11V2Title,
+} from "@/lib/quick11-article-enhancements";
+import { QUICK11_V2_COPY_FROM_SERIAL } from "@/lib/quick11-marketing";
+import {
   formatPrincipalZhTW,
   QUICK11_LOAN_PRESETS,
   type Quick11LoanPresetKey,
@@ -33,14 +39,14 @@ const SEO_BANK: Record<Quick11LoanPresetKey, { a: string[]; b: string[]; c: stri
     c: ["車貸本息均攤", "車貸本金均攤", "車貸提前還款"],
   },
   personal: {
-    a: ["信用貸款試算", "信貸利率8%", "信貸總利息"],
-    b: ["信貸月付壓力", "信貸現金流", "信貸再貸"],
-    c: ["信貸提前清償", "信貸手續費陷阱", "信貸與房貸並存"],
+    a: ["信用貸款試算", "信貸利率8%", "信貸總利息", "信貸轉貸推薦銀行", "整合負債會影響信用嗎"],
+    b: ["信貸月付壓力", "信貸現金流", "信貸再貸", "信貸房貸壓力測試"],
+    c: ["信貸提前清償", "信貸手續費陷阱", "信貸與房貸並存", "DTI 破產預警"],
   },
   mortgage: {
-    a: ["房貸試算", "房貸1100萬", "房貸本息均攤"],
-    b: ["房貸本金均攤", "房貸升息壓力", "房貸提前還款"],
-    c: ["房貸月付收入比", "青安房貸試算", "房貸寬限期"],
+    a: ["房貸試算", "房貸1100萬", "房貸本息均攤", "2026 房貸試算", "信貸房貸破產計算機"],
+    b: ["房貸本金均攤", "房貸升息壓力", "房貸提前還款", "DTI 試算"],
+    c: ["房貸月付收入比", "青安房貸試算", "房貸寬限期", "本息攤還公式"],
   },
   student: {
     a: ["就學貸款試算", "學貸還款壓力", "學貸利率"],
@@ -48,9 +54,9 @@ const SEO_BANK: Record<Quick11LoanPresetKey, { a: string[]; b: string[]; c: stri
     c: ["學貸占收入比", "畢業後學貸", "學貸提前還"],
   },
   renovation: {
-    a: ["裝潢貸試算", "裝潢分期利率", "裝潢貸100萬"],
-    b: ["裝潢貸與房貸", "裝潢信用貸", "裝潢現金流"],
-    c: ["裝潢貸月付", "裝潢貸總利息", "裝潢加貸風險"],
+    a: ["裝潢貸試算", "裝潢分期利率", "裝潢貸100萬", "裝潢貸款推薦 PTT", "裝潢貸100萬利息試算"],
+    b: ["裝潢貸與房貸", "裝潢信用貸", "裝潢現金流", "整合負債會影響信用嗎"],
+    c: ["裝潢貸月付", "裝潢貸總利息", "裝潢加貸風險", "貸款利息試算表"],
   },
 };
 
@@ -74,12 +80,21 @@ function buildSeed(
       : `本篇本金級距與文末試算「${loan.icon} ${loan.label}」預設情境相同`;
 
   const principalZh = formatPrincipalZhTW(loan.amount);
-  const title =
-    `${loan.label}${tab.title}划算嗎？${principalZh}、年利率 ${loan.annualRate}% 實測怎麼看${roundNote}`.trim();
-  const subtitle = `有時不是繳不起，是繳完才發現心很空——${principalHint}；開啟文末試算後建議先查看「${tab.title}」單元的對照。`;
-  const seoCore = `${pickSeo(loanKey, serial, "a")} × ${tab.title}`;
-  const seoTitle = `破產計算機｜2026 ${seoCore}與 DTI 破產預警`;
-  const metaDescription = `${tab.hook} 很多人拖到 DTI 變色才願意面對；本篇試算條件含 ${loan.icon} ${loan.label}、${tab.title}。延伸可對照：${pickSeo(loanKey, serial, "a")}、${pickSeo(loanKey, serial, "b")}。情境試算僅供參考，以契約為準。`;
+  const keywordA = pickSeo(loanKey, serial, "a");
+  const keywordB = pickSeo(loanKey, serial, "b");
+  const keywordC = pickSeo(loanKey, serial, "c");
+  const useV2 = serial >= QUICK11_V2_COPY_FROM_SERIAL;
+  const title = useV2
+    ? buildQuick11V2Title(loanKey, loan.label, tab.title, principalZh, loan.annualRate, serial, keywordA)
+    : `${loan.label}${tab.title}划算嗎？${principalZh}、年利率 ${loan.annualRate}% 實測怎麼看${roundNote}`.trim();
+  const subtitle = useV2
+    ? `${tab.hook} ${principalHint}；文末破產計算機可對照 ${keywordA}、${keywordB} 與 DTI 破產預警。`
+    : `有時不是繳不起，是繳完才發現心很空——${principalHint}；開啟文末試算後建議先查看「${tab.title}」單元的對照。`;
+  const seoCore = `${keywordA} × ${tab.title}`;
+  const seoTitle = useV2 ? buildQuick11V2SeoTitle(keywordA, tab.title) : `破產計算機｜2026 ${seoCore}與 DTI 破產預警`;
+  const metaDescription = useV2
+    ? buildQuick11V2MetaDescription(tab.hook, loan.icon, loan.label, tab.title, keywordA, keywordB, keywordC)
+    : `${tab.hook} 很多人拖到 DTI 變色才願意面對；本篇試算條件含 ${loan.icon} ${loan.label}、${tab.title}。延伸可對照：${keywordA}、${keywordB}。情境試算僅供參考，以契約為準。`;
 
   return {
     slug,
@@ -88,9 +103,9 @@ function buildSeed(
     seoTitle,
     metaDescription,
     focus: `${loan.label}｜${tab.title}`,
-    keywordA: pickSeo(loanKey, serial, "a"),
-    keywordB: pickSeo(loanKey, serial, "b"),
-    keywordC: pickSeo(loanKey, serial, "c"),
+    keywordA,
+    keywordB,
+    keywordC,
     closeQuestion: `若「${tab.title}」那頁數字讓你心裡一沉，你會先動本金、年期，還是先承認自己需要多留一點生活縫隙？`,
     calculatorRoute: "/quick-11",
     calculatorName: "破產計算機",

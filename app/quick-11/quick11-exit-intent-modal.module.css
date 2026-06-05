@@ -1,0 +1,44 @@
+.shell {
+  font-family: var(--font-noto-sans-tc), "PingFang TC", "Microsoft JhengHei", "微軟正黑體", "Noto Sans TC", ui-sans-serif,
+    system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.panel {
+  max-height: min(88dvh, 680px);
+  width: min(100%, 400px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.panel::-webkit-scrollbar {
+  width: 4px;
+}
+
+.panel::-webkit-scrollbar-thumb {
+  background: rgb(100 116 139 / 0.55);
+  border-radius: 999px;
+}
+
+.code {
+  font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", "PingFang TC", monospace;
+  word-break: break-all;
+}
+
+.featureDesc,
+.trustDesc,
+.hint,
+.footerNote {
+  color: #cbd5e1;
+}
+
+.subtitle {
+  color: #e2e8f0;
+}
+
+.sectionTitle {
+  color: #7dd3fc;
+}

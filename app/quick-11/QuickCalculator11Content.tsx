@@ -14,6 +14,14 @@ import type { Quick11EmbedPreset } from "./embed-preset";
 import goldStat from "./quick-11-golden-stat.module.css";
 import { buildRateShowdownRows } from "./rate-showdown";
 import { RateShowdownModal } from "./rate-showdown-modal";
+import { Quick11ExcelLeadBlock } from "./quick11-excel-lead-block";
+import { Quick11ExitIntentModal } from "./quick11-exit-intent-modal";
+import {
+  Quick11ShareSnapshotButton,
+  Quick11ShareSnapshotCapture,
+  useQuick11ShareSnapshotRef,
+  type Quick11ShareSnapshotData,
+} from "./quick11-share-snapshot";
 
 type Quick11InputStore = {
   loanAmount: number;
@@ -460,6 +468,37 @@ export function QuickCalculator11Content({
       meterClass: "bg-red-500",
     };
   }, [dtiRatio]);
+
+  const shareSnapshotRef = useQuick11ShareSnapshotRef();
+  const shareSnapshotData = useMemo<Quick11ShareSnapshotData>(
+    () => ({
+      loanAmount,
+      annualRate,
+      loanYears,
+      monthlyIncome,
+      methodLabel: method === "annuity" ? "本息均攤" : "本金平均",
+      monthlyPayment:
+        method === "annuity" ? (output.annuityRows[0]?.payment ?? 0) : (output.equalPrincipalRows[0]?.payment ?? 0),
+      totalInterest: method === "annuity" ? output.annuityTotalInterest : output.equalPrincipalTotalInterest,
+      dtiPct,
+      warningLabel: warning.label,
+      warningMessage: warning.message,
+    }),
+    [
+      loanAmount,
+      annualRate,
+      loanYears,
+      monthlyIncome,
+      method,
+      output.annuityRows,
+      output.equalPrincipalRows,
+      output.annuityTotalInterest,
+      output.equalPrincipalTotalInterest,
+      dtiPct,
+      warning.label,
+      warning.message,
+    ],
+  );
 
   const topInterestPeriods = useMemo(() => {
     const sorted = [...rows].sort((a, b) => {
@@ -2202,7 +2241,16 @@ export function QuickCalculator11Content({
 
             {!embeddedInMiniBlog ? (
               <>
-                <QuickBottomCtaStack quickId={11} isLight={isLight} />
+                <div id="quick11-excel-lead" className="mt-2 flex flex-col gap-2.5">
+                  <Quick11ExcelLeadBlock
+                    isLight={isLight}
+                    compact
+                    shareSlot={<Quick11ShareSnapshotButton snapshotRef={shareSnapshotRef} isLight={isLight} />}
+                  />
+                  <QuickBottomCtaStack quickId={11} isLight={isLight} />
+                </div>
+                <Quick11ShareSnapshotCapture snapshotRef={shareSnapshotRef} data={shareSnapshotData} />
+                <Quick11ExitIntentModal />
                 <div id="quick11-bankruptcy-blog" className="mt-2">
                   <QuickBlogLinksToggle quickRoute="/quick-11" title="📚 破產計算機延伸文章（點我展開）" />
                   <div className="mt-3">
