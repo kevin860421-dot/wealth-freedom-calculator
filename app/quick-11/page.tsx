@@ -16,6 +16,7 @@ export default async function Page({
     },
   };
   const initialEmbedPreset = parseQuick11PresetFromSearchParams(sp);
+  const initialWizardOpen = sp.get("wizard") === "1";
 
-  return <QuickCalculator11Content initialEmbedPreset={initialEmbedPreset} />;
+  return <QuickCalculator11Content initialEmbedPreset={initialEmbedPreset} initialWizardOpen={initialWizardOpen} />;
 }

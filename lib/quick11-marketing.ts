@@ -1,8 +1,24 @@
 /** 破產計算機（quick-11）導流／Excel 索取共用常數 */
 
+import { absoluteUrl } from "./site-origin";
+
 export const QUICK11_EXCEL_UNLOCK_CODE = "自由666";
 
+/** 對外顯示名稱（頁底、四步驟彈窗一致） */
+export const QUICK11_EXCEL_DISPLAY_NAME = "本息＋DTI 試算 Excel（公式可改）";
+
+/** 站內下載（須先分享解鎖 cookie） */
 export const QUICK11_EXCEL_DOWNLOAD_PATH = "/api/quick-11/excel";
+
+/**
+ * Meta 私訊／自動回覆「按鈕網址」用：公開直連，按下去即下載 .xlsx。
+ * 部署後貼完整網址，見 getQuick11ExcelPublicDownloadUrl()。
+ */
+export const QUICK11_EXCEL_PUBLIC_DOWNLOAD_PATH = "/api/quick-11/excel/public";
+
+export function getQuick11ExcelPublicDownloadUrl(): string {
+  return absoluteUrl(QUICK11_EXCEL_PUBLIC_DOWNLOAD_PATH);
+}
 
 /** 分享試算後寫入 cookie，API 下載會檢查 */
 export const QUICK11_SHARE_UNLOCK_COOKIE = "quick11_excel_unlock";

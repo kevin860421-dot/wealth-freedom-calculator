@@ -15,9 +15,9 @@ import goldStat from "./quick-11-golden-stat.module.css";
 import { buildRateShowdownRows } from "./rate-showdown";
 import { RateShowdownModal } from "./rate-showdown-modal";
 import { Quick11ExcelLeadBlock } from "./quick11-excel-lead-block";
+import { Quick11ExcelWizardModal } from "./quick11-excel-wizard-modal";
 import { Quick11ExitIntentModal } from "./quick11-exit-intent-modal";
 import {
-  Quick11ShareSnapshotButton,
   Quick11ShareSnapshotCapture,
   useQuick11ShareSnapshotRef,
   type Quick11ShareSnapshotData,
@@ -230,11 +230,14 @@ export type { Quick11EmbedPreset } from "./embed-preset";
 export function QuickCalculator11Content({
   embeddedInMiniBlog = false,
   initialEmbedPreset,
+  initialWizardOpen = false,
 }: {
   /** 迷你部落格文內試算：不顯示延伸文章折疊，並收斂 main 高度避免底部留白 */
   embeddedInMiniBlog?: boolean;
   /** 與 mini-blog slug／`loan-scenarios` 對齊之文內試算錨點 */
   initialEmbedPreset?: Quick11EmbedPreset;
+  /** `?wizard=1` 進站即打開四步驟彈窗 */
+  initialWizardOpen?: boolean;
 } = {}) {
   const anchor = initialEmbedPreset;
 
@@ -271,6 +274,7 @@ export function QuickCalculator11Content({
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [rateShowdownOpen, setRateShowdownOpen] = useState(false);
   const [isLight, setIsLight] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(initialWizardOpen);
 
   const incomeInputRef = useRef<HTMLInputElement | null>(null);
   const loanInputRef = useRef<HTMLInputElement | null>(null);
@@ -476,13 +480,18 @@ export function QuickCalculator11Content({
       annualRate,
       loanYears,
       monthlyIncome,
-      methodLabel: method === "annuity" ? "本息均攤" : "本金平均",
+      method,
       monthlyPayment:
         method === "annuity" ? (output.annuityRows[0]?.payment ?? 0) : (output.equalPrincipalRows[0]?.payment ?? 0),
+      monthlyInterest: rows[0]?.interest ?? 0,
       totalInterest: method === "annuity" ? output.annuityTotalInterest : output.equalPrincipalTotalInterest,
+      totalRepayment:
+        loanAmount + (method === "annuity" ? output.annuityTotalInterest : output.equalPrincipalTotalInterest),
       dtiPct,
       warningLabel: warning.label,
       warningMessage: warning.message,
+      warningWrapClass: warning.wrapClass,
+      warningMeterClass: warning.meterClass,
     }),
     [
       loanAmount,
@@ -494,9 +503,12 @@ export function QuickCalculator11Content({
       output.equalPrincipalRows,
       output.annuityTotalInterest,
       output.equalPrincipalTotalInterest,
+      rows,
       dtiPct,
       warning.label,
       warning.message,
+      warning.wrapClass,
+      warning.meterClass,
     ],
   );
 
@@ -2242,15 +2254,12 @@ export function QuickCalculator11Content({
             {!embeddedInMiniBlog ? (
               <>
                 <div id="quick11-excel-lead" className="mt-2 flex flex-col gap-2.5">
-                  <Quick11ExcelLeadBlock
-                    isLight={isLight}
-                    compact
-                    shareSlot={<Quick11ShareSnapshotButton snapshotRef={shareSnapshotRef} isLight={isLight} />}
-                  />
+                  <Quick11ExcelLeadBlock isLight={isLight} compact onOpenWizard={() => setWizardOpen(true)} />
                   <QuickBottomCtaStack quickId={11} isLight={isLight} />
                 </div>
                 <Quick11ShareSnapshotCapture snapshotRef={shareSnapshotRef} data={shareSnapshotData} />
-                <Quick11ExitIntentModal />
+                <Quick11ExcelWizardModal open={wizardOpen} onClose={() => setWizardOpen(false)} snapshotRef={shareSnapshotRef} />
+                <Quick11ExitIntentModal onOpenWizard={() => setWizardOpen(true)} />
                 <div id="quick11-bankruptcy-blog" className="mt-2">
                   <QuickBlogLinksToggle quickRoute="/quick-11" title="📚 破產計算機延伸文章（點我展開）" />
                   <div className="mt-3">

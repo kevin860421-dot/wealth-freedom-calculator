@@ -1,0 +1,118 @@
+.shell {
+  font-family: var(--font-noto-sans-tc), "PingFang TC", "Microsoft JhengHei", "微軟正黑體", "Noto Sans TC", ui-sans-serif,
+    system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.panel {
+  max-height: min(90dvh, 720px);
+  width: min(100%, 420px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.stepDot {
+  transition: background-color 0.2s, box-shadow 0.2s, color 0.2s;
+}
+
+.stepDotDone {
+  background: rgb(16 185 129 / 0.25);
+  color: #6ee7b7;
+  box-shadow: 0 0 0 1px rgb(52 211 153 / 0.45);
+}
+
+.stepDotActive {
+  background: rgb(56 189 248 / 0.22);
+  color: #7dd3fc;
+  box-shadow: 0 0 0 2px rgb(56 189 248 / 0.55);
+}
+
+.stepDotLocked {
+  background: rgb(51 65 85 / 0.45);
+  color: #64748b;
+}
+
+.stepRow {
+  border: 1px solid rgb(51 65 85 / 0.65);
+  background: rgb(21 27 36 / 0.85);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.stepRowActive {
+  border-color: rgb(56 189 248 / 0.55);
+  box-shadow: 0 0 0 1px rgb(56 189 248 / 0.15);
+}
+
+.stepRowDone {
+  border-color: rgb(16 185 129 / 0.35);
+}
+
+.muted {
+  color: #cbd5e1;
+}
+
+.sectionTitle {
+  color: #7dd3fc;
+}
+
+.featureDesc,
+.trustDesc,
+.footerNote {
+  color: #cbd5e1;
+}
+
+.stepDivider {
+  border-top: 1px solid rgb(51 65 85 / 0.65);
+}
+
+.unlockBox {
+  border: 1px solid rgb(71 85 105 / 0.75);
+  background: rgb(28 35 46 / 0.95);
+}
+
+.code {
+  font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", "PingFang TC", monospace;
+  letter-spacing: 0.06em;
+}
+
+.preview {
+  max-height: 140px;
+  width: auto;
+  max-width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(71 85 105 / 0.6);
+}
+
+.previewWrap {
+  cursor: zoom-in;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.previewHint {
+  display: block;
+  margin-top: 0.35rem;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #7dd3fc;
+}
+
+.lightbox {
+  position: relative;
+  max-width: min(100%, 440px);
+  border-radius: 0.75rem;
+  border: 1px solid rgb(71 85 105 / 0.75);
+  background: rgb(15 23 42 / 0.98);
+  padding: 0.5rem;
+  box-shadow: 0 24px 80px rgb(0 0 0 / 0.65);
+}
+
+.lightboxImg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+}

@@ -13,7 +13,7 @@ import {
 import { QUICK7_DISPLAY_TITLE } from "@/app/quick-7/display-title";
 import { QUICK12_DISPLAY_TITLE } from "@/app/quick-12/display-title";
 import styles from "../../blog/blog.module.css";
-import { Quick11ExcelLeadBlock } from "../../quick-11/quick11-excel-lead-block";
+import { Quick11ExcelLeadBlockForArticle } from "../../quick-11/quick11-excel-lead-block-for-article";
 import { QUICK11_SUCCESS_BLOG_PATH, QUICK11_SUCCESS_BLOG_TITLE } from "@/lib/quick11-marketing";
 
 type PageProps = {
@@ -166,7 +166,7 @@ export default async function MiniBlogPostPage({ params }: PageProps) {
 
               {post.calculatorRoute === "/quick-11" ? (
                 <div className={styles.article} style={{ marginTop: 16 }}>
-                  <Quick11ExcelLeadBlock />
+                  <Quick11ExcelLeadBlockForArticle />
                   <p className={styles.grafTight} style={{ marginTop: 12 }}>
                     想再對照「時間軸試算」怎麼寫才會被搜尋到？可讀本站長文「
                     <Link href={QUICK11_SUCCESS_BLOG_PATH} className={styles.cta} prefetch={false}>
