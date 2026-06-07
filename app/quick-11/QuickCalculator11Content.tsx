@@ -615,19 +615,42 @@ export function QuickCalculator11Content({
     { id: 13, title: "升息連鎖", hint: "央行情境快切" },
   ] as const;
 
-  /** 首頁左側固定；其餘分頁在可捲動區一次渲染，避免視窗裁切造成右側空白。 */
+  /** 首頁左側固定；其餘 1～13 分頁全 render，橫向捲動區需外層 overflow-hidden 才能滑。 */
   const scrollablePageTabs = pageTabs.slice(1);
 
-  const syncTabStripScroll = useCallback((viewport: HTMLDivElement | null, pageId: number) => {
-    if (!viewport) return;
-    const idx = scrollablePageTabs.findIndex((t) => t.id === pageId);
-    if (idx <= 0) {
-      viewport.scrollLeft = 0;
-      return;
-    }
-    const btn = viewport.querySelector<HTMLButtonElement>(`[data-q11-tab="${pageId}"]`);
-    btn?.scrollIntoView({ behavior: "auto", inline: "nearest", block: "nearest" });
-  }, [scrollablePageTabs]);
+  const tabScrollOuterClass = "min-w-0 flex-1 overflow-hidden";
+  const tabScrollViewportClass =
+    "h-full w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden";
+
+  const syncTabStripScroll = useCallback(
+    (viewport: HTMLDivElement | null, pageId: number) => {
+      if (!viewport || pageId <= 0) return;
+
+      const idx = scrollablePageTabs.findIndex((t) => t.id === pageId);
+      if (idx < 0) return;
+
+      const btn = viewport.querySelector<HTMLButtonElement>(`[data-q11-tab="${pageId}"]`);
+      if (!btn) return;
+
+      const maxScroll = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+      const edgeTabs = 3;
+
+      if (idx < edgeTabs) {
+        viewport.scrollLeft = 0;
+        return;
+      }
+
+      if (idx >= scrollablePageTabs.length - edgeTabs) {
+        viewport.scrollLeft = maxScroll;
+        return;
+      }
+
+      const tabCenter = btn.offsetLeft + btn.offsetWidth / 2;
+      const targetScroll = tabCenter - viewport.clientWidth / 2;
+      viewport.scrollLeft = Math.max(0, Math.min(maxScroll, targetScroll));
+    },
+    [scrollablePageTabs],
+  );
 
   const loanPresetActions: LoanPresetAction[] = QUICK11_LOAN_PRESETS.map((p) => ({
     key: p.key,
@@ -902,7 +925,7 @@ export function QuickCalculator11Content({
                   : "border-slate-700 bg-[#0f172a]/95"
               }`}
             >
-              <div className={`relative flex items-stretch border-b pb-1 ${isLight ? "border-[#E2E8F0]" : "border-slate-700"}`}>
+              <div className={`relative flex min-w-0 items-stretch border-b pb-1 ${isLight ? "border-[#E2E8F0]" : "border-slate-700"}`}>
                 <div
                   className={`relative flex shrink-0 items-center border-r pl-0.5 pr-2 ${
                     isLight ? "border-[#E2E8F0] bg-[#FFFFFF]" : "border-slate-700 bg-[#0f172a]/95"
@@ -936,22 +959,23 @@ export function QuickCalculator11Content({
                     );
                   })()}
                 </div>
-                <div
-                  ref={topTabScrollRef}
-                  className="relative z-0 min-w-0 flex-1 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-                  style={{ WebkitOverflowScrolling: "touch" }}
-                >
-                  <div className="flex min-w-max items-center gap-0.5 pl-2 pr-2">
-                    {scrollablePageTabs.map((tab) => (
-                      <button
-                        key={tab.id}
-                        type="button"
-                        data-q11-tab={tab.id}
-                        ref={(el) => {
-                          tabButtonRefs.current[tab.id] = el;
-                        }}
-                        onClick={() => switchPage(tab.id)}
-                        className={`relative appearance-none border-0 bg-transparent px-1.5 py-1.5 text-[14px] tracking-[0.02em] shadow-none transition whitespace-nowrap ${
+                <div className={tabScrollOuterClass}>
+                  <div
+                    ref={topTabScrollRef}
+                    className={tabScrollViewportClass}
+                    style={{ WebkitOverflowScrolling: "touch" }}
+                  >
+                    <div className="inline-flex items-center gap-0.5 whitespace-nowrap pl-2 pr-3">
+                      {scrollablePageTabs.map((tab) => (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          data-q11-tab={tab.id}
+                          ref={(el) => {
+                            tabButtonRefs.current[tab.id] = el;
+                          }}
+                          onClick={() => switchPage(tab.id)}
+                          className={`relative shrink-0 appearance-none border-0 bg-transparent px-1.5 py-1.5 text-[14px] tracking-[0.02em] shadow-none transition whitespace-nowrap ${
                           currentPage === tab.id
                             ? isLight
                               ? "font-bold text-[#2563EB]"
@@ -966,6 +990,7 @@ export function QuickCalculator11Content({
                         {currentPage === tab.id ? <span className={`absolute inset-x-1 -bottom-1 h-[2.5px] rounded-full ${isLight ? "bg-[#2563EB]" : "bg-sky-500"}`} /> : null}
                       </button>
                     ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1589,7 +1614,7 @@ export function QuickCalculator11Content({
                   : "border-slate-700 bg-[#0f172a]/95"
               }`}
             >
-              <div className={`relative flex items-stretch border-b pb-1 ${isLight ? "border-slate-200" : "border-slate-700"}`}>
+              <div className={`relative flex min-w-0 items-stretch border-b pb-1 ${isLight ? "border-slate-200" : "border-slate-700"}`}>
                 <div
                   className={`relative flex shrink-0 items-center border-r pl-0.5 pr-2 ${
                     isLight ? "border-slate-200 bg-white" : "border-slate-700 bg-[#0f172a]/95"
@@ -1620,19 +1645,20 @@ export function QuickCalculator11Content({
                     );
                   })()}
                 </div>
-                <div
-                  ref={bottomTabScrollRef}
-                  className="relative z-0 min-w-0 flex-1 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-                  style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "none", msOverflowStyle: "none" }}
-                >
-                  <div className="flex min-w-max items-center gap-0.5 pl-2 pr-2">
-                    {scrollablePageTabs.map((tab) => (
-                      <button
-                        key={`sticky-bottom-nav-${tab.id}`}
-                        type="button"
-                        data-q11-tab={tab.id}
-                        onClick={() => switchPage(tab.id)}
-                        className={`relative appearance-none border-0 bg-transparent px-1.5 py-1.5 whitespace-nowrap text-[14px] tracking-[0.02em] shadow-none transition ${
+                <div className={tabScrollOuterClass}>
+                  <div
+                    ref={bottomTabScrollRef}
+                    className={tabScrollViewportClass}
+                    style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "none", msOverflowStyle: "none" }}
+                  >
+                    <div className="inline-flex items-center gap-0.5 whitespace-nowrap pl-2 pr-3">
+                      {scrollablePageTabs.map((tab) => (
+                        <button
+                          key={`sticky-bottom-nav-${tab.id}`}
+                          type="button"
+                          data-q11-tab={tab.id}
+                          onClick={() => switchPage(tab.id)}
+                          className={`relative shrink-0 appearance-none border-0 bg-transparent px-1.5 py-1.5 whitespace-nowrap text-[14px] tracking-[0.02em] shadow-none transition ${
                           currentPage === tab.id
                             ? isLight
                               ? "font-bold text-[#2563EB]"
@@ -1641,12 +1667,13 @@ export function QuickCalculator11Content({
                               ? "font-medium text-[#4A5568] hover:text-slate-900"
                               : "font-bold text-slate-400 hover:text-slate-200"
                         } ${tab.id === 2 ? "rounded-md ring-1 ring-sky-500/55 shadow-[0_0_10px_rgba(14,165,233,0.22)]" : ""}`}
-                      >
-                        {tab.title}
-                        {tab.id === 2 ? <span className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-sky-600 shadow-[0_0_8px_rgba(14,165,233,0.55)]" /> : null}
-                        {currentPage === tab.id ? <span className={`absolute inset-x-1 -bottom-1 h-[2.5px] rounded-full ${isLight ? "bg-[#2563EB]" : "bg-sky-500"}`} /> : null}
-                      </button>
-                    ))}
+                        >
+                          {tab.title}
+                          {tab.id === 2 ? <span className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-sky-600 shadow-[0_0_8px_rgba(14,165,233,0.55)]" /> : null}
+                          {currentPage === tab.id ? <span className={`absolute inset-x-1 -bottom-1 h-[2.5px] rounded-full ${isLight ? "bg-[#2563EB]" : "bg-sky-500"}`} /> : null}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
