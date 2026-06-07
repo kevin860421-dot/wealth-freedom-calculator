@@ -7,7 +7,10 @@ import {
 } from "@/lib/quick11-marketing";
 import { clearQuick11WizardSnapshot, QUICK11_WIZARD_SNAPSHOT_KEY } from "./quick11-share-snapshot";
 import { QUICK11_EXIT_INTENT_STORAGE_KEY } from "./quick11-exit-intent-modal";
-import { QUICK11_IDLE_NUDGE_DISMISS_KEY } from "./quick11-idle-nudge-card";
+import {
+  QUICK11_IDLE_NUDGE_DISMISS_KEY,
+  QUICK11_IDLE_NUDGE_WIZARD_AT_KEY,
+} from "./use-quick11-idle-nudge";
 import { QUICK11_WIZARD_EVENT } from "./quick11-wizard-state";
 
 const WIZARD_PROGRESS_KEY = "quick11-wizard-v1";
@@ -23,6 +26,7 @@ export const QUICK11_SESSION_RESET_KEYS = [
   QUICK11_WIZARD_SNAPSHOT_KEY,
   QUICK11_EXIT_INTENT_STORAGE_KEY,
   QUICK11_IDLE_NUDGE_DISMISS_KEY,
+  QUICK11_IDLE_NUDGE_WIZARD_AT_KEY,
   SHARE_UNLOCK_KEY,
 ] as const;
 

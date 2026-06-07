@@ -65,7 +65,7 @@ export function hasQuick11IdleNudgeDismissed(): boolean {
 
 export function dismissQuick11IdleNudge(): void {
   try {
-    sessionStorage.setItem(QUICK11_IDLE_NUDGE_DISMISS_KEY, "1");
+    sessionStorage.removeItem(QUICK11_IDLE_NUDGE_DISMISS_KEY);
   } catch {
     /* ignore */
   }

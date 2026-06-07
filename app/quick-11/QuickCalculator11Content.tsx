@@ -279,17 +279,10 @@ export function QuickCalculator11Content({
   const [rateShowdownOpen, setRateShowdownOpen] = useState(false);
   const [isLight, setIsLight] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(initialWizardOpen);
-  const [exitIntentTriggered, setExitIntentTriggered] = useState(false);
 
   useEffect(() => {
     migrateQuick11SessionBundleIfNeeded();
   }, []);
-
-  const idleNudge = useQuick11IdleNudge({
-    enabled: !embeddedInMiniBlog,
-    wizardOpen,
-    exitIntentTriggered,
-  });
 
   const incomeInputRef = useRef<HTMLInputElement | null>(null);
   const loanInputRef = useRef<HTMLInputElement | null>(null);
@@ -487,6 +480,56 @@ export function QuickCalculator11Content({
       meterClass: "bg-red-500",
     };
   }, [dtiRatio]);
+
+  const initialLoanParamsRef = useRef({
+    loanAmount: anchor?.loanAmount ?? 12_000_000,
+    annualRate: anchor?.annualRate ?? 2.2,
+    loanYears: anchor?.loanYears ?? 30,
+    monthlyIncome: anchor?.monthlyIncome ?? 80_000,
+  });
+  const [pagesViewedCount, setPagesViewedCount] = useState(1);
+  const pagesSeenRef = useRef(
+    new Set<number>([
+      (() => {
+        const tab = anchor?.initialPage;
+        if (tab == null || !Number.isFinite(tab)) return 0;
+        const t = Math.round(tab);
+        return t >= 0 && t <= 8 ? t : 0;
+      })(),
+    ]),
+  );
+  const [detailDeepUsed, setDetailDeepUsed] = useState(false);
+
+  useEffect(() => {
+    const seen = pagesSeenRef.current;
+    if (seen.has(currentPage)) return;
+    seen.add(currentPage);
+    setPagesViewedCount(seen.size);
+  }, [currentPage]);
+
+  useEffect(() => {
+    if (isSheetOpen || rateShowdownOpen) setDetailDeepUsed(true);
+  }, [isSheetOpen, rateShowdownOpen]);
+
+  const nudgeEngagement = useMemo(() => {
+    const init = initialLoanParamsRef.current;
+    return {
+      isHighDtiWarning: dtiRatio >= 0.35,
+      deepTabCompare: pagesViewedCount >= 2,
+      paramsTouched:
+        loanAmount !== init.loanAmount ||
+        annualRate !== init.annualRate ||
+        loanYears !== init.loanYears ||
+        monthlyIncome !== init.monthlyIncome,
+      detailDeepUsed,
+    };
+  }, [dtiRatio, pagesViewedCount, loanAmount, annualRate, loanYears, monthlyIncome, detailDeepUsed]);
+
+  const idleNudge = useQuick11IdleNudge({
+    enabled: !embeddedInMiniBlog,
+    wizardOpen,
+    engagement: nudgeEngagement,
+  });
 
   const shareSnapshotRef = useQuick11ShareSnapshotRef();
   const shareSnapshotData = useMemo<Quick11ShareSnapshotData>(
@@ -2247,7 +2290,6 @@ export function QuickCalculator11Content({
                 <Quick11ExcelWizardModal open={wizardOpen} onClose={() => setWizardOpen(false)} snapshotRef={shareSnapshotRef} />
                 <Quick11ExitIntentModal
                   blocked={wizardOpen}
-                  onTriggered={() => setExitIntentTriggered(true)}
                   onOpenWizard={() => setWizardOpen(true)}
                 />
                 {bottomCta.show ? (

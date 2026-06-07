@@ -4,6 +4,7 @@ import { useCallback, useRef, useSyncExternalStore, useState } from "react";
 import {
   QUICK11_EXIT_INTENT_MIN_DWELL_MS,
   QUICK11_IDLE_NUDGE_AFTER_MS,
+  QUICK11_IDLE_NUDGE_ENGAGED_AFTER_MS,
 } from "@/lib/quick11-marketing";
 import { Quick11ExcelLeadBlock } from "../quick11-excel-lead-block";
 import { Quick11ExcelWizardModal } from "../quick11-excel-wizard-modal";
@@ -32,8 +33,9 @@ const DEMO_SNAPSHOT: Quick11ShareSnapshotData = {
   warningMeterClass: "bg-orange-500",
 };
 
-/** 預覽用：浮動卡 3 分鐘 → 5 秒 */
+/** 預覽用：浮動卡 3 分鐘 → 5 秒；高意圖 90 秒 → 3 秒 */
 const PREVIEW_IDLE_AFTER_MS = 5_000;
+const PREVIEW_IDLE_ENGAGED_AFTER_MS = 3_000;
 
 const DEMO_NUDGE_COPY = {
   title: "厭倦了每個月被銀行抽成嗎？",
@@ -67,7 +69,7 @@ export function Quick11ExitModalPreviewClient() {
     idleTimerRef.current = window.setTimeout(() => {
       idleTimerRef.current = null;
       setNudgeVisible(true);
-    }, PREVIEW_IDLE_AFTER_MS);
+    }, PREVIEW_IDLE_ENGAGED_AFTER_MS);
   }, [clearIdleTimer]);
 
   const resetPreview = useCallback(() => {
@@ -153,9 +155,23 @@ export function Quick11ExitModalPreviewClient() {
           </div>
           <div className="rounded-xl border border-emerald-500/35 bg-emerald-950/35 px-4 py-3 text-[13px] leading-relaxed text-emerald-100">
             <p className="font-black text-emerald-300">② 底部浮動卡（quick-1）</p>
-            <p className="mt-1">
-              正式站關 Wizard 後 {QUICK11_IDLE_NUDGE_AFTER_MS / 60_000} 分鐘 · 本頁關 Wizard 後{" "}
-              <strong>{PREVIEW_IDLE_AFTER_MS / 1000} 秒</strong>，或按「立即看浮動卡」。
+            <ul className="mt-2 list-inside list-disc space-y-1 text-[12px] text-emerald-200/90">
+              <li>
+                <strong>閒置</strong>：{PREVIEW_IDLE_AFTER_MS / 1000} 秒無操作（正式站 3 分鐘）
+              </li>
+              <li>
+                <strong>高 DTI／深度試算</strong>（換分頁、調參數、明細表）：{PREVIEW_IDLE_ENGAGED_AFTER_MS / 1000}{" "}
+                秒（正式站 {QUICK11_IDLE_NUDGE_ENGAGED_AFTER_MS / 1000} 秒）
+              </li>
+              <li>
+                <strong>關 Wizard</strong>：零／半進度 {PREVIEW_IDLE_ENGAGED_AFTER_MS / 1000} 秒；已分享{" "}
+                {PREVIEW_IDLE_AFTER_MS / 1000} 秒（正式站 {QUICK11_IDLE_NUDGE_ENGAGED_AFTER_MS / 1000}／
+                {QUICK11_IDLE_NUDGE_AFTER_MS / 1000 / 60} 分鐘）
+              </li>
+            </ul>
+            <p className="mt-2 text-[12px] text-emerald-200/85">
+              按 × 關閉後，再次閒置仍會出現。按「模擬 45 秒後關閉」→ 關 Wizard 等 {PREVIEW_IDLE_ENGAGED_AFTER_MS / 1000}{" "}
+              秒；或「立即看浮動卡」。
             </p>
           </div>
         </div>
@@ -173,7 +189,10 @@ export function Quick11ExitModalPreviewClient() {
       <Quick11IdleNudgeCard
         visible={nudgeVisible}
         copy={DEMO_NUDGE_COPY}
-        onDismiss={() => setNudgeVisible(false)}
+        onDismiss={() => {
+          setNudgeVisible(false);
+          scheduleNudge();
+        }}
       />
     </div>
   );
