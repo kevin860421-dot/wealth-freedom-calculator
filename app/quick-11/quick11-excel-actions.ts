@@ -12,9 +12,10 @@ export async function copyQuick11UnlockCode(): Promise<boolean> {
   }
 }
 
-export function openQuick11FbMessenger(): void {
-  if (!isQuick11FbMessengerConfigured()) return;
+export function openQuick11FbMessenger(): boolean {
+  if (!isQuick11FbMessengerConfigured()) return false;
   window.open(QUICK11_FB_PAGE_URL, "_blank", "noopener,noreferrer");
+  return true;
 }
 
 export async function copyQuick11UnlockAndOpenFb(): Promise<boolean> {

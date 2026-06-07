@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { AnimatePresence, animate, motion } from "framer-motion";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
-import { QuickBottomCtaStack } from "@/app/components/quick-bottom-cta-stack";
 import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
@@ -14,6 +13,8 @@ import type { Quick11EmbedPreset } from "./embed-preset";
 import goldStat from "./quick-11-golden-stat.module.css";
 import { buildRateShowdownRows } from "./rate-showdown";
 import { RateShowdownModal } from "./rate-showdown-modal";
+import { RateShowdownTeaser } from "./rate-showdown-teaser";
+import { Quick11BottomToolsCard } from "./quick11-bottom-tools-card";
 import { Quick11ExcelLeadBlock } from "./quick11-excel-lead-block";
 import { Quick11ExcelWizardModal } from "./quick11-excel-wizard-modal";
 import { Quick11ExitIntentModal } from "./quick11-exit-intent-modal";
@@ -867,7 +868,7 @@ export function QuickCalculator11Content({
                 </div>
               </div>
 
-              <AnimatePresence>{currentPage > 0 ? <MiniSettingsHeader isLight={isLight} /> : null}</AnimatePresence>
+              <AnimatePresence>{currentPage > 0 ? <MiniSettingsHeader key="quick11-mini-settings" isLight={isLight} /> : null}</AnimatePresence>
             </div>
 
             {currentPage === 0 ? (
@@ -1135,20 +1136,7 @@ export function QuickCalculator11Content({
                           </div>
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => setRateShowdownOpen(true)}
-                        className={`w-full rounded-xl border px-3 py-3 text-left transition active:scale-[0.99] ${
-                          isLight
-                            ? "border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 text-amber-950 shadow-[0_2px_10px_rgba(245,158,11,0.2)] hover:border-amber-400"
-                            : "border-amber-500/50 bg-gradient-to-r from-amber-500/15 to-red-500/10 text-amber-50 shadow-[0_0_16px_rgba(245,158,11,0.15)] hover:border-amber-400/70"
-                        }`}
-                      >
-                        <span className="block text-[15px] font-black leading-snug">🔥 利率大對決：你多繳了多少冤枉錢？</span>
-                        <span className={`mt-1 block text-[12px] font-semibold ${isLight ? "text-amber-900/80" : "text-amber-100/85"}`}>
-                          每 0.5% 一檔試到年利率 15%，總利息多送多少一眼看懂
-                        </span>
-                      </button>
+                      <RateShowdownTeaser rows={rateShowdownRows} isLight={isLight} onOpen={() => setRateShowdownOpen(true)} />
                     </div>
                   ) : null}
 
@@ -2227,8 +2215,14 @@ export function QuickCalculator11Content({
               </div>
             </div>
 
+            {!embeddedInMiniBlog ? (
+              <div id="quick11-excel-lead" className="mt-2 flex flex-col gap-2.5">
+                <Quick11ExcelLeadBlock isLight={isLight} compact onOpenWizard={() => setWizardOpen(true)} />
+              </div>
+            ) : null}
+
             <div
-              className={`rounded-lg border p-3 ${
+              className={`rounded-lg border p-3 ${!embeddedInMiniBlog ? "mt-2.5" : "mt-2"} ${
                 isLight
                   ? "border border-slate-200 bg-slate-100 shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
                   : "border-slate-700 bg-slate-900/60"
@@ -2252,11 +2246,13 @@ export function QuickCalculator11Content({
             </div>
 
             {!embeddedInMiniBlog ? (
+              <div className="mt-2.5">
+                <Quick11BottomToolsCard isLight={isLight} />
+              </div>
+            ) : null}
+
+            {!embeddedInMiniBlog ? (
               <>
-                <div id="quick11-excel-lead" className="mt-2 flex flex-col gap-2.5">
-                  <Quick11ExcelLeadBlock isLight={isLight} compact onOpenWizard={() => setWizardOpen(true)} />
-                  <QuickBottomCtaStack quickId={11} isLight={isLight} />
-                </div>
                 <Quick11ShareSnapshotCapture snapshotRef={shareSnapshotRef} data={shareSnapshotData} />
                 <Quick11ExcelWizardModal open={wizardOpen} onClose={() => setWizardOpen(false)} snapshotRef={shareSnapshotRef} />
                 <Quick11ExitIntentModal onOpenWizard={() => setWizardOpen(true)} />
@@ -2283,9 +2279,20 @@ export function QuickCalculator11Content({
 
         <AnimatePresence>
           {isSheetOpen ? (
-            <>
-              <motion.button type="button" aria-label="關閉明細" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-40 bg-black/70" onClick={() => setIsSheetOpen(false)} />
+            <motion.button
+              key="quick11-detail-backdrop"
+              type="button"
+              aria-label="關閉明細"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 bg-black/70"
+              onClick={() => setIsSheetOpen(false)}
+            />
+          ) : null}
+          {isSheetOpen ? (
               <motion.section
+                key="quick11-detail-panel"
                 initial={{ y: 48, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: 48, opacity: 0 }}
@@ -2361,7 +2368,6 @@ export function QuickCalculator11Content({
                   </Link>
                 </div>
               </motion.section>
-            </>
           ) : null}
         </AnimatePresence>
       </Quick11InputContext.Provider>

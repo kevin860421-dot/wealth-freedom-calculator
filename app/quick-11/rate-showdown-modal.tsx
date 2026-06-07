@@ -29,17 +29,20 @@ export function RateShowdownModal({
   return (
     <AnimatePresence>
       {open ? (
-        <>
-          <motion.button
-            type="button"
-            aria-label="關閉利率大對決"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-black/70"
-            onClick={onClose}
-          />
+        <motion.button
+          key="rate-showdown-backdrop"
+          type="button"
+          aria-label="關閉利率大對決"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[60] bg-black/70"
+          onClick={onClose}
+        />
+      ) : null}
+      {open ? (
           <motion.section
+            key="rate-showdown-panel"
             role="dialog"
             aria-modal="true"
             aria-labelledby="rate-showdown-title"
@@ -122,7 +125,6 @@ export function RateShowdownModal({
               </p>
             </motion.div>
           </motion.section>
-        </>
       ) : null}
     </AnimatePresence>
   );

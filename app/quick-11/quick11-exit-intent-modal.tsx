@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { QUICK11_EXIT_INTENT_MIN_DWELL_MS } from "@/lib/quick11-marketing";
+import { useQuick11SimulationResetSync } from "./quick11-simulation-reset";
 
 const STORAGE_KEY = "quick11-exit-intent-v4";
 
@@ -37,6 +38,14 @@ export function Quick11ExitIntentModal({ enabled = true, onOpenWizard }: Quick11
     markExitIntentSeen();
     onOpenWizard();
   }, [enabled, onOpenWizard]);
+
+  const onSimReset = useCallback(() => {
+    openedRef.current = false;
+    historyArmedRef.current = false;
+    enteredAtRef.current = Date.now();
+  }, []);
+
+  useQuick11SimulationResetSync(onSimReset);
 
   useEffect(() => {
     if (!enabled || hasSeenExitIntent()) return;

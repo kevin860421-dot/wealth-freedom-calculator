@@ -8,7 +8,7 @@ import {
   useQuick11ShareSnapshotRef,
   type Quick11ShareSnapshotData,
 } from "../quick11-share-snapshot";
-import { resetQuick11WizardProgress } from "../quick11-wizard-state";
+import { Quick11SimResetButton } from "../quick11-sim-reset-button";
 
 const DEMO_SNAPSHOT: Quick11ShareSnapshotData = {
   loanAmount: 12_000_000,
@@ -45,22 +45,20 @@ export function Quick11ExitModalPreviewClient() {
           >
             打開彈窗
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              resetQuick11WizardProgress();
+          <Quick11SimResetButton
+            compact
+            onAfterReset={() => {
               setModalKey((k) => k + 1);
               setWizardOpen(true);
             }}
-            className="rounded-lg bg-amber-950 px-3 py-1.5 text-[12px] font-black text-amber-100 hover:bg-black"
-          >
-            重置四步驟
-          </button>
+          />
         </div>
       </div>
 
       <div className="mx-auto max-w-lg px-3 pt-6">
-        <p className="mb-3 text-center text-[12px] font-semibold text-slate-500">↓ 正式頁底區塊（點按鈕也會打開同一個彈窗）</p>
+        <p className="mb-3 text-center text-[12px] font-semibold text-slate-500">
+          ↓ 正式頁底區塊 · 上方 <strong className="text-rose-400">🧹 清除模擬資料</strong> 可重置四步驟／倒數／離開彈窗
+        </p>
         <Quick11ExcelLeadBlock onOpenWizard={() => setWizardOpen(true)} />
         <p className="mt-6 text-center text-[12px] leading-relaxed text-slate-600">
           正式站：<strong className="text-slate-400">/quick-11</strong> 停留 45 秒或離開意圖也會自動彈出。

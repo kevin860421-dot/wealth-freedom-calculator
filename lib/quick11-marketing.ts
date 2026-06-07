@@ -24,10 +24,13 @@ export function getQuick11ExcelPublicDownloadUrl(): string {
 export const QUICK11_SHARE_UNLOCK_COOKIE = "quick11_excel_unlock";
 
 /**
- * 粉專 Messenger 私訊網址（例：https://m.me/你的粉專用戶名）。
- * 未設定時按鈕仍會複製密碼，但不會誤開 FB「分享試算頁」對話框。
+ * 粉專／Messenger 導流（第四步按鈕用 `<a href>` 直開，較不易被擋彈窗）。
+ * 可覆寫：NEXT_PUBLIC_FB_PAGE_URL（例 m.me 私訊：https://m.me/wealth.freedom.calculator）
  */
-export const QUICK11_FB_PAGE_URL = process.env.NEXT_PUBLIC_FB_PAGE_URL?.trim() || "";
+const QUICK11_FB_PAGE_DEFAULT = "https://www.facebook.com/wealth.freedom.calculator";
+
+export const QUICK11_FB_PAGE_URL =
+  process.env.NEXT_PUBLIC_FB_PAGE_URL?.trim() || QUICK11_FB_PAGE_DEFAULT;
 
 /** FB 自動回覆已設定的私訊關鍵字（與 Meta 後台一致） */
 export const QUICK11_EXCEL_FB_KEYWORDS = ["自由666", "Excel", "666"] as const;
@@ -35,6 +38,18 @@ export const QUICK11_EXCEL_FB_KEYWORDS = ["自由666", "Excel", "666"] as const;
 export function isQuick11FbMessengerConfigured(): boolean {
   const url = QUICK11_FB_PAGE_URL;
   return url.length > 0 && !url.includes("sharer/sharer.php");
+}
+
+/** 第四步用：facebook.com 粉專網址自動轉 m.me 私訊（較適合貼上解鎖碼） */
+export function getQuick11FbMessengerUrl(pageUrl = QUICK11_FB_PAGE_URL): string {
+  const trimmed = pageUrl.trim();
+  if (!trimmed) return trimmed;
+  if (/m\.me\//i.test(trimmed)) return trimmed;
+  const fbUser = trimmed.match(/facebook\.com\/([^/?#]+)/i)?.[1];
+  if (fbUser && fbUser !== "profile.php" && fbUser !== "pages") {
+    return `https://m.me/${fbUser}`;
+  }
+  return trimmed;
 }
 
 /** GA 表現佳、可互導的部落格（財富試算筆記 8） */
@@ -53,6 +68,15 @@ export const QUICK11_EXIT_INTENT_MIN_DWELL_MS = 45_000;
 
 /** 本機預覽離開彈窗（免等 45 秒、不寫入 session） */
 export const QUICK11_EXIT_MODAL_PREVIEW_PATH = "/quick-11/exit-modal-preview";
+
+/** 模擬用：一鍵清除 quick-11 本機狀態（勿連結至正式 /quick-11 頁） */
+export const QUICK11_SIM_RESET_PATH = "/quick-11/sim-reset";
+
+/** Excel 索取彈窗：限時倒數視窗（毫秒） */
+export const QUICK11_EXCEL_OFFER_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+/** localStorage：首次開啟彈窗起算 24 小時截止時間戳 */
+export const QUICK11_EXCEL_COUNTDOWN_STORAGE_KEY = "quick11-excel-24h-deadline";
 
 export function quick11SlugSerial(slug: string): number | null {
   const m = slug.match(/-s(\d{3})$/);

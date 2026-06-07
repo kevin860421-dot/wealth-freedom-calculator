@@ -63,7 +63,7 @@ export function writeQuick11WizardProgress(next: Quick11WizardProgress): void {
   } catch {
     /* ignore */
   }
-  if (next.shareDone) {
+  if (next.copyDone) {
     document.cookie = `${QUICK11_SHARE_UNLOCK_COOKIE}=1; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
     markQuick11ShareUnlocked();
   }

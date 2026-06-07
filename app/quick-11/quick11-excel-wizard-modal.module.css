@@ -2,14 +2,64 @@
   font-family: var(--font-noto-sans-tc), "PingFang TC", "Microsoft JhengHei", "微軟正黑體", "Noto Sans TC", ui-sans-serif,
     system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.shareMaskZone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
 }
 
 .panel {
+  position: relative;
+  display: flex;
   max-height: min(90dvh, 720px);
   width: min(100%, 420px);
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panelScroll {
+  min-height: 0;
+  flex: 1;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+.closeBtn {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  z-index: 40;
+  display: flex;
+  height: 36px;
+  width: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(71 85 105 / 0.75);
+  border-radius: 999px;
+  background: rgb(30 41 59 / 0.96);
+  color: #e2e8f0;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.35);
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.closeBtn:hover {
+  border-color: rgb(148 163 184 / 0.55);
+  background: rgb(51 65 85 / 0.98);
+  color: #fff;
+}
+
+.countdownClock {
+  font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", "PingFang TC", monospace;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 18px rgb(255 123 123 / 0.35);
 }
 
 .stepDot {
@@ -72,8 +122,9 @@
 }
 
 .code {
-  font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", "PingFang TC", monospace;
-  letter-spacing: 0.06em;
+  font-family: inherit;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
 }
 
 .preview {
@@ -89,15 +140,6 @@
   border: 0;
   background: transparent;
   padding: 0;
-}
-
-.previewHint {
-  display: block;
-  margin-top: 0.35rem;
-  text-align: center;
-  font-size: 11px;
-  font-weight: 700;
-  color: #7dd3fc;
 }
 
 .lightbox {
