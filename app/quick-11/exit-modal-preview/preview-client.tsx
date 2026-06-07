@@ -3,6 +3,7 @@
 import { useCallback, useRef, useSyncExternalStore, useState } from "react";
 import {
   QUICK11_EXIT_INTENT_MIN_DWELL_MS,
+  QUICK11_EXCEL_PREVIEW_PATH,
   QUICK11_IDLE_NUDGE_AFTER_MS,
   QUICK11_IDLE_NUDGE_ENGAGED_AFTER_MS,
 } from "@/lib/quick11-marketing";
@@ -38,8 +39,10 @@ const PREVIEW_IDLE_AFTER_MS = 5_000;
 const PREVIEW_IDLE_ENGAGED_AFTER_MS = 3_000;
 
 const DEMO_NUDGE_COPY = {
-  title: "厭倦了每個月被銀行抽成嗎？",
-  body: "本金平均通常可少付利息 NT$ 432,076。",
+  title: "厭倦了被銀行抽走利息？",
+  subtitle: "你的試算結果顯示：",
+  highlight: "最高可少付 NT$432,076",
+  body: "",
   button: "前往存股複利計算機",
 };
 
@@ -121,6 +124,12 @@ export function Quick11ExitModalPreviewClient() {
           >
             模擬 45 秒後關閉
           </button>
+          <a
+            href={QUICK11_EXCEL_PREVIEW_PATH}
+            className="rounded-lg border border-amber-950/30 bg-white/90 px-3 py-1.5 text-[12px] font-black text-amber-950 hover:bg-white no-underline"
+          >
+            Excel 視覺預覽
+          </a>
           <button
             type="button"
             onClick={() => setNudgeVisible(true)}

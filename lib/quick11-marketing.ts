@@ -75,6 +75,9 @@ export const QUICK11_IDLE_NUDGE_ENGAGED_AFTER_MS = 90 * 1000;
 /** 本機預覽離開彈窗（免等 45 秒、不寫入 session） */
 export const QUICK11_EXIT_MODAL_PREVIEW_PATH = "/quick-11/exit-modal-preview";
 
+/** 本機預覽 Excel 範本版面（非文字、表格視覺） */
+export const QUICK11_EXCEL_PREVIEW_PATH = "/quick-11/excel-preview";
+
 /** 模擬用：一鍵清除 quick-11 本機狀態（勿連結至正式 /quick-11 頁） */
 export const QUICK11_SIM_RESET_PATH = "/quick-11/sim-reset";
 

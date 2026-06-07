@@ -637,7 +637,14 @@ export function QuickCalculator11Content({
     setMonthlyIncomeText(formatMoney(preset.monthlyIncome));
   };
 
-  const bottomCta = useMemo(() => {
+  const bottomCta = useMemo((): {
+    show: boolean;
+    title: string;
+    body: string;
+    button: string;
+    subtitle?: string;
+    highlight?: string;
+  } => {
     const savedByEqual = Math.max(0, output.annuityTotalInterest - output.equalPrincipalTotalInterest);
     const graceG = graceEffectiveMonths;
     const graceTitle = graceG <= 0 ? "0 個月" : graceG % 12 === 0 ? `${graceG / 12} 年` : `${graceG} 個月`;
@@ -646,8 +653,10 @@ export function QuickCalculator11Content({
       case 0:
         return {
           show: true,
-          title: "厭倦了每個月被銀行抽成嗎？",
-          body: `本金平均通常可少付利息 NT$ ${formatMoney(savedByEqual)}。`,
+          title: "厭倦了被銀行抽走利息？",
+          subtitle: "你的試算結果顯示：",
+          highlight: `最高可少付 NT$${formatMoney(savedByEqual)}`,
+          body: "",
           button: "前往存股複利計算機",
         };
       case 1:
@@ -2295,8 +2304,13 @@ export function QuickCalculator11Content({
                 {bottomCta.show ? (
                   <Quick11IdleNudgeCard
                     visible={idleNudge.visible}
-                    isLight={isLight}
-                    copy={{ title: bottomCta.title, body: bottomCta.body, button: bottomCta.button }}
+                    copy={{
+                      title: bottomCta.title,
+                      body: bottomCta.body,
+                      button: bottomCta.button,
+                      subtitle: bottomCta.subtitle,
+                      highlight: bottomCta.highlight,
+                    }}
                     onDismiss={idleNudge.dismiss}
                   />
                 ) : null}
