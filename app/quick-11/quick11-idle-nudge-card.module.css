@@ -1,0 +1,119 @@
+.wrap {
+  position: fixed;
+  inset-inline: 10px;
+  bottom: max(10px, env(safe-area-inset-bottom, 0px));
+  z-index: 75;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.card {
+  position: relative;
+  pointer-events: auto;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 14px;
+  border: 1px solid rgb(56 189 248 / 0.35);
+  background: rgb(15 23 42 / 0.98);
+  padding: 12px 36px 12px 12px;
+  box-shadow: 0 10px 32px rgb(0 0 0 / 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-font-smoothing: antialiased;
+}
+
+.cardLight {
+  border-color: rgb(148 163 184 / 0.45);
+  background: rgb(248 250 252 / 0.98);
+  box-shadow: 0 8px 24px rgb(15 23 42 / 0.14);
+}
+
+.closeBtn {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  display: flex;
+  height: 32px;
+  width: 32px;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  background: rgb(51 65 85 / 0.85);
+  font-size: 20px;
+  line-height: 1;
+  color: #cbd5e1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.closeBtnLight {
+  background: rgb(226 232 240 / 0.95);
+  color: #475569;
+}
+
+.title {
+  position: relative;
+  margin: 0;
+  padding-right: 2px;
+  font-size: clamp(15px, 4.1vw, 17px);
+  font-weight: 900;
+  line-height: 1.35;
+  color: #e0f2fe;
+  word-break: break-word;
+}
+
+.titleLight {
+  color: #0f172a;
+}
+
+.body {
+  margin: 6px 0 0;
+  font-size: clamp(12px, 3.4vw, 13px);
+  font-weight: 600;
+  line-height: 1.5;
+  color: #94a3b8;
+  word-break: break-word;
+}
+
+.bodyLight {
+  color: #475569;
+}
+
+.cta {
+  margin-top: 10px;
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 10px;
+  background: #0ea5e9;
+  padding: 10px 12px;
+  font-size: clamp(13px, 3.6vw, 14px);
+  font-weight: 900;
+  line-height: 1.25;
+  color: #fff;
+  text-decoration: none;
+  text-align: center;
+  touch-action: manipulation;
+  transition: background-color 0.15s;
+}
+
+.cta:hover {
+  background: #38bdf8;
+}
+
+.ctaLight {
+  background: #0284c7;
+}
+
+.ctaLight:hover {
+  background: #0ea5e9;
+}
+
+.ctaText {
+  min-width: 0;
+}

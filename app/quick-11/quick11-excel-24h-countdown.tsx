@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import {
   QUICK11_EXCEL_COUNTDOWN_STORAGE_KEY,
   QUICK11_EXCEL_OFFER_WINDOW_MS,
 } from "@/lib/quick11-marketing";
-import { useQuick11SimulationResetSync } from "./quick11-simulation-reset";
+import { QUICK11_SIM_RESET_EVENT } from "./quick11-simulation-reset";
 import styles from "./quick11-excel-wizard-modal.module.css";
 
 function readDeadlineMs(): number | null {
@@ -43,6 +43,27 @@ function formatRemaining(ms: number): string {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
+function subscribeCountdown(onStoreChange: () => void): () => void {
+  const onReset = () => onStoreChange();
+  window.addEventListener(QUICK11_SIM_RESET_EVENT, onReset);
+  const id = window.setInterval(onStoreChange, 1000);
+  return () => {
+    window.removeEventListener(QUICK11_SIM_RESET_EVENT, onReset);
+    window.clearInterval(id);
+  };
+}
+
+function getRemainingMsSnapshot(): number {
+  const now = Date.now();
+  let deadline = ensureDeadlineMs();
+  let left = deadline - now;
+  if (left <= 0) {
+    deadline = ensureDeadlineMs();
+    left = deadline - now;
+  }
+  return Math.max(0, left);
+}
+
 type Quick11Excel24hCountdownProps = {
   /** Wizard 彈窗用較大字級 */
   size?: "default" | "large";
@@ -51,37 +72,13 @@ type Quick11Excel24hCountdownProps = {
 /** 限時 24 小時倒數（首次開啟彈窗起算，localStorage 持久） */
 export function Quick11Excel24hCountdown({ size = "default" }: Quick11Excel24hCountdownProps) {
   const large = size === "large";
-  const [remainingMs, setRemainingMs] = useState<number | null>(null);
-  const [deadlineMs, setDeadlineMs] = useState(() =>
-    typeof window === "undefined" ? 0 : ensureDeadlineMs(),
+  const remainingMs = useSyncExternalStore(
+    subscribeCountdown,
+    getRemainingMsSnapshot,
+    () => -1,
   );
 
-  const syncDeadline = useCallback(() => {
-    const next = ensureDeadlineMs();
-    setDeadlineMs(next);
-    setRemainingMs(Math.max(0, next - Date.now()));
-  }, []);
-
-  useQuick11SimulationResetSync(syncDeadline);
-
-  useEffect(() => {
-    const tick = () => {
-      const now = Date.now();
-      let left = deadlineMs - now;
-      if (left <= 0) {
-        const next = ensureDeadlineMs();
-        setDeadlineMs(next);
-        left = next - now;
-      }
-      setRemainingMs(left);
-    };
-
-    tick();
-    const id = window.setInterval(tick, 1000);
-    return () => window.clearInterval(id);
-  }, [deadlineMs]);
-
-  if (remainingMs === null) return null;
+  if (remainingMs < 0) return null;
 
   return (
     <div className="text-center" aria-live="polite">

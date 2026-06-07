@@ -6,10 +6,11 @@ import {
   QUICK11_SHARE_UNLOCK_COOKIE,
 } from "@/lib/quick11-marketing";
 import { clearQuick11WizardSnapshot, QUICK11_WIZARD_SNAPSHOT_KEY } from "./quick11-share-snapshot";
+import { QUICK11_EXIT_INTENT_STORAGE_KEY } from "./quick11-exit-intent-modal";
+import { QUICK11_IDLE_NUDGE_DISMISS_KEY } from "./quick11-idle-nudge-card";
 import { QUICK11_WIZARD_EVENT } from "./quick11-wizard-state";
 
 const WIZARD_PROGRESS_KEY = "quick11-wizard-v1";
-const EXIT_INTENT_KEY = "quick11-exit-intent-v4";
 const SHARE_UNLOCK_KEY = "quick11-share-unlocked-v1";
 const SHARE_UNLOCK_EVENT = "quick11-share-unlocked";
 
@@ -20,7 +21,8 @@ export const QUICK11_SIM_RESET_EVENT = "quick11-sim-reset";
 export const QUICK11_SESSION_RESET_KEYS = [
   WIZARD_PROGRESS_KEY,
   QUICK11_WIZARD_SNAPSHOT_KEY,
-  EXIT_INTENT_KEY,
+  QUICK11_EXIT_INTENT_STORAGE_KEY,
+  QUICK11_IDLE_NUDGE_DISMISS_KEY,
   SHARE_UNLOCK_KEY,
 ] as const;
 
@@ -29,6 +31,7 @@ export const QUICK11_SIM_RESET_ITEMS = [
   { id: "snapshot", label: "Wizard 試算截圖預覽" },
   { id: "countdown", label: "24 小時限時倒數" },
   { id: "exit", label: "離開意圖／45 秒自動彈窗（本 session 已看過）" },
+  { id: "idle-nudge", label: "底部浮動卡（quick-1 提醒）" },
   { id: "unlock", label: "分享解鎖 Excel（session + cookie）" },
 ] as const;
 

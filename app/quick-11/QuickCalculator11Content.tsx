@@ -18,6 +18,9 @@ import { Quick11BottomToolsCard } from "./quick11-bottom-tools-card";
 import { Quick11ExcelLeadBlock } from "./quick11-excel-lead-block";
 import { Quick11ExcelWizardModal } from "./quick11-excel-wizard-modal";
 import { Quick11ExitIntentModal } from "./quick11-exit-intent-modal";
+import { Quick11IdleNudgeCard } from "./quick11-idle-nudge-card";
+import { migrateQuick11SessionBundleIfNeeded } from "./quick11-session-migrate";
+import { useQuick11IdleNudge } from "./use-quick11-idle-nudge";
 import {
   Quick11ShareSnapshotCapture,
   useQuick11ShareSnapshotRef,
@@ -276,6 +279,17 @@ export function QuickCalculator11Content({
   const [rateShowdownOpen, setRateShowdownOpen] = useState(false);
   const [isLight, setIsLight] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(initialWizardOpen);
+  const [exitIntentTriggered, setExitIntentTriggered] = useState(false);
+
+  useEffect(() => {
+    migrateQuick11SessionBundleIfNeeded();
+  }, []);
+
+  const idleNudge = useQuick11IdleNudge({
+    enabled: !embeddedInMiniBlog,
+    wizardOpen,
+    exitIntentTriggered,
+  });
 
   const incomeInputRef = useRef<HTMLInputElement | null>(null);
   const loanInputRef = useRef<HTMLInputElement | null>(null);
@@ -2221,30 +2235,6 @@ export function QuickCalculator11Content({
               </div>
             ) : null}
 
-            <div
-              className={`rounded-lg border p-3 ${!embeddedInMiniBlog ? "mt-2.5" : "mt-2"} ${
-                isLight
-                  ? "border border-slate-200 bg-slate-100 shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
-                  : "border-slate-700 bg-slate-900/60"
-              }`}
-            >
-              {bottomCta.show ? (
-                <>
-                  <h3 className={`text-[22px] font-black ${isLight ? "text-slate-900" : "text-sky-100"}`}>{bottomCta.title}</h3>
-                  <p className={`mt-1 text-[14px] font-semibold tracking-[0.03em] ${isLight ? "text-slate-600" : "text-slate-200"}`}>{bottomCta.body}</p>
-                  <Link
-                    href="/quick-1"
-                    className={`mt-2 mx-auto flex w-fit items-center justify-center gap-1 rounded-md px-3 py-1.5 text-base font-black transition ${
-                      isLight ? "bg-sky-600 text-white hover:bg-sky-500" : "bg-sky-500 text-white hover:bg-sky-400"
-                    }`}
-                  >
-                    <span aria-hidden>🤖</span>
-                    <span>{bottomCta.button}</span>
-                  </Link>
-                </>
-              ) : null}
-            </div>
-
             {!embeddedInMiniBlog ? (
               <div className="mt-2.5">
                 <Quick11BottomToolsCard isLight={isLight} />
@@ -2255,7 +2245,19 @@ export function QuickCalculator11Content({
               <>
                 <Quick11ShareSnapshotCapture snapshotRef={shareSnapshotRef} data={shareSnapshotData} />
                 <Quick11ExcelWizardModal open={wizardOpen} onClose={() => setWizardOpen(false)} snapshotRef={shareSnapshotRef} />
-                <Quick11ExitIntentModal onOpenWizard={() => setWizardOpen(true)} />
+                <Quick11ExitIntentModal
+                  blocked={wizardOpen}
+                  onTriggered={() => setExitIntentTriggered(true)}
+                  onOpenWizard={() => setWizardOpen(true)}
+                />
+                {bottomCta.show ? (
+                  <Quick11IdleNudgeCard
+                    visible={idleNudge.visible}
+                    isLight={isLight}
+                    copy={{ title: bottomCta.title, body: bottomCta.body, button: bottomCta.button }}
+                    onDismiss={idleNudge.dismiss}
+                  />
+                ) : null}
                 <div id="quick11-bankruptcy-blog" className="mt-2">
                   <QuickBlogLinksToggle quickRoute="/quick-11" title="📚 破產計算機延伸文章（點我展開）" />
                   <div className="mt-3">

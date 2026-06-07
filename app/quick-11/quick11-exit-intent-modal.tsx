@@ -4,16 +4,22 @@ import { useCallback, useEffect, useRef } from "react";
 import { QUICK11_EXIT_INTENT_MIN_DWELL_MS } from "@/lib/quick11-marketing";
 import { useQuick11SimulationResetSync } from "./quick11-simulation-reset";
 
-const STORAGE_KEY = "quick11-exit-intent-v4";
+export const QUICK11_EXIT_INTENT_STORAGE_KEY = "quick11-exit-intent-v5";
 
 type Quick11ExitIntentModalProps = {
   enabled?: boolean;
+  /** Wizard 已開啟時不再觸發 */
+  blocked?: boolean;
+  /** 本機預覽可改短（毫秒）；正式站用預設 45 秒 */
+  dwellMs?: number;
+  /** 45 秒／返回已觸發（供底部浮動卡 3 分鐘計時） */
+  onTriggered?: () => void;
   onOpenWizard: () => void;
 };
 
 function hasSeenExitIntent(): boolean {
   try {
-    return sessionStorage.getItem(STORAGE_KEY) === "1";
+    return sessionStorage.getItem(QUICK11_EXIT_INTENT_STORAGE_KEY) === "1";
   } catch {
     return false;
   }
@@ -21,27 +27,33 @@ function hasSeenExitIntent(): boolean {
 
 function markExitIntentSeen(): void {
   try {
-    sessionStorage.setItem(STORAGE_KEY, "1");
-  } catch {}
+    sessionStorage.setItem(QUICK11_EXIT_INTENT_STORAGE_KEY, "1");
+  } catch {
+    /* ignore */
+  }
 }
 
-/** 45 秒或離開意圖 → 打開四步驟轉化彈窗 */
-export function Quick11ExitIntentModal({ enabled = true, onOpenWizard }: Quick11ExitIntentModalProps) {
+/** 45 秒或離開意圖 → 直接開四步驟 Excel Wizard（無額外中間卡片） */
+export function Quick11ExitIntentModal({
+  enabled = true,
+  blocked = false,
+  dwellMs = QUICK11_EXIT_INTENT_MIN_DWELL_MS,
+  onTriggered,
+  onOpenWizard,
+}: Quick11ExitIntentModalProps) {
   const enteredAtRef = useRef<number>(Date.now());
-  const historyArmedRef = useRef(false);
   const openedRef = useRef(false);
 
-  const tryOpen = useCallback(() => {
-    if (!enabled || hasSeenExitIntent() || openedRef.current) return;
-    if (Date.now() - enteredAtRef.current < QUICK11_EXIT_INTENT_MIN_DWELL_MS) return;
+  const tryOpenWizard = useCallback(() => {
+    if (!enabled || blocked || hasSeenExitIntent() || openedRef.current) return;
     openedRef.current = true;
     markExitIntentSeen();
+    onTriggered?.();
     onOpenWizard();
-  }, [enabled, onOpenWizard]);
+  }, [enabled, blocked, onOpenWizard, onTriggered]);
 
   const onSimReset = useCallback(() => {
     openedRef.current = false;
-    historyArmedRef.current = false;
     enteredAtRef.current = Date.now();
   }, []);
 
@@ -52,27 +64,29 @@ export function Quick11ExitIntentModal({ enabled = true, onOpenWizard }: Quick11
 
     enteredAtRef.current = Date.now();
 
-    const armHistory = () => {
-      if (historyArmedRef.current || hasSeenExitIntent()) return;
-      historyArmedRef.current = true;
+    try {
       window.history.pushState({ quick11Exit: true }, "");
-    };
+    } catch {
+      /* ignore */
+    }
 
     const dwellTimer = window.setTimeout(() => {
-      armHistory();
-      tryOpen();
-    }, QUICK11_EXIT_INTENT_MIN_DWELL_MS);
+      tryOpenWizard();
+    }, dwellMs);
 
     const onMouseLeave = (e: MouseEvent) => {
       if (e.clientY > 12) return;
-      tryOpen();
+      tryOpenWizard();
     };
 
     const onPopState = () => {
-      if (Date.now() - enteredAtRef.current < QUICK11_EXIT_INTENT_MIN_DWELL_MS) return;
-      tryOpen();
+      tryOpenWizard();
       if (!hasSeenExitIntent()) {
-        window.history.pushState({ quick11Exit: true }, "");
+        try {
+          window.history.pushState({ quick11Exit: true }, "");
+        } catch {
+          /* ignore */
+        }
       }
     };
 
@@ -84,7 +98,7 @@ export function Quick11ExitIntentModal({ enabled = true, onOpenWizard }: Quick11
       document.removeEventListener("mouseleave", onMouseLeave);
       window.removeEventListener("popstate", onPopState);
     };
-  }, [enabled, tryOpen]);
+  }, [enabled, tryOpenWizard, dwellMs]);
 
   return null;
 }

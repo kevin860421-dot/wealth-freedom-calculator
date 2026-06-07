@@ -66,6 +66,9 @@ export const QUICK11_V2_COPY_FROM_SERIAL = 66;
  */
 export const QUICK11_EXIT_INTENT_MIN_DWELL_MS = 45_000;
 
+/** 45 秒 Wizard 關閉後，再隔這毫秒顯示底部 quick-1 浮動卡 */
+export const QUICK11_IDLE_NUDGE_AFTER_MS = 3 * 60 * 1000;
+
 /** 本機預覽離開彈窗（免等 45 秒、不寫入 session） */
 export const QUICK11_EXIT_MODAL_PREVIEW_PATH = "/quick-11/exit-modal-preview";
 

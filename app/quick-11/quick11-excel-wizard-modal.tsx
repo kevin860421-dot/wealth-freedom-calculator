@@ -16,8 +16,11 @@ import { Quick11ShareDesktopPanel } from "./quick11-share-desktop-panel";
 import {
   applyQuick11ScreenshotAfterCapture,
   dataUrlToShareFile,
+  getQuick11ScreenshotPostCaptureHint,
   openQuick11SystemSharePage,
 } from "./quick11-share-image";
+import { Quick11WizardConfirm } from "./quick11-wizard-confirm";
+import { Quick11WizardToast, useQuick11WizardToast } from "./quick11-wizard-toast";
 import { prefersNativeShareSheet } from "./quick11-share-platform";
 import { useQuick11SimulationResetSync } from "./quick11-simulation-reset";
 import {
@@ -64,8 +67,10 @@ export function Quick11ExcelWizardModal({ open, onClose, snapshotRef }: Quick11E
   const [previewOpen, setPreviewOpen] = useState(false);
   const [copyFlash, setCopyFlash] = useState(false);
   const [desktopShareOpen, setDesktopShareOpen] = useState(false);
+  const [fanPageConfirmOpen, setFanPageConfirmOpen] = useState(false);
   const shareFileRef = useRef<File | null>(null);
   const shareUnlockTimerRef = useRef<number | null>(null);
+  const { toastMessage, showToast } = useQuick11WizardToast();
 
   const SHARE_UNLOCK_DELAY_MS = 2500;
 
@@ -78,6 +83,7 @@ export function Quick11ExcelWizardModal({ open, onClose, snapshotRef }: Quick11E
     setPreviewOpen(false);
     setCopyFlash(false);
     setDesktopShareOpen(false);
+    setFanPageConfirmOpen(false);
     if (shareUnlockTimerRef.current) {
       window.clearTimeout(shareUnlockTimerRef.current);
       shareUnlockTimerRef.current = null;
@@ -119,11 +125,12 @@ export function Quick11ExcelWizardModal({ open, onClose, snapshotRef }: Quick11E
       syncShareFile(dataUrl);
       completeQuick11WizardScreenshot();
       refresh();
-      await applyQuick11ScreenshotAfterCapture(dataUrl);
+      const postCapture = await applyQuick11ScreenshotAfterCapture(dataUrl);
+      showToast(getQuick11ScreenshotPostCaptureHint(postCapture));
     } finally {
       setBusy(null);
     }
-  }, [snapshotRef, busy, refresh, syncShareFile]);
+  }, [snapshotRef, busy, refresh, syncShareFile, showToast]);
 
   const scheduleShareUnlock = useCallback(() => {
     if (shareUnlockTimerRef.current) window.clearTimeout(shareUnlockTimerRef.current);
@@ -134,8 +141,9 @@ export function Quick11ExcelWizardModal({ open, onClose, snapshotRef }: Quick11E
       completeQuick11WizardShare();
       setDesktopShareOpen(false);
       refresh();
+      showToast("✅ 分享完成，第三步已解鎖");
     }, SHARE_UNLOCK_DELAY_MS);
-  }, [refresh]);
+  }, [refresh, showToast]);
 
   const onShare = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -143,6 +151,7 @@ export function Quick11ExcelWizardModal({ open, onClose, snapshotRef }: Quick11E
     if (!progress.screenshotDone && !snapshotPreview) return;
 
     scheduleShareUnlock();
+    showToast("📤 分享已啟動，稍候解鎖第三步");
 
     if (prefersNativeShareSheet()) {
       let file = shareFileRef.current;
@@ -161,6 +170,12 @@ export function Quick11ExcelWizardModal({ open, onClose, snapshotRef }: Quick11E
     setDesktopShareOpen(true);
   };
 
+  const step4FanPageReady = isQuick11FbMessengerConfigured();
+  const step4MessengerUrl = getQuick11FbMessengerUrl();
+  const step4Enabled = isQuick11WizardStepEnabled(4, progress);
+  const step4BtnClass =
+    "mt-2.5 flex min-h-[50px] w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#38bdf8] to-[#2563eb] px-3 py-3 text-center text-[15px] font-black text-white shadow-[0_0_20px_rgba(56,189,248,0.35)] no-underline disabled:cursor-not-allowed sm:text-[16px]";
+
   const onCopyPassword = useCallback(async () => {
     if (!isQuick11WizardStepEnabled(3, progress) || busy) return;
     setBusy(3);
@@ -169,42 +184,46 @@ export function Quick11ExcelWizardModal({ open, onClose, snapshotRef }: Quick11E
       setCopyFlash(true);
       completeQuick11WizardCopy();
       refresh();
+      showToast("✅ 成功複製專屬密碼");
       window.setTimeout(() => setCopyFlash(false), 1800);
     }
     setBusy(null);
-  }, [progress, busy, refresh]);
+  }, [progress, busy, refresh, showToast]);
 
-  const onGoFanPage = useCallback(() => {
+  const onConfirmGoFanPage = useCallback(() => {
+    setFanPageConfirmOpen(false);
+    void navigator.clipboard.writeText(QUICK11_EXCEL_UNLOCK_CODE).catch(() => {
+      void copyQuick11UnlockCode();
+    });
+    showToast("✅ 密碼已複製，正在前往粉專…");
     completeQuick11WizardFb();
     refresh();
-  }, [refresh]);
+    window.open(step4MessengerUrl, "_blank", "noopener,noreferrer");
+  }, [refresh, showToast, step4MessengerUrl]);
 
-  const step4FanPageReady = isQuick11FbMessengerConfigured();
-  const step4MessengerUrl = getQuick11FbMessengerUrl();
-  const step4Enabled = isQuick11WizardStepEnabled(4, progress);
-  const step4BtnClass =
-    "mt-2.5 flex min-h-[50px] w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#38bdf8] to-[#2563eb] px-3 py-3 text-center text-[15px] font-black text-white shadow-[0_0_20px_rgba(56,189,248,0.35)] no-underline disabled:cursor-not-allowed sm:text-[16px]";
+  const onFanPageClick = useCallback(() => {
+    if (!step4Enabled || !step4FanPageReady) return;
+    setFanPageConfirmOpen(true);
+  }, [step4Enabled, step4FanPageReady]);
 
   return (
     <>
     <AnimatePresence>
       {open ? (
-        <motion.button
-          key="quick11-wizard-backdrop"
-          type="button"
-          aria-label="關閉"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[80] bg-black/82 backdrop-blur-[3px]"
-          onClick={onClose}
-        />
-      ) : null}
-      {open ? (
-        <div key="quick11-wizard-shell" className="pointer-events-none fixed inset-0 z-[81] flex items-center justify-center p-3 sm:p-4">
-          <motion.div
-            key="quick11-wizard-panel"
-            role="dialog"
+        <>
+          <motion.button
+            key="quick11-wizard-backdrop"
+            type="button"
+            aria-label="關閉"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[80] bg-black/82 backdrop-blur-[3px]"
+            onClick={onClose}
+          />
+          <div key="quick11-wizard-shell" className="pointer-events-none fixed inset-0 z-[81] flex items-center justify-center p-3 sm:p-4">
+            <motion.div
+              role="dialog"
               aria-modal
               aria-labelledby="quick11-wizard-title"
               initial={{ opacity: 0, y: 24, scale: 0.97 }}
@@ -307,25 +326,14 @@ export function Quick11ExcelWizardModal({ open, onClose, snapshotRef }: Quick11E
                   <div className={stepRowClass(4, progress)}>
                     <p className="text-[13px] font-black text-white">第四步：前往粉絲專頁留言</p>
                     {step4FanPageReady ? (
-                      <a
-                        href={step4Enabled ? step4MessengerUrl : undefined}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-disabled={!step4Enabled}
-                        onClick={(e) => {
-                          if (!step4Enabled) {
-                            e.preventDefault();
-                            return;
-                          }
-                          void navigator.clipboard.writeText(QUICK11_EXCEL_UNLOCK_CODE).catch(() => {
-                            void copyQuick11UnlockCode();
-                          });
-                          onGoFanPage();
-                        }}
-                        className={`${step4BtnClass} ${!step4Enabled ? "pointer-events-none opacity-40" : ""}`}
+                      <button
+                        type="button"
+                        disabled={!step4Enabled}
+                        onClick={onFanPageClick}
+                        className={`${step4BtnClass} ${!step4Enabled ? "opacity-40" : ""}`}
                       >
                         {isQuick11WizardStepDone(4, progress) ? "✅ 已前往粉專（可再開一次）" : "🎁 立即領取 Excel >"}
-                      </a>
+                      </button>
                     ) : (
                       <button type="button" disabled className={`${step4BtnClass} opacity-40`}>
                         🎁 立即領取 Excel &gt;
@@ -335,8 +343,20 @@ export function Quick11ExcelWizardModal({ open, onClose, snapshotRef }: Quick11E
                 </div>
               </div>
               </div>
+
+              <Quick11WizardToast message={toastMessage} />
+              <Quick11WizardConfirm
+                open={fanPageConfirmOpen}
+                title="前往粉絲專頁？"
+                body="進入 App 需等待幾秒"
+                cancelLabel="返回"
+                confirmLabel="立即前往"
+                onCancel={() => setFanPageConfirmOpen(false)}
+                onConfirm={onConfirmGoFanPage}
+              />
             </motion.div>
-        </div>
+          </div>
+        </>
       ) : null}
     </AnimatePresence>
     {previewOpen && snapshotPreview ? (
