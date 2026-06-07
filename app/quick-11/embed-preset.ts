@@ -76,7 +76,7 @@ export function parseQuick11PresetFromSearchParams(sp: { get: (key: string) => s
   }
   if (tabRaw != null && tabRaw !== "") {
     const t = Number(tabRaw);
-    if (Number.isFinite(t)) preset.initialPage = clampNum(Math.round(t), 0, 8);
+    if (Number.isFinite(t)) preset.initialPage = clampNum(Math.round(t), 0, 13);
   }
   if (method) preset.method = method;
 

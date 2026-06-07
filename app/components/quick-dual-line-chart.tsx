@@ -38,6 +38,8 @@ export type QuickDualLineChartProps = {
   redLabelXOffset?: number;
   /** 標籤定位模式：legacy 保持舊規則；smart 使用動態避讓（給 quick-8/9/10） */
   pointLabelMode?: "legacy" | "smart";
+  /** 深色（預設）或白底 FinTech（quick-11） */
+  variant?: "dark" | "light";
 };
 
 const DEFAULT_COLOR_A = "rgba(196, 122, 122, 0.92)";
@@ -65,7 +67,9 @@ export function QuickDualLineChart({
   redLabelExtraDrop = 0,
   redLabelXOffset = 0,
   pointLabelMode = "legacy",
+  variant = "dark",
 }: QuickDualLineChartProps) {
+  const isLight = variant === "light";
   const w = 360;
   const hasTop = Boolean(topNotes);
   /** 節點數字在頂端易被 SVG 視窗裁切，預留頂部空間（不改 innerH 比例時同步加高整張圖） */
@@ -119,9 +123,19 @@ export function QuickDualLineChart({
     borderRadius: 12,
   };
 
+  const shellStyle: CSSProperties = isLight
+    ? { padding: 10, borderRadius: 14, background: "#ffffff", border: "1px solid #E2E8F0" }
+    : { padding: 10, borderRadius: 14, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" };
+  const titleStyle: CSSProperties = { fontSize: 16, opacity: isLight ? 1 : 0.9, fontWeight: 900, color: isLight ? "#1e293b" : undefined };
+  const gridStroke = isLight ? "rgba(148,163,184,0.35)" : "rgba(255,255,255,0.06)";
+  const refLineStroke = isLight ? "rgba(100,116,139,0.55)" : "rgba(229,231,235,0.72)";
+  const chartFill = isLight ? "#F8FAFC" : "rgba(0,0,0,0.16)";
+  const yearLabelFill = isLight ? "rgba(71,85,105,0.85)" : "rgba(232,238,252,0.70)";
+  const legendStyle: CSSProperties = { display: "flex", flexWrap: "wrap", gap: 12, marginTop: 8, fontSize: 13, opacity: isLight ? 1 : 0.92, fontWeight: 800, color: isLight ? "#334155" : undefined };
+
   return (
-    <div style={{ padding: 10, borderRadius: 14, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" }}>
-      <div style={{ fontSize: 16, opacity: 0.9, fontWeight: 900 }}>{title}</div>
+    <div style={shellStyle}>
+      <div style={titleStyle}>{title}</div>
       <div style={{ marginTop: 6 }}>
         <div style={wrapStyle}>
           <svg
@@ -133,7 +147,7 @@ export function QuickDualLineChart({
             aria-label={title}
             style={{ display: "block", overflow: "visible" }}
           >
-            <rect x="0" y="0" width={w} height={h} rx="12" fill="rgba(0,0,0,0.16)" />
+            <rect x="0" y="0" width={w} height={h} rx="12" fill={chartFill} />
             {grid.map((t) => (
               <line
                 key={t}
@@ -141,7 +155,7 @@ export function QuickDualLineChart({
                 x2={w - padR}
                 y1={padT + innerH * t}
                 y2={padT + innerH * t}
-                stroke="rgba(255,255,255,0.06)"
+                stroke={gridStroke}
                 strokeWidth="1"
               />
             ))}
@@ -151,7 +165,7 @@ export function QuickDualLineChart({
                 x2={w - padR}
                 y1={yAt(referenceLineY)}
                 y2={yAt(referenceLineY)}
-                stroke="rgba(229,231,235,0.72)"
+                stroke={refLineStroke}
                 strokeWidth="1.2"
                 strokeDasharray="5 4"
               />
@@ -310,7 +324,7 @@ export function QuickDualLineChart({
                       </>
                     )
                   ) : null}
-                  <text x={x} y={labelY} fontSize="10" textAnchor="middle" fill="rgba(232,238,252,0.70)" fontWeight="800">
+                  <text x={x} y={labelY} fontSize="10" textAnchor="middle" fill={yearLabelFill} fontWeight="800">
                     {yy}年
                   </text>
                 </g>
@@ -318,7 +332,7 @@ export function QuickDualLineChart({
             })}
           </svg>
 
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 8, fontSize: 13, opacity: 0.92, fontWeight: 800 }}>
+          <div style={legendStyle}>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ width: 10, height: 10, borderRadius: 99, background: colorA, display: "inline-block" }} />
               {legendA}
