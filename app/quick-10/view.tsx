@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
 import { QuickBottomCtaStack } from "@/app/components/quick-bottom-cta-stack";
@@ -19,7 +18,7 @@ import {
   sanitizeCalcInput,
 } from "./logic";
 
-export function QuickCalculator10View() {
+export function Quick10HomePanel({ embedded = false }: { embedded?: boolean } = {}) {
   const [shareState, setShareState] = useState<"idle" | "copied">("idle");
   const [monthly, setMonthly] = useState(20000);
   const [monthlyText, setMonthlyText] = useState(formatTwd(20000));
@@ -198,21 +197,8 @@ export function QuickCalculator10View() {
     }
   };
 
-  return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "#0b1220",
-        padding: "12px 12px 28px",
-        color: "#e8eefc",
-        display: "flex",
-        justifyContent: "center",
-        boxSizing: "border-box",
-        width: "100%",
-        maxWidth: "100vw",
-        overflowX: "hidden",
-      }}
-    >
+  const homeSection = (
+    <>
       <style jsx global>{`
         *,
         *::before,
@@ -244,49 +230,6 @@ export function QuickCalculator10View() {
           animation: quick10TitleGradientShift 7s ease-in-out infinite alternate;
         }
       `}</style>
-
-      <div style={{ width: "100%", maxWidth: 420, margin: "0 auto", minWidth: 0, overflowX: "hidden", boxSizing: "border-box" }}>
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-            <div className="quick-brand-gold-shimmer" style={{ fontSize: 22, fontWeight: 900, opacity: 0.95, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", ["--quick-brand-duration" as string]: "4.2s" }}>
-              財富自由計算機
-            </div>
-            <button
-              type="button"
-              onClick={onShare}
-              aria-label="分享"
-              style={{
-                height: 40,
-                padding: "0 12px",
-                borderRadius: 12,
-                border: "1px solid rgba(255,255,255,0.14)",
-                background: "rgba(255,255,255,0.08)",
-                color: "#e8eefc",
-                fontSize: 16,
-                fontWeight: 900,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-                cursor: "pointer",
-              }}
-            >
-              {shareState === "copied" ? "已複製" : "分享"}
-            </button>
-          </div>
-          <div
-            className="quick10-title-gradient"
-            style={{
-              fontSize: 30,
-              fontWeight: 950,
-              marginTop: 10,
-              lineHeight: 1.12,
-              whiteSpace: "normal",
-            }}
-          >
-            複利美夢 VS 崩盤現實 計算機
-          </div>
-        </div>
 
         <section
           style={{
@@ -512,11 +455,6 @@ export function QuickCalculator10View() {
               />
             ) : null}
 
-            <QuickBottomCtaStack quickId={10} style={{ fontSize: 20 }} />
-            <QuickBlogLinksToggle quickRoute="/quick-10" />
-            <QuickSeoExtras id={10} />
-            <QuickSeoArticle id={10} />
-
             {showToast && result.afterCrash > principalTotal && (
               <div
                 style={{
@@ -559,7 +497,69 @@ export function QuickCalculator10View() {
             )}
           </div>
         </section>
+    </>
+  );
+
+  if (embedded) return homeSection;
+
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        background: "#0b1220",
+        padding: "12px 12px 28px",
+        color: "#e8eefc",
+        display: "flex",
+        justifyContent: "center",
+        boxSizing: "border-box",
+        width: "100%",
+        maxWidth: "100vw",
+        overflowX: "hidden",
+      }}
+    >
+      <div style={{ width: "100%", maxWidth: 420, margin: "0 auto", minWidth: 0, overflowX: "hidden", boxSizing: "border-box" }}>
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+            <div className="quick-brand-gold-shimmer" style={{ fontSize: 22, fontWeight: 900, opacity: 0.95, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", ["--quick-brand-duration" as string]: "4.2s" }}>
+              財富自由計算機
+            </div>
+            <button
+              type="button"
+              onClick={onShare}
+              aria-label="分享"
+              style={{
+                height: 40,
+                padding: "0 12px",
+                borderRadius: 12,
+                border: "1px solid rgba(255,255,255,0.14)",
+                background: "rgba(255,255,255,0.08)",
+                color: "#e8eefc",
+                fontSize: 16,
+                fontWeight: 900,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                cursor: "pointer",
+              }}
+            >
+              {shareState === "copied" ? "已複製" : "分享"}
+            </button>
+          </div>
+          <div className="quick10-title-gradient" style={{ fontSize: 30, fontWeight: 950, marginTop: 10, lineHeight: 1.12 }}>
+            複利美夢 VS 崩盤現實 計算機
+          </div>
+        </div>
+        {homeSection}
+        <QuickBottomCtaStack quickId={10} style={{ fontSize: 20 }} />
+        <QuickBlogLinksToggle quickRoute="/quick-10" />
+        <QuickSeoExtras id={10} />
+        <QuickSeoArticle id={10} />
       </div>
     </main>
   );
+}
+
+export function QuickCalculator10View() {
+  return <Quick10HomePanel />;
 }

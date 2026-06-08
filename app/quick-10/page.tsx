@@ -1,6 +1,5 @@
-import { QuickCalculator10View } from "./view";
+import { QuickCalculator10Content } from "./QuickCalculator10Content";
 
 export default function Page() {
-  return <QuickCalculator10View />;
+  return <QuickCalculator10Content />;
 }
-
