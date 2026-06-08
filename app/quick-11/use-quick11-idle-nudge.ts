@@ -245,7 +245,15 @@ export function useQuick11IdleNudge({
     prevWizardOpenRef.current = false;
   });
 
-  return { visible, dismiss };
+  /** 45 秒／返回觸發 Wizard 後：關閉時再排程底部浮動卡 */
+  const notifyExitIntentTriggered = useCallback(() => {
+    if (!enabled) return;
+    clearIdleTimer();
+    const delay = resolveWizardCloseDelayMs(afterMs, engagedAfterMs);
+    scheduleWizardNudge(Date.now() + delay);
+  }, [enabled, afterMs, engagedAfterMs, clearIdleTimer, scheduleWizardNudge]);
+
+  return { visible, dismiss, notifyExitIntentTriggered };
 }
 
 export { QUICK11_IDLE_NUDGE_DISMISS_KEY };

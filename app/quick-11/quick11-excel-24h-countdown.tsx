@@ -26,13 +26,21 @@ function writeDeadlineMs(deadlineMs: number): void {
   }
 }
 
-function ensureDeadlineMs(): number {
-  const now = Date.now();
+function resolveDeadlineMs(now = Date.now()): number {
   const existing = readDeadlineMs();
   if (existing != null && existing > now) return existing;
   const next = now + QUICK11_EXCEL_OFFER_WINDOW_MS;
   writeDeadlineMs(next);
   return next;
+}
+
+/** useSyncExternalStore：兩次 getSnapshot 間須回傳相同值，否則 React 會無限重渲染。 */
+let cachedRemainingMs = -1;
+
+function refreshRemainingSnapshot(): void {
+  const now = Date.now();
+  const deadline = resolveDeadlineMs(now);
+  cachedRemainingMs = Math.max(0, deadline - now);
 }
 
 function formatRemaining(ms: number): string {
@@ -44,24 +52,22 @@ function formatRemaining(ms: number): string {
 }
 
 function subscribeCountdown(onStoreChange: () => void): () => void {
-  const onReset = () => onStoreChange();
-  window.addEventListener(QUICK11_SIM_RESET_EVENT, onReset);
-  const id = window.setInterval(onStoreChange, 1000);
+  const tick = () => {
+    refreshRemainingSnapshot();
+    onStoreChange();
+  };
+  refreshRemainingSnapshot();
+  window.addEventListener(QUICK11_SIM_RESET_EVENT, tick);
+  const id = window.setInterval(tick, 1000);
   return () => {
-    window.removeEventListener(QUICK11_SIM_RESET_EVENT, onReset);
+    window.removeEventListener(QUICK11_SIM_RESET_EVENT, tick);
     window.clearInterval(id);
   };
 }
 
 function getRemainingMsSnapshot(): number {
-  const now = Date.now();
-  let deadline = ensureDeadlineMs();
-  let left = deadline - now;
-  if (left <= 0) {
-    deadline = ensureDeadlineMs();
-    left = deadline - now;
-  }
-  return Math.max(0, left);
+  if (cachedRemainingMs < 0) refreshRemainingSnapshot();
+  return cachedRemainingMs;
 }
 
 type Quick11Excel24hCountdownProps = {

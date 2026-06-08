@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { AnimatePresence, animate, motion } from "framer-motion";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
-import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
+import { Quick11InterestPkChart } from "./quick11-interest-pk-chart";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
@@ -17,7 +17,7 @@ import { RateShowdownTeaser } from "./rate-showdown-teaser";
 import { Quick11BottomToolsCard } from "./quick11-bottom-tools-card";
 import { Quick11ExcelLeadBlock } from "./quick11-excel-lead-block";
 import { Quick11ExcelWizardModal } from "./quick11-excel-wizard-modal";
-import { Quick11ExitIntentModal } from "./quick11-exit-intent-modal";
+import { hasQuick11ExitIntentSeen, Quick11ExitIntentModal } from "./quick11-exit-intent-modal";
 import { Quick11IdleNudgeCard } from "./quick11-idle-nudge-card";
 import { migrateQuick11SessionBundleIfNeeded } from "./quick11-session-migrate";
 import { useQuick11IdleNudge } from "./use-quick11-idle-nudge";
@@ -124,6 +124,25 @@ function formatWanYuanCompare(n: number, mode: "monthly" | "interestTotal") {
   return Number.isInteger(t) ? `${t}` : `${t.toFixed(1)}`.replace(/\.0$/, "");
 }
 
+const QUICK11_PAGE_TABS = [
+  { id: 0, title: "首頁", hint: "總覽" },
+  { id: 1, title: "本息均攤", hint: "穩定但利息高" },
+  { id: 2, title: "本金平均", hint: "內行人首選，利息最省" },
+  { id: 3, title: "提前還款", hint: "贖回自由加速器" },
+  { id: 4, title: "大額還款", hint: "單筆還本情境" },
+  { id: 5, title: "延遲還款代價", hint: "晚還的利息成本" },
+  { id: 6, title: "各種貸款 vs 存股", hint: "槓桿與報酬對照" },
+  { id: 7, title: "風險模擬", hint: "升息壓力測試" },
+  { id: 8, title: "財富翻轉", hint: "省下利息變資產" },
+  { id: 9, title: "交疊圖", hint: "本金 vs 累積利息" },
+  { id: 10, title: "通膨機會", hint: "購買力與投資 FV" },
+  { id: 11, title: "安全氣囊", hint: "緊急預備金月數" },
+  { id: 12, title: "銀行報告", hint: "談判健檢匯出" },
+  { id: 13, title: "升息連鎖", hint: "央行情境快切" },
+] as const;
+
+const QUICK11_SCROLLABLE_PAGE_TABS = QUICK11_PAGE_TABS.slice(1);
+
 function buildInterestPkSeries(annuityRows: PaymentRow[], equalRows: PaymentRow[]) {
   const periods = Math.min(annuityRows.length, equalRows.length);
   const yearCount = Math.max(1, Math.ceil(periods / 12));
@@ -221,6 +240,7 @@ export function QuickCalculator11Content({
   const tabButtonRefs = useRef<Record<number, HTMLButtonElement | null>>({});
   const topTabScrollRef = useRef<HTMLDivElement | null>(null);
   const bottomTabScrollRef = useRef<HTMLDivElement | null>(null);
+  const exitIntentTryOpenRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-quick11-updated-at", String(Date.now()));
@@ -550,6 +570,18 @@ export function QuickCalculator11Content({
     engagement: nudgeEngagement,
   });
 
+  const handlePageCloseClick = useCallback(() => {
+    if (wizardOpen) {
+      setWizardOpen(false);
+      return;
+    }
+    if (!hasQuick11ExitIntentSeen()) {
+      exitIntentTryOpenRef.current?.();
+      return;
+    }
+    window.location.href = "/";
+  }, [wizardOpen]);
+
   const shareSnapshotRef = useQuick11ShareSnapshotRef();
   const shareSnapshotData = useMemo<Quick11ShareSnapshotData>(
     () => ({
@@ -598,25 +630,9 @@ export function QuickCalculator11Content({
     return new Set(sorted.slice(0, Math.min(12, sorted.length)).map((row) => row.period));
   }, [rows]);
 
-  const pageTabs = [
-    { id: 0, title: "首頁", hint: "總覽" },
-    { id: 1, title: "本息均攤", hint: "穩定但利息高" },
-    { id: 2, title: "本金平均", hint: "內行人首選，利息最省" },
-    { id: 3, title: "提前還款", hint: "贖回自由加速器" },
-    { id: 4, title: "大額還款", hint: "單筆還本情境" },
-    { id: 5, title: "延遲還款代價", hint: "晚還的利息成本" },
-    { id: 6, title: "各種貸款 vs 存股", hint: "槓桿與報酬對照" },
-    { id: 7, title: "風險模擬", hint: "升息壓力測試" },
-    { id: 8, title: "財富翻轉", hint: "省下利息變資產" },
-    { id: 9, title: "交疊圖", hint: "本金 vs 累積利息" },
-    { id: 10, title: "通膨機會", hint: "購買力與投資 FV" },
-    { id: 11, title: "安全氣囊", hint: "緊急預備金月數" },
-    { id: 12, title: "銀行報告", hint: "談判健檢匯出" },
-    { id: 13, title: "升息連鎖", hint: "央行情境快切" },
-  ] as const;
-
+  const pageTabs = QUICK11_PAGE_TABS;
   /** 首頁左側固定；其餘 1～13 分頁全 render，橫向捲動區需外層 overflow-hidden 才能滑。 */
-  const scrollablePageTabs = pageTabs.slice(1);
+  const scrollablePageTabs = QUICK11_SCROLLABLE_PAGE_TABS;
 
   const tabScrollOuterClass = "min-w-0 flex-1 overflow-hidden";
   const tabScrollViewportClass =
@@ -894,18 +910,34 @@ export function QuickCalculator11Content({
               <p className="quick-brand-gold-shimmer text-[20px] font-black" style={{ ["--quick-brand-duration" as string]: "2.2s" }}>
                 財富自由計算機
               </p>
-              <button
-                type="button"
-                onClick={() => setIsLight((v) => !v)}
-                className={`rounded-md border px-2 py-1 text-[11px] font-bold transition ${
-                  isLight
-                    ? "border-slate-200 bg-white text-slate-900 shadow-[0_1px_4px_rgba(0,0,0,0.05)] hover:bg-slate-100"
-                    : "border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700"
-                }`}
-                aria-label="黑白切換"
-              >
-                {isLight ? "黑" : "白"}
-              </button>
+              <div className="flex shrink-0 items-center gap-1.5">
+                {!embeddedInMiniBlog ? (
+                  <button
+                    type="button"
+                    onClick={handlePageCloseClick}
+                    className={`hidden h-7 w-7 items-center justify-center rounded-md border text-[18px] font-bold leading-none transition [@media(hover:hover)_and_(pointer:fine)]:inline-flex ${
+                      isLight
+                        ? "border-slate-200 bg-white text-slate-600 shadow-[0_1px_4px_rgba(0,0,0,0.05)] hover:bg-slate-100 hover:text-slate-900"
+                        : "border-slate-600 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
+                    }`}
+                    aria-label="關閉計算機"
+                  >
+                    ×
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => setIsLight((v) => !v)}
+                  className={`rounded-md border px-2 py-1 text-[11px] font-bold transition ${
+                    isLight
+                      ? "border-slate-200 bg-white text-slate-900 shadow-[0_1px_4px_rgba(0,0,0,0.05)] hover:bg-slate-100"
+                      : "border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700"
+                  }`}
+                  aria-label="黑白切換"
+                >
+                  {isLight ? "黑" : "白"}
+                </button>
+              </div>
             </div>
             <h1 className={`quick11-cracked-title mt-1 text-[32px] font-black leading-tight ${isLight ? "opacity-90" : ""}`}>破產計算機</h1>
             <p className={`mt-1 text-[13px] tracking-[0.05em] ${isLight ? "text-slate-600" : "text-slate-400"}`}>先看月付與預警，再決定你是不是要把自由賣給銀行。</p>
@@ -1340,8 +1372,15 @@ export function QuickCalculator11Content({
                       extraMonthlyText={extraMonthlyText}
                       earlySavedMonths={whiteEarlySavedMonths}
                       earlySavedInterest={whiteEarlySavedInterest}
+                      maxStartMonth={baselineMonths}
+                      loanYears={loanYears}
+                      prepayMonths={prepayResultAnnuity.months}
                       onEarlyStartMonthText={setEarlyStartMonthText}
                       onEarlyStartMonthCommit={commitEarlyStartMonth}
+                      onEarlyStartMonthSlider={(v) => {
+                        setEarlyStartMonth(v);
+                        setEarlyStartMonthText(String(v));
+                      }}
                       onExtraChange={setExtraMonthlyPayment}
                       onExtraTextChange={setExtraMonthlyText}
                       lumpAtYear={lumpAtYear}
@@ -1697,6 +1736,10 @@ export function QuickCalculator11Content({
                 <Quick11ExcelWizardModal open={wizardOpen} onClose={() => setWizardOpen(false)} snapshotRef={shareSnapshotRef} />
                 <Quick11ExitIntentModal
                   blocked={wizardOpen}
+                  onTriggered={idleNudge.notifyExitIntentTriggered}
+                  onRegisterTryOpen={(tryOpen) => {
+                    exitIntentTryOpenRef.current = tryOpen;
+                  }}
                   onOpenWizard={() => setWizardOpen(true)}
                 />
                 {bottomCta.show ? (
@@ -1950,16 +1993,18 @@ function ResultPage(props: {
           <p className={`text-[14px] font-black ${isLight ? "text-slate-900" : "text-sky-100"}`}>跟{compareLabel} PK</p>
           <p className={`mt-1 text-[11px] ${isLight ? "text-slate-600" : "text-slate-300"}`}>紅線是目前方案累積利息，藍線是{compareLabel}累積利息。</p>
           <div className="mt-2">
-            <QuickDualLineChart
+            <Quick11InterestPkChart
               years={pkSeries.years}
               seriesA={pkSeries.annuityCum}
               seriesB={pkSeries.equalCum}
               legendA="目前方案：累積利息"
               legendB={`${compareLabel}：累積利息`}
+              compareShortLabel={compareLabel}
               title="累積利息走勢比較"
+              isLight={isLight}
             />
           </div>
-          <details className={`mt-2 rounded-md border p-2 ${isLight ? "border-slate-200 bg-white" : "border-slate-700 bg-slate-950/70"}`}>
+          <details className={`mt-5 rounded-md border p-2 ${isLight ? "border-slate-200 bg-white" : "border-slate-700 bg-slate-950/70"}`}>
             <summary className={`cursor-pointer text-[13px] font-bold ${isLight ? "text-slate-800" : "text-slate-200"}`}>展開看每一期利息 / 本金 / 剩餘本金</summary>
             <div className={`mt-2 max-h-[260px] overflow-auto rounded-md border ${isLight ? Q11_TABLE_BORDER_LIGHT : "border-slate-700"}`}>
               <table className="w-max min-w-[760px] table-auto text-left text-sm">
@@ -2030,7 +2075,7 @@ function ResultPage(props: {
           </details>
         </div>
       ) : null}
-      <div className={`rounded-lg border px-2 py-2 ${warning.wrapClass}`}>
+      <div className={`mt-5 rounded-lg border px-2 py-2 ${warning.wrapClass}`}>
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm font-black">預警</p>
           {dtiRatio > 0.5 ? (

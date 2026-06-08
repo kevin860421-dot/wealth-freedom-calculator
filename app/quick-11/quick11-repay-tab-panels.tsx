@@ -18,8 +18,12 @@ type Props = {
   extraMonthlyText: string;
   earlySavedMonths: number;
   earlySavedInterest: number;
+  maxStartMonth: number;
+  loanYears: number;
+  prepayMonths: number;
   onEarlyStartMonthText: (v: string) => void;
   onEarlyStartMonthCommit: () => void;
+  onEarlyStartMonthSlider: (v: number) => void;
   onExtraChange: (v: number) => void;
   onExtraTextChange: (v: string) => void;
   /** 大額還款 */
@@ -70,12 +74,16 @@ export function Quick11RepayTabPanels(props: Props) {
           isLight={isLight}
           startMonth={props.earlyStartMonth}
           startMonthText={props.earlyStartMonthText}
+          maxStartMonth={props.maxStartMonth}
           extraMonthly={props.extraMonthlyPayment}
           extraText={props.extraMonthlyText}
+          loanYears={props.loanYears}
+          prepayMonths={props.prepayMonths}
           savedMonths={props.earlySavedMonths}
           savedInterest={props.earlySavedInterest}
           onStartMonthText={props.onEarlyStartMonthText}
           onStartMonthCommit={props.onEarlyStartMonthCommit}
+          onStartMonthSlider={props.onEarlyStartMonthSlider}
           onExtraChange={(v) => {
             props.onExtraChange(v);
             props.onExtraTextChange(formatMoney(v));

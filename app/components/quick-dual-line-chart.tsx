@@ -40,9 +40,34 @@ export type QuickDualLineChartProps = {
   pointLabelMode?: "legacy" | "smart";
   /** 深色（預設）或白底 FinTech（quick-11） */
   variant?: "dark" | "light";
+  /** 橫軸最多顯示幾個「N年」刻度；超過 10 個資料點時自動稀疏（預設 7） */
+  yearLabelMaxCount?: number;
 };
 
 const DEFAULT_COLOR_A = "rgba(196, 122, 122, 0.92)";
+
+/** 長年期（如 30 年房貸）避免橫軸 1～30 全擠在一起 */
+function pickYearLabelIndices(years: number[], maxCount: number): Set<number> {
+  const n = years.length;
+  if (n <= 10) return new Set(Array.from({ length: n }, (_, i) => i));
+
+  const sequential = years.every((y, i) => y === years[0] + i);
+  if (sequential) {
+    const out = new Set<number>([0, n - 1]);
+    const step = n > 24 ? 5 : n > 14 ? 3 : 2;
+    years.forEach((yy, i) => {
+      if (i > 0 && i < n - 1 && yy % step === 0) out.add(i);
+    });
+    return out;
+  }
+
+  const cap = Math.max(4, maxCount);
+  const out = new Set<number>([0, n - 1]);
+  const innerSlots = cap - 2;
+  const gap = Math.max(1, Math.ceil((n - 1) / (innerSlots + 1)));
+  for (let i = gap; i < n - 1; i += gap) out.add(i);
+  return out;
+}
 const DEFAULT_COLOR_B = "rgba(106, 165, 184, 0.92)";
 
 export function QuickDualLineChart({
@@ -68,8 +93,10 @@ export function QuickDualLineChart({
   redLabelXOffset = 0,
   pointLabelMode = "legacy",
   variant = "dark",
+  yearLabelMaxCount = 7,
 }: QuickDualLineChartProps) {
   const isLight = variant === "light";
+  const yearLabelIndices = pickYearLabelIndices(years, yearLabelMaxCount);
   const w = 360;
   const hasTop = Boolean(topNotes);
   /** 節點數字在頂端易被 SVG 視窗裁切，預留頂部空間（不改 innerH 比例時同步加高整張圖） */
@@ -324,9 +351,11 @@ export function QuickDualLineChart({
                       </>
                     )
                   ) : null}
-                  <text x={x} y={labelY} fontSize="10" textAnchor="middle" fill={yearLabelFill} fontWeight="800">
-                    {yy}年
-                  </text>
+                  {yearLabelIndices.has(i) ? (
+                    <text x={x} y={labelY} fontSize="10" textAnchor="middle" fill={yearLabelFill} fontWeight="800">
+                      {yy}年
+                    </text>
+                  ) : null}
                 </g>
               );
             })}
