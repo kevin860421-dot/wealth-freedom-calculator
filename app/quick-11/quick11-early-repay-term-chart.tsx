@@ -30,6 +30,8 @@ type Quick11EarlyRepayTermChartProps = {
   prepayYears: number;
   savedMonths: number;
   savedInterest: number;
+  /** 右柱圖例，預設「提前還款」；大額還款頁傳「大額還款」 */
+  compareBarLabel?: string;
   isLight?: boolean;
 };
 
@@ -107,14 +109,16 @@ export function Quick11EarlyRepayTermChart({
   prepayYears,
   savedMonths,
   savedInterest,
+  compareBarLabel = "提前還款",
   isLight = false,
 }: Quick11EarlyRepayTermChartProps) {
   const yMax = Math.max(originalYears, prepayYears, 1);
   const savedSpan = formatSavedSpan(savedMonths);
+  const compareLabel = `🔵 ${compareBarLabel}`;
 
   const data = useMemo(
     () => ({
-      labels: ["🔴 原本方案", "🔵 提前還款"],
+      labels: ["🔴 原本方案", compareLabel],
       datasets: [
         {
           label: "清償年期",
@@ -139,7 +143,7 @@ export function Quick11EarlyRepayTermChart({
         },
       ],
     }),
-    [originalYears, prepayYears],
+    [originalYears, prepayYears, compareLabel],
   );
 
   const options: ChartOptions<"bar"> = useMemo(

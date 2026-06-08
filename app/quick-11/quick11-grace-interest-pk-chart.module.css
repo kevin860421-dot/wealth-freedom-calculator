@@ -1,0 +1,176 @@
+.shell {
+  margin-top: 4px;
+  padding: 12px 12px 10px;
+  border-radius: 0.75rem;
+}
+
+.shellCompact {
+  margin-top: 0;
+  padding: 10px;
+}
+
+.shellDark {
+  background: #1f293d;
+  border: 1px solid rgb(31 41 55);
+  box-shadow: inset 0 1px 0 rgb(56 189 248 / 0.05);
+}
+
+.shellLight {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.titleCompact {
+  font-size: 15px;
+  letter-spacing: 0.03em;
+}
+
+.titleDark {
+  color: #f1f5f9;
+}
+
+.titleLight {
+  color: #334155;
+}
+
+.sub {
+  margin: 4px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.subDark {
+  color: #9ca3af;
+}
+
+.subDark strong {
+  color: #f87171;
+}
+
+.subLight {
+  color: #64748b;
+}
+
+.subLight strong {
+  color: #dc2626;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.metricCell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 8px;
+  border-radius: 10px;
+}
+
+.metricCellDark {
+  background: #1a202c;
+  border: 1px solid rgb(55 65 81 / 0.55);
+}
+
+.metricCellLight {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.metricLabel {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metricLabelDark {
+  color: #9ca3af;
+}
+
+.metricLabelLight {
+  color: #64748b;
+}
+
+.metricFitWrap {
+  min-width: 0;
+  width: 100%;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.metricValue {
+  display: block;
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  font-family: "Microsoft JhengHei", "微軟正黑體", "PingFang TC", sans-serif;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.metricValueBaseDark {
+  color: #94a3b8;
+}
+
+.metricValueBaseLight {
+  color: #475569;
+}
+
+.metricValueWarnDark {
+  color: #f87171;
+}
+
+.metricValueWarnLight {
+  color: #dc2626;
+}
+
+.metricHint {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.metricHintDark {
+  color: #6b7280;
+}
+
+.metricHintLight {
+  color: #94a3b8;
+}
+
+.chartWrap {
+  margin-top: 8px;
+  height: 210px;
+  width: 100%;
+  border-radius: 0.5rem;
+}
+
+.chartWrapCompact {
+  margin-top: 6px;
+  max-height: 185px;
+  height: 185px;
+}
+
+.chartWrapDark {
+  background: transparent;
+}
+
+.chartWrapLight {
+  background: #ffffff;
+}

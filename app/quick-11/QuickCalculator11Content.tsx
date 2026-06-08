@@ -32,6 +32,7 @@ import {
   simulateLumpSumAtMonth,
 } from "./repay-simulations";
 import { Quick11RepayTabPanels } from "./quick11-repay-tab-panels";
+import { LUMP_AMOUNT_MAX, LUMP_AMOUNT_MIN } from "./quick11-white-repay-pages";
 import { Quick11AdvancedTabPanels } from "./quick11-advanced-tab-panels";
 import { rateHikeAddPct, type RateHikePreset } from "./quick11-advanced-calculations";
 import {
@@ -259,14 +260,26 @@ export function QuickCalculator11Content({
     stockVsInvestPctVal,
   ]);
 
-  useEffect(() => {
-    const capped = Math.min(Math.max(0, lumpSumAmount), loanAmount);
-    if (capped !== lumpSumAmount) setLumpSumAmount(capped);
-    setLumpSumText(formatMoney(capped));
-  }, [loanAmount]);
-
   const output = useMemo(() => buildLoanSchedules(loanAmount, annualRate, loanYears), [loanAmount, annualRate, loanYears]);
   const baselineMonths = Math.max(1, Math.round(loanYears * 12));
+  const lumpAmountMin = Math.min(LUMP_AMOUNT_MIN, loanAmount);
+  const lumpAmountMax = Math.min(LUMP_AMOUNT_MAX, loanAmount);
+  const maxLumpYear = Math.max(1, Math.floor(baselineMonths / 12));
+
+  const clampLumpAmount = useCallback(
+    (n: number) => {
+      if (lumpAmountMax <= 0) return 0;
+      const min = Math.min(lumpAmountMin, lumpAmountMax);
+      return Math.min(lumpAmountMax, Math.max(min, Math.round(n)));
+    },
+    [lumpAmountMin, lumpAmountMax],
+  );
+
+  useEffect(() => {
+    const capped = clampLumpAmount(lumpSumAmount);
+    if (capped !== lumpSumAmount) setLumpSumAmount(capped);
+    setLumpSumText(formatMoney(capped));
+  }, [loanAmount, clampLumpAmount]);
 
   useEffect(() => {
     const maxYear = Math.max(1, Math.floor(baselineMonths / 12));
@@ -377,20 +390,18 @@ export function QuickCalculator11Content({
   const stockVsLoanInterestBaseline = output.equalPrincipalTotalInterest;
   const stockVsLoanPreferInvest = stockVsLoanEstimatedGain > stockVsLoanInterestBaseline;
 
-  const lumpSliderStep =
-    loanAmount <= 300_000 ? 5_000 : loanAmount <= 1_500_000 ? 10_000 : loanAmount <= 8_000_000 ? 50_000 : 100_000;
   const lumpBumpStep =
     loanAmount <= 300_000 ? 5_000 : loanAmount <= 1_500_000 ? 10_000 : loanAmount <= 8_000_000 ? 50_000 : 100_000;
 
   const commitLumpSumInput = () => {
-    const next = parseAndClamp(lumpSumText, lumpSumAmount, 0, loanAmount, true);
+    const next = clampLumpAmount(parseAndClamp(lumpSumText, lumpSumAmount, lumpAmountMin, lumpAmountMax, true));
     setLumpSumAmount(next);
     setLumpSumText(formatMoney(next));
   };
 
   const bumpLumpSum = (delta: number) => {
-    const base = parseAndClamp(lumpSumText, lumpSumAmount, 0, loanAmount, true);
-    const bumped = Math.min(loanAmount, Math.max(0, Math.round(base + delta)));
+    const base = parseAndClamp(lumpSumText, lumpSumAmount, lumpAmountMin, lumpAmountMax, true);
+    const bumped = clampLumpAmount(base + delta);
     setLumpSumAmount(bumped);
     setLumpSumText(formatMoney(bumped));
   };
@@ -1390,15 +1401,20 @@ export function QuickCalculator11Content({
                       loanAmount={loanAmount}
                       lumpSavedMonths={whiteLumpSavedMonths}
                       lumpSavedInterest={whiteLumpSavedInterest}
-                      lumpSliderStep={lumpSliderStep}
+                      lumpPrepayMonths={lumpResultAnnuity.months}
+                      maxLumpYear={maxLumpYear}
                       onLumpAtYearText={setLumpAtYearText}
                       onLumpAtYearCommit={commitLumpAtYear}
+                      onLumpAtYearSlider={(y) => {
+                        setLumpAtYear(y);
+                        setLumpAtYearText(String(y));
+                      }}
                       onLumpTextChange={setLumpSumText}
                       onLumpCommit={commitLumpSumInput}
-                      onLumpSlider={(v) => {
-                        const clamped = Math.min(loanAmount, Math.max(0, Math.round(v)));
-                        setLumpSumAmount(clamped);
-                        setLumpSumText(formatMoney(clamped));
+                      onLumpAmountChange={(v) => {
+                        const capped = clampLumpAmount(v);
+                        setLumpSumAmount(capped);
+                        setLumpSumText(formatMoney(capped));
                       }}
                       graceYears={graceYM.y}
                       graceYearsText={graceYearsText}
@@ -1418,7 +1434,7 @@ export function QuickCalculator11Content({
                           <LoanPresetChipRow presets={loanPresetActions} onApply={applyLoanPreset} isLight={isLight} />
                         </div>
                       </div>
-                      <div className="grid min-w-0 grid-cols-2 gap-2">
+                      <div className="grid min-w-0 grid-cols-2 items-stretch gap-2">
                         <InfoCard
                           title="省下利息"
                           value={`NT$ ${formatMoney(stockVsLoanInterestBaseline)}`}
@@ -1471,6 +1487,7 @@ export function QuickCalculator11Content({
                           setStockVsInvestPctText(String(fixed));
                         }}
                         bumpStep={0.5}
+                        stepperStyle="inline"
                       />
 
                       <div
@@ -2207,29 +2224,32 @@ function InfoCard(props: {
 }) {
   const { title, value, tone, subtitle, shrinkValue = false, goldGlow = false, isLight = false } = props;
   const ring = goldGlow && !isLight ? goldStat.q11GoldStat : "";
+  const subtitleClass = `mt-auto min-h-[2.35rem] pt-1.5 text-[11px] leading-snug ${isLight ? "text-slate-500" : "text-slate-400"}`;
   return (
-    <div className={`min-w-0 rounded-lg border p-2 ${tone} flex min-h-[94px] flex-col ${ring}`.trim()}>
-      <div className={ring ? goldStat.q11GoldInner : "contents"}>
+    <div className={`min-w-0 rounded-lg border p-2 ${tone} flex h-full min-h-[94px] flex-col ${ring}`.trim()}>
+      <div className={`${ring ? goldStat.q11GoldInner : ""} flex min-h-0 flex-1 flex-col`}>
         <ShrinkFitText minPx={10} maxPx={16} className={`font-bold tracking-[0.04em] ${isLight ? "text-slate-600" : "text-slate-300"}`}>
           {title}
         </ShrinkFitText>
-        {shrinkValue ? (
-          <ShrinkFitCardAmount animKey={`${title}-${value}`}>{value}</ShrinkFitCardAmount>
-        ) : (
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={`${title}-${value}`}
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -14 }}
-              transition={{ duration: 0.24, ease: "easeOut" }}
-              className="mt-1 overflow-hidden text-ellipsis whitespace-nowrap text-[clamp(14px,3.8vw,21px)] font-black leading-none tracking-[-0.015em]"
-            >
-              {value}
-            </motion.p>
-          </AnimatePresence>
-        )}
-        {subtitle ? <p className={`mt-1 text-[11px] leading-snug ${isLight ? "text-slate-500" : "text-slate-400"}`}>{subtitle}</p> : null}
+        <div className="mt-1 flex min-h-[30px] flex-1 items-center">
+          {shrinkValue ? (
+            <ShrinkFitCardAmount animKey={`${title}-${value}`}>{value}</ShrinkFitCardAmount>
+          ) : (
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={`${title}-${value}`}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -14 }}
+                transition={{ duration: 0.24, ease: "easeOut" }}
+                className="overflow-hidden text-ellipsis whitespace-nowrap text-[clamp(14px,3.8vw,21px)] font-black leading-none tracking-[-0.015em]"
+              >
+                {value}
+              </motion.p>
+            </AnimatePresence>
+          )}
+        </div>
+        {subtitle ? <p className={subtitleClass}>{subtitle}</p> : <div className="mt-auto min-h-[2.35rem]" aria-hidden />}
       </div>
     </div>
   );
@@ -2377,10 +2397,57 @@ type InputFieldProps = {
   onSlider: (value: number) => void;
   onEnterNext?: () => void;
   isLight?: boolean;
+  /** inline：[-] 左、輸入中、[+] 右圓形步進（FinTech 風） */
+  stepperStyle?: "stacked" | "inline";
 };
 
+function StepperCircleButton(props: {
+  sign: "+" | "-";
+  onClick: () => void;
+  compact: boolean;
+  isLight: boolean;
+}) {
+  const { sign, onClick, compact, isLight } = props;
+  const size = compact ? "h-9 w-9 text-[18px]" : "h-10 w-10 text-[20px]";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={sign === "+" ? "增加數值" : "減少數值"}
+      className={`${size} shrink-0 rounded-full border font-black leading-none transition active:scale-95 ${
+        isLight
+          ? "border-slate-300 bg-slate-50 text-sky-600 shadow-[0_1px_3px_rgba(15,23,42,0.08)] hover:border-sky-400 hover:bg-white"
+          : "border-slate-600 bg-slate-800 text-sky-300 shadow-[inset_0_1px_0_rgba(148,163,184,0.12)] hover:border-sky-500 hover:bg-slate-700"
+      }`}
+    >
+      {sign}
+    </button>
+  );
+}
+
 function InputField(props: InputFieldProps) {
-  const { compact = false, label, unit, inputRef, value, text, sliderMin, sliderMax, sliderStep, bumpStep, quickActions, presetActions, onApplyPreset, onTextChange, onCommit, onBump, onSlider, onEnterNext, isLight = false } = props;
+  const {
+    compact = false,
+    label,
+    unit,
+    inputRef,
+    value,
+    text,
+    sliderMin,
+    sliderMax,
+    sliderStep,
+    bumpStep,
+    quickActions,
+    presetActions,
+    onApplyPreset,
+    onTextChange,
+    onCommit,
+    onBump,
+    onSlider,
+    onEnterNext,
+    isLight = false,
+    stepperStyle = "stacked",
+  } = props;
   const localInputRef = useRef<HTMLInputElement>(null);
   const labelMaxPx = compact ? 13 : 16;
   const labelMinPx = compact ? 9 : 11;
@@ -2446,7 +2513,10 @@ function InputField(props: InputFieldProps) {
           {unit}
         </span>
       </div>
-      <div className="flex min-w-0 items-stretch gap-1.5">
+      <div className={`flex min-w-0 items-center ${stepperStyle === "inline" ? "gap-2" : "items-stretch gap-1.5"}`}>
+        {stepperStyle === "inline" ? (
+          <StepperCircleButton sign="-" compact={compact} isLight={isLight} onClick={() => onBump(-bumpStep)} />
+        ) : null}
         <input
           ref={setInputRefs}
           value={text}
@@ -2469,26 +2539,30 @@ function InputField(props: InputFieldProps) {
           inputMode="decimal"
           placeholder="支援 +-*/"
         />
-        <div className={`grid shrink-0 grid-rows-2 gap-1 ${compact ? "w-8" : "w-9"}`}>
-          <button
-            type="button"
-            onClick={() => onBump(bumpStep)}
-            className={`rounded-sm border font-bold ${compact ? "h-[19px] text-[12px]" : "h-[21px] text-[13px]"} ${
-              isLight ? "border-slate-200 bg-white text-slate-900 hover:bg-slate-100" : "border-slate-600 bg-slate-900/80 text-slate-100 hover:bg-slate-800"
-            }`}
-          >
-            +
-          </button>
-          <button
-            type="button"
-            onClick={() => onBump(-bumpStep)}
-            className={`rounded-sm border font-bold ${compact ? "h-[19px] text-[12px]" : "h-[21px] text-[13px]"} ${
-              isLight ? "border-slate-200 bg-white text-slate-900 hover:bg-slate-100" : "border-slate-600 bg-slate-900/80 text-slate-100 hover:bg-slate-800"
-            }`}
-          >
-            -
-          </button>
-        </div>
+        {stepperStyle === "inline" ? (
+          <StepperCircleButton sign="+" compact={compact} isLight={isLight} onClick={() => onBump(bumpStep)} />
+        ) : (
+          <div className={`grid shrink-0 grid-rows-2 gap-1 ${compact ? "w-8" : "w-9"}`}>
+            <button
+              type="button"
+              onClick={() => onBump(bumpStep)}
+              className={`rounded-sm border font-bold ${compact ? "h-[19px] text-[12px]" : "h-[21px] text-[13px]"} ${
+                isLight ? "border-slate-200 bg-white text-slate-900 hover:bg-slate-100" : "border-slate-600 bg-slate-900/80 text-slate-100 hover:bg-slate-800"
+              }`}
+            >
+              +
+            </button>
+            <button
+              type="button"
+              onClick={() => onBump(-bumpStep)}
+              className={`rounded-sm border font-bold ${compact ? "h-[19px] text-[12px]" : "h-[21px] text-[13px]"} ${
+                isLight ? "border-slate-200 bg-white text-slate-900 hover:bg-slate-100" : "border-slate-600 bg-slate-900/80 text-slate-100 hover:bg-slate-800"
+              }`}
+            >
+              -
+            </button>
+          </div>
+        )}
       </div>
       <input
         type="range"

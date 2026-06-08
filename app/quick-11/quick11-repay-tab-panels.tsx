@@ -2,6 +2,8 @@
 
 import { formatMoney } from "./logic";
 import {
+  LUMP_AMOUNT_MAX,
+  LUMP_AMOUNT_MIN,
   Quick11EarlyRepayWhitePage,
   Quick11GraceDelayWhitePage,
   Quick11LumpSumWhitePage,
@@ -32,19 +34,23 @@ type Props = {
   lumpSumAmount: number;
   lumpSumText: string;
   loanAmount: number;
+  lumpPrepayMonths: number;
+  maxLumpYear: number;
   lumpSavedMonths: number;
   lumpSavedInterest: number;
-  lumpSliderStep: number;
   onLumpAtYearText: (v: string) => void;
   onLumpAtYearCommit: () => void;
+  onLumpAtYearSlider: (y: number) => void;
   onLumpTextChange: (v: string) => void;
   onLumpCommit: () => void;
-  onLumpSlider: (v: number) => void;
+  onLumpAmountChange: (v: number) => void;
   /** 寬限期 */
   graceYears: number;
   graceYearsText: string;
   graceMaxYears: number;
   graceDelayMetrics: {
+    planATotalInterest: number;
+    planBTotalInterest: number;
     planBInterestOnlyMonthly: number;
     planBAfterGraceMonthly: number;
     paymentIncreasePct: number;
@@ -96,26 +102,31 @@ export function Quick11RepayTabPanels(props: Props) {
           isLight={isLight}
           lumpAtYear={props.lumpAtYear}
           lumpAtYearText={props.lumpAtYearText}
+          maxLumpYear={props.maxLumpYear}
           lumpAmount={props.lumpSumAmount}
-          lumpText={props.lumpSumText}
-          loanAmount={props.loanAmount}
+          lumpAmountMin={Math.min(LUMP_AMOUNT_MIN, props.loanAmount)}
+          lumpAmountMax={Math.min(LUMP_AMOUNT_MAX, props.loanAmount)}
+          loanYears={props.loanYears}
+          lumpPrepayMonths={props.lumpPrepayMonths}
           savedMonths={props.lumpSavedMonths}
           savedInterest={props.lumpSavedInterest}
           onYearText={props.onLumpAtYearText}
           onYearCommit={props.onLumpAtYearCommit}
-          onLumpText={props.onLumpTextChange}
+          onYearSlider={props.onLumpAtYearSlider}
+          onLumpAmountChange={props.onLumpAmountChange}
           onLumpCommit={props.onLumpCommit}
-          onLumpSlider={props.onLumpSlider}
-          lumpSliderStep={props.lumpSliderStep}
         />
       ) : null}
 
       {page === 5 ? (
         <Quick11GraceDelayWhitePage
           isLight={isLight}
+          loanYears={props.loanYears}
           graceYears={props.graceYears}
           graceYearsText={props.graceYearsText}
           graceMaxYears={props.graceMaxYears}
+          baselineTotalInterest={props.graceDelayMetrics.planATotalInterest}
+          graceTotalInterest={props.graceDelayMetrics.planBTotalInterest}
           interestOnlyMonthly={props.graceDelayMetrics.planBInterestOnlyMonthly}
           afterGraceMonthly={props.graceDelayMetrics.planBAfterGraceMonthly}
           paymentIncreasePct={props.graceDelayMetrics.paymentIncreasePct}
