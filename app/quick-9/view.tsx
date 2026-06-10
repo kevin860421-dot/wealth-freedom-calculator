@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { QuickInvertedSlider, QuickStepperSliderField } from "@/app/components/quick-stepper-slider";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
 import { QuickBottomCtaStack } from "@/app/components/quick-bottom-cta-stack";
 import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
@@ -289,83 +290,32 @@ export function QuickCalculator9View() {
         >
           <div style={{ display: "grid", gap: 8 }}>
             <div style={{ padding: 8, borderRadius: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" }}>
-              <div style={{ fontSize: 15, opacity: 0.9, fontWeight: 900 }}>總投資金額</div>
-              <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 8, width: "100%", minWidth: 0 }}>
-                <input
-                  inputMode="numeric"
-                  value={totalBudgetText}
-                  onChange={(e) => {
-                    const raw = sanitizeCalcInput(e.target.value);
-                    setTotalBudgetText(raw);
-                    const next = commitMoney(raw, totalBudget, 0, 500000);
-                    setTotalBudget(next);
-                    applySplitFromInstallment(Math.min(monthlyInstallment, next), next);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      commitTotalBudget();
-                      (e.currentTarget as HTMLInputElement).blur();
-                    }
-                  }}
-                  onBlur={commitTotalBudget}
-                  style={{
-                    flex: "1 1 220px",
-                    height: 42,
-                    borderRadius: 12,
-                    border: "1px solid rgba(255,255,255,0.14)",
-                    background: "rgba(0,0,0,0.20)",
-                    color: "#e8eefc",
-                    padding: "0 12px",
-                    outline: "none",
-                    fontSize: 20,
-                    fontWeight: 950,
-                    width: "100%",
-                    minWidth: 0,
-                    fontVariantNumeric: "tabular-nums",
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => bumpTotalBudget(+1000)}
-                  aria-label="增加 1000"
-                  style={{
-                    flex: "0 0 44px",
-                    width: 44,
-                    height: 42,
-                    boxSizing: "border-box",
-                    borderRadius: 12,
-                    border: "1px solid rgba(255,255,255,0.14)",
-                    background: "rgba(255,255,255,0.08)",
-                    color: "#e8eefc",
-                    fontSize: 20,
-                    fontWeight: 900,
-                    cursor: "pointer",
-                  }}
-                >
-                  +
-                </button>
-                <button
-                  type="button"
-                  onClick={() => bumpTotalBudget(-1000)}
-                  aria-label="減少 1000"
-                  style={{
-                    flex: "0 0 44px",
-                    width: 44,
-                    height: 42,
-                    boxSizing: "border-box",
-                    borderRadius: 12,
-                    border: "1px solid rgba(255,255,255,0.14)",
-                    background: "rgba(255,255,255,0.08)",
-                    color: "#e8eefc",
-                    fontSize: 20,
-                    fontWeight: 900,
-                    cursor: "pointer",
-                  }}
-                >
-                  –
-                </button>
-              </div>
+              <QuickStepperSliderField
+                label="總投資金額"
+                labelStyle={{ fontSize: 15, opacity: 0.9, fontWeight: 900 }}
+                text={totalBudgetText}
+                value={clampNum(totalBudget, 0, 500000)}
+                min={0}
+                max={500000}
+                step={100}
+                bumpStep={1000}
+                ariaLabel="總投資金額"
+                onTextChange={(raw) => {
+                  const cleaned = sanitizeCalcInput(raw);
+                  setTotalBudgetText(cleaned);
+                  const next = commitMoney(cleaned, totalBudget, 0, 500000);
+                  setTotalBudget(next);
+                  applySplitFromInstallment(Math.min(monthlyInstallment, next), next);
+                }}
+                onCommit={commitTotalBudget}
+                onBump={bumpTotalBudget}
+                onChange={(v) => {
+                  const next = Math.round(clampNum(v, 0, 500000) / 100) * 100;
+                  setTotalBudget(next);
+                  setTotalBudgetText(formatTwd(next));
+                  applySplitFromInstallment(Math.min(monthlyInstallment, next), next);
+                }}
+              />
             </div>
 
             <div style={{ display: "flex", gap: 12, width: "100%", minWidth: 0 }}>
@@ -447,29 +397,16 @@ export function QuickCalculator9View() {
             </div>
 
             {/* 分期 vs 可投資：單一雙向分配拉條（同 quick-8） */}
-            <input
-              type="range"
+            <QuickInvertedSlider
+              value={investmentBase}
               min={0}
               max={Math.max(0, totalBudget)}
               step={100}
-              value={investmentBase}
-              onChange={(e) => {
-                const inv = Math.round(clampNum(Number(e.target.value), 0, totalBudget) / 100) * 100;
-                applySplitFromInvest(inv, totalBudget);
-              }}
-              aria-label="可投資金額與分期支出分配拉條"
-              style={{
-                display: "block",
-                width: "90%",
-                maxWidth: "100%",
-                minWidth: 0,
-                boxSizing: "border-box",
-                marginLeft: "auto",
-                marginRight: "auto",
-                marginTop: 2,
-                marginBottom: 2,
-                height: 28,
-                accentColor: "#3B82F6",
+              ariaLabel="可投資金額與分期支出分配拉條"
+              style={{ width: "90%", marginLeft: "auto", marginRight: "auto" }}
+              onChange={(inv) => {
+                const rounded = Math.round(clampNum(inv, 0, totalBudget) / 100) * 100;
+                applySplitFromInvest(rounded, totalBudget);
               }}
             />
 
@@ -479,22 +416,22 @@ export function QuickCalculator9View() {
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <button
                     type="button"
-                    onClick={() => setInstallmentYears((v) => Math.round(clampNum(v - 1, 1, 10)))}
+                    onClick={() => setInstallmentYears((v) => Math.round(clampNum(v + 1, 1, 10)))}
                     style={miniBtn}
-                    aria-label="分期期限減 1 年"
+                    aria-label="分期期限加 1 年"
                   >
-                    –
+                    +
                   </button>
                   <div style={{ flex: 1, textAlign: "center", fontSize: 16, fontWeight: 950, fontVariantNumeric: "tabular-nums" }}>
                     {installmentYears} 年
                   </div>
                   <button
                     type="button"
-                    onClick={() => setInstallmentYears((v) => Math.round(clampNum(v + 1, 1, 10)))}
+                    onClick={() => setInstallmentYears((v) => Math.round(clampNum(v - 1, 1, 10)))}
                     style={miniBtn}
-                    aria-label="分期期限加 1 年"
+                    aria-label="分期期限減 1 年"
                   >
-                    +
+                    –
                   </button>
                 </div>
               </label>
@@ -504,22 +441,22 @@ export function QuickCalculator9View() {
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <button
                     type="button"
-                    onClick={() => setDelayYears((v) => Math.round(clampNum(v - 1, 1, 10)))}
+                    onClick={() => setDelayYears((v) => Math.round(clampNum(v + 1, 1, 10)))}
                     style={miniBtn}
-                    aria-label="延遲年數減 1 年"
+                    aria-label="延遲年數加 1 年"
                   >
-                    –
+                    +
                   </button>
                   <div style={{ flex: 1, textAlign: "center", fontSize: 16, fontWeight: 950, fontVariantNumeric: "tabular-nums" }}>
                     {delayYears} 年
                   </div>
                   <button
                     type="button"
-                    onClick={() => setDelayYears((v) => Math.round(clampNum(v + 1, 1, 10)))}
+                    onClick={() => setDelayYears((v) => Math.round(clampNum(v - 1, 1, 10)))}
                     style={miniBtn}
-                    aria-label="延遲年數加 1 年"
+                    aria-label="延遲年數減 1 年"
                   >
-                    +
+                    –
                   </button>
                 </div>
               </label>
@@ -528,12 +465,12 @@ export function QuickCalculator9View() {
             <div style={{ padding: 8, borderRadius: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" }}>
               <div style={{ fontSize: 15, opacity: 0.9, fontWeight: 900 }}>年化利率（%）</div>
               <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 8 }}>
-                <button type="button" onClick={() => setAnnualPct((v) => Math.round(clampNum(v - 1, 0, 30)))} style={miniBtn} aria-label="年化利率減 1%">
-                  –
-                </button>
-                <div style={{ flex: 1, textAlign: "center", fontSize: 16, fontWeight: 950, fontVariantNumeric: "tabular-nums" }}>{annualPct}%</div>
                 <button type="button" onClick={() => setAnnualPct((v) => Math.round(clampNum(v + 1, 0, 30)))} style={miniBtn} aria-label="年化利率加 1%">
                   +
+                </button>
+                <div style={{ flex: 1, textAlign: "center", fontSize: 16, fontWeight: 950, fontVariantNumeric: "tabular-nums" }}>{annualPct}%</div>
+                <button type="button" onClick={() => setAnnualPct((v) => Math.round(clampNum(v - 1, 0, 30)))} style={miniBtn} aria-label="年化利率減 1%">
+                  –
                 </button>
               </div>
             </div>

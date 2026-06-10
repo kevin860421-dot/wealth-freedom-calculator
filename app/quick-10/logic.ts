@@ -34,8 +34,11 @@ export function parseMoneyInputToInt(s: string): number | null {
   return Math.trunc(n);
 }
 
-export const currentMarketIndex = 38926;
+/** @deprecated 請用 useQuick10MarketIndex；保留作 SSR／離線預設 */
+export const currentMarketIndex = 38_926;
 export const historicalLowReference = 20000;
+export const HOME_YEARS_MIN = 1;
+export const HOME_YEARS_MAX = 100;
 
 export function evalInput(raw: string, current: number, min: number, max: number, integer = false) {
   const hasOps = /[+\-*/()]/.test(raw);
@@ -50,12 +53,12 @@ export const inputStyle: CSSProperties = {
   width: "100%",
   minWidth: 0,
   flexShrink: 1,
-  height: 44,
-  borderRadius: 12,
-  border: "1px solid rgba(255,255,255,0.14)",
-  background: "rgba(0,0,0,0.20)",
-  color: "#e8eefc",
-  padding: "0 8px",
+  height: 40,
+  borderRadius: 6,
+  border: "1px solid rgb(71, 85, 105)",
+  background: "#0b1220",
+  color: "#f1f5f9",
+  padding: "0 12px",
   outline: "none",
   fontSize: 18,
   fontWeight: 950,
@@ -64,16 +67,16 @@ export const inputStyle: CSSProperties = {
 };
 
 export const miniBtn: CSSProperties = {
-  minWidth: 34,
-  width: 34,
-  height: 44,
+  minWidth: 36,
+  width: 36,
+  height: 36,
   flexShrink: 0,
   padding: 0,
   boxSizing: "border-box",
-  borderRadius: 10,
-  border: "1px solid rgba(255,255,255,0.14)",
-  background: "rgba(255,255,255,0.08)",
-  color: "#e8eefc",
+  borderRadius: 9999,
+  border: "1px solid rgb(71, 85, 105)",
+  background: "rgb(30, 41, 59)",
+  color: "#7dd3fc",
   fontSize: 18,
   fontWeight: 900,
   cursor: "pointer",

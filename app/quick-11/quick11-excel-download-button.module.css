@@ -1,0 +1,37 @@
+.btn {
+  display: flex;
+  width: 100%;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(52 211 153 / 0.45);
+  border-radius: 0.75rem;
+  background: linear-gradient(180deg, rgb(6 78 59 / 0.55), rgb(15 23 42 / 0.95));
+  padding: 0.625rem 1rem;
+  font-size: 1.375rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  color: #f8fafc;
+  box-shadow: 0 0 22px rgb(16 185 129 / 0.18);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.btn:active {
+  transform: scale(0.99);
+}
+
+.btnLight {
+  border-color: rgb(16 185 129 / 0.35);
+  background: linear-gradient(180deg, rgb(236 253 245), rgb(255 255 255));
+  color: #0f172a;
+  box-shadow: 0 2px 12px rgb(16 185 129 / 0.12);
+}
+
+.excel {
+  color: #6ee7b7;
+}
+
+.btnLight .excel {
+  color: #059669;
+}

@@ -80,7 +80,7 @@ export default async function MiniBlogPostPage({ params }: PageProps) {
                   : post.calculatorRoute === "/quick-9"
                     ? "延遲享樂計算機 2"
                     : post.calculatorRoute === "/quick-10"
-                      ? "複利美夢 VS 崩盤現實 計算機"
+                      ? "破產計算機 股票版"
                       : post.calculatorRoute === "/quick-11"
                         ? "破產計算機"
                         : post.calculatorRoute === "/quick-12"

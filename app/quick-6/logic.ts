@@ -48,7 +48,7 @@ export const MORTGAGE_EQUITY_SHARE = 0.55;
 export const MONEY_MIN = 0;
 export const MONEY_MAX = 1_000_000;
 export const YEARS_MIN = 1;
-export const YEARS_MAX = 50;
+export const YEARS_MAX = 100;
 export const INVEST_ANNUAL_PCT = 7;
 
 export const MILESTONE_YEARS = [1, 5, 10, 20, 30, 40] as const;

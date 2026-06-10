@@ -5,6 +5,7 @@ import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
+import { QuickStepperSliderField } from "@/app/components/quick-stepper-slider";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
 import { QuickBottomCtaStack } from "@/app/components/quick-bottom-cta-stack";
 import { clampNum, monthsToReachTarget } from "@/lib/quick-calculator-math";
@@ -174,85 +175,45 @@ export default function QuickCalculator2View() {
 
         <section style={{ border: "1px solid rgba(255,255,255,0.12)", borderRadius: 14, padding: 10, background: "rgba(255,255,255,0.05)" }}>
           <div style={{ display: "grid", gap: 12 }}>
-            <label style={{ display: "grid", gap: 6, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 800 }}>目標月領金額</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", minWidth: 0 }}>
-                <input
-                  inputMode="numeric"
-                  value={targetMonthlyText}
-                  onChange={(e) => setTargetMonthlyText(sanitizeCalcInput(e.target.value))}
-                  onBlur={commitTargetMonthly}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      commitTargetMonthly();
-                      (e.currentTarget as HTMLInputElement).blur();
-                    }
-                  }}
-                  style={{ ...inputStyle, flex: "1 1 0", minWidth: 0 }}
-                />
-                <button type="button" onClick={() => bumpTarget(-1000)} style={miniBtn} aria-label="目標月領減 1000">
-                  –
-                </button>
-                <button type="button" onClick={() => bumpTarget(1000)} style={miniBtn} aria-label="目標月領加 1000">
-                  +
-                </button>
-              </div>
-              <input
-                type="range"
-                min={MONEY_MIN}
-                max={MONEY_MAX}
-                step={100}
-                value={clampNum(targetMonthly, MONEY_MIN, MONEY_MAX)}
-                onChange={(e) => {
-                  const v = Math.round(clampNum(Number(e.target.value), MONEY_MIN, MONEY_MAX) / 100) * 100;
-                  setTargetMonthly(v);
-                  setTargetMonthlyText(formatTwd(v));
-                }}
-                aria-label="目標月領金額拉條"
-                style={sliderStyle}
-              />
-            </label>
+            <QuickStepperSliderField
+              label="目標月領金額"
+              labelStyle={{ fontSize: 15, fontWeight: 800 }}
+              text={targetMonthlyText}
+              value={clampNum(targetMonthly, MONEY_MIN, MONEY_MAX)}
+              min={MONEY_MIN}
+              max={MONEY_MAX}
+              step={100}
+              bumpStep={1000}
+              ariaLabel="目標月領金額"
+              onTextChange={(v) => setTargetMonthlyText(sanitizeCalcInput(v))}
+              onCommit={commitTargetMonthly}
+              onBump={bumpTarget}
+              onChange={(v) => {
+                const rounded = Math.round(clampNum(v, MONEY_MIN, MONEY_MAX) / 100) * 100;
+                setTargetMonthly(rounded);
+                setTargetMonthlyText(formatTwd(rounded));
+              }}
+            />
 
-            <label style={{ display: "grid", gap: 6, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 800 }}>每月投入金額</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", minWidth: 0 }}>
-                <input
-                  inputMode="numeric"
-                  value={monthlyInvestText}
-                  onChange={(e) => setMonthlyInvestText(sanitizeCalcInput(e.target.value))}
-                  onBlur={commitMonthlyInvest}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      commitMonthlyInvest();
-                      (e.currentTarget as HTMLInputElement).blur();
-                    }
-                  }}
-                  style={{ ...inputStyle, flex: "1 1 0", minWidth: 0 }}
-                />
-                <button type="button" onClick={() => bumpInvest(-1000)} style={miniBtn} aria-label="每月投入減 1000">
-                  –
-                </button>
-                <button type="button" onClick={() => bumpInvest(1000)} style={miniBtn} aria-label="每月投入加 1000">
-                  +
-                </button>
-              </div>
-              <input
-                type="range"
-                min={MONEY_MIN}
-                max={MONEY_MAX}
-                step={100}
-                value={clampNum(monthlyInvest, MONEY_MIN, MONEY_MAX)}
-                onChange={(e) => {
-                  const v = Math.round(clampNum(Number(e.target.value), MONEY_MIN, MONEY_MAX) / 100) * 100;
-                  setMonthlyInvest(v);
-                  setMonthlyInvestText(formatTwd(v));
-                }}
-                aria-label="每月投入金額拉條"
-                style={sliderStyle}
-              />
-            </label>
+            <QuickStepperSliderField
+              label="每月投入金額"
+              labelStyle={{ fontSize: 15, fontWeight: 800 }}
+              text={monthlyInvestText}
+              value={clampNum(monthlyInvest, MONEY_MIN, MONEY_MAX)}
+              min={MONEY_MIN}
+              max={MONEY_MAX}
+              step={100}
+              bumpStep={1000}
+              ariaLabel="每月投入金額"
+              onTextChange={(v) => setMonthlyInvestText(sanitizeCalcInput(v))}
+              onCommit={commitMonthlyInvest}
+              onBump={bumpInvest}
+              onChange={(v) => {
+                const rounded = Math.round(clampNum(v, MONEY_MIN, MONEY_MAX) / 100) * 100;
+                setMonthlyInvest(rounded);
+                setMonthlyInvestText(formatTwd(rounded));
+              }}
+            />
 
             <div style={cardStyle}>
               <div style={{ fontSize: 15, fontWeight: 800 }}>約幾年達成</div>

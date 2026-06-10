@@ -1,4 +1,4 @@
-﻿import { QUICK12_DISPLAY_TITLE } from "@/app/quick-12/display-title";
+import { QUICK12_DISPLAY_TITLE } from "@/app/quick-12/display-title";
 import { enhanceQuick11SectionsForV2 } from "@/lib/quick11-article-enhancements";
 import { HUMAN_STORY_ANON_NOTE_LOAN, publishAtUsesHumanStoryOpening } from "@/lib/human-story-opening";
 import { formatPrincipalZhTW, getQuick11LoanPresetBySlug, parseQuick11SlugEmbed } from "../../quick-11/loan-scenarios";
@@ -2553,7 +2553,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     keywordC: "資產防護線試算",
     closeQuestion: "你想追漂亮曲線，還是追撐得住的曲線？",
     calculatorRoute: "/quick-10",
-    calculatorName: "複利美夢 VS 崩盤現實 計算機",
+    calculatorName: "破產計算機 股票版",
     calculatorNote: "先看順風，再看崩盤。能睡得著的版本，才是你的版本。",
   },
   {
@@ -2568,7 +2568,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     keywordC: "退休前崩盤影響",
     closeQuestion: "你的計畫有保護接近終點那幾年嗎？",
     calculatorRoute: "/quick-10",
-    calculatorName: "複利美夢 VS 崩盤現實 計算機",
+    calculatorName: "破產計算機 股票版",
   },
   {
     slug: "quick10-20percent-drop-stress-case",
@@ -2582,7 +2582,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     keywordC: "投資心理準備",
     closeQuestion: "回檔 20% 時，你是有流程，還是靠運氣？",
     calculatorRoute: "/quick-10",
-    calculatorName: "複利美夢 VS 崩盤現實 計算機",
+    calculatorName: "破產計算機 股票版",
   },
   {
     slug: "quick10-30percent-drop-stress-case",
@@ -2596,7 +2596,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     keywordC: "崩盤行為風險",
     closeQuestion: "跌到 30% 時，你能照計畫做事嗎？",
     calculatorRoute: "/quick-10",
-    calculatorName: "複利美夢 VS 崩盤現實 計算機",
+    calculatorName: "破產計算機 股票版",
   },
   {
     slug: "quick10-40percent-drop-stress-case",
@@ -2610,7 +2610,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     keywordC: "崩盤防線",
     closeQuestion: "你有看過最壞版本，還是只看順風版本？",
     calculatorRoute: "/quick-10",
-    calculatorName: "複利美夢 VS 崩盤現實 計算機",
+    calculatorName: "破產計算機 股票版",
   },
   {
     slug: "quick10-withdrawal-need-during-crash",
@@ -2624,7 +2624,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     keywordC: "現金流防守",
     closeQuestion: "你的計畫有把臨時提款壓力算進去嗎？",
     calculatorRoute: "/quick-10",
-    calculatorName: "複利美夢 VS 崩盤現實 計算機",
+    calculatorName: "破產計算機 股票版",
   },
   {
     slug: "quick10-emergency-fund-before-risk-assets",
@@ -2638,7 +2638,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     keywordC: "低點賣出風險",
     closeQuestion: "你的安全墊夠你撐過一段逆風嗎？",
     calculatorRoute: "/quick-10",
-    calculatorName: "複利美夢 VS 崩盤現實 計算機",
+    calculatorName: "破產計算機 股票版",
   },
   {
     slug: "quick10-sequence-risk-for-near-retire",
@@ -2652,7 +2652,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     keywordC: "接近退休配置",
     closeQuestion: "你的配置有為接近退休期降風險嗎？",
     calculatorRoute: "/quick-10",
-    calculatorName: "複利美夢 VS 崩盤現實 計算機",
+    calculatorName: "破產計算機 股票版",
   },
   {
     slug: "quick10-sell-in-panic-vs-hold-discipline",
@@ -2666,7 +2666,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     keywordC: "情緒決策風險",
     closeQuestion: "你會在低點賣掉，還是照流程走完？",
     calculatorRoute: "/quick-10",
-    calculatorName: "複利美夢 VS 崩盤現實 計算機",
+    calculatorName: "破產計算機 股票版",
   },
   {
     slug: "quick10-recovery-years-after-big-drawdown",
@@ -2680,7 +2680,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     keywordC: "跌幅回復路徑",
     closeQuestion: "你有給自己的策略足夠回復時間嗎？",
     calculatorRoute: "/quick-10",
-    calculatorName: "複利美夢 VS 崩盤現實 計算機",
+    calculatorName: "破產計算機 股票版",
   },
   {
     slug: "quick10-asset-allocation-under-crash",
@@ -2694,7 +2694,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     keywordC: "防守型配置",
     closeQuestion: "你的配置是在追高報酬，還是追可持續？",
     calculatorRoute: "/quick-10",
-    calculatorName: "複利美夢 VS 崩盤現實 計算機",
+    calculatorName: "破產計算機 股票版",
   },
   {
     slug: "quick10-hedge-cash-bond-equity-balance",
@@ -2708,7 +2708,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     keywordC: "資產平衡策略",
     closeQuestion: "你的配置能讓你在逆風夜晚睡得著嗎？",
     calculatorRoute: "/quick-10",
-    calculatorName: "複利美夢 VS 崩盤現實 計算機",
+    calculatorName: "破產計算機 股票版",
   },
   {
     slug: "quick10-income-stability-vs-risk-capacity",
@@ -2722,7 +2722,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     keywordC: "現金流與配置",
     closeQuestion: "你的風險設定，符合你現在的收入結構嗎？",
     calculatorRoute: "/quick-10",
-    calculatorName: "複利美夢 VS 崩盤現實 計算機",
+    calculatorName: "破產計算機 股票版",
   },
   {
     slug: "quick10-job-loss-plus-market-crash-plan",
@@ -2736,7 +2736,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     keywordC: "備援理財策略",
     closeQuestion: "你的策略有雙重逆風備案嗎？",
     calculatorRoute: "/quick-10",
-    calculatorName: "複利美夢 VS 崩盤現實 計算機",
+    calculatorName: "破產計算機 股票版",
   },
   {
     slug: "quick10-family-protection-during-drawdown",
@@ -2750,7 +2750,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     keywordC: "風險管理家庭版",
     closeQuestion: "你的配置能同時照顧家庭與長期目標嗎？",
     calculatorRoute: "/quick-10",
-    calculatorName: "複利美夢 VS 崩盤現實 計算機",
+    calculatorName: "破產計算機 股票版",
   },
   {
     slug: "quick10-annual-crash-rehearsal-checklist",
@@ -2764,7 +2764,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     keywordC: "投資壓測流程",
     closeQuestion: "你有定期驗證策略，還是只希望它會有效？",
     calculatorRoute: "/quick-10",
-    calculatorName: "複利美夢 VS 崩盤現實 計算機",
+    calculatorName: "破產計算機 股票版",
   },
   {
     slug: "quick10-avoid-overoptimistic-return-setting",
@@ -2778,7 +2778,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     keywordC: "試算假設風險",
     closeQuestion: "你的數字是在規劃未來，還是在安慰現在？",
     calculatorRoute: "/quick-10",
-    calculatorName: "複利美夢 VS 崩盤現實 計算機",
+    calculatorName: "破產計算機 股票版",
   },
   {
     slug: "quick10-sleep-well-portfolio-design",
@@ -2792,7 +2792,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     keywordC: "波動承受度",
     closeQuestion: "你現在的配置，能讓你在大跌時還睡得著嗎？",
     calculatorRoute: "/quick-10",
-    calculatorName: "複利美夢 VS 崩盤現實 計算機",
+    calculatorName: "破產計算機 股票版",
   },
   {
     slug: "quick10-build-30year-antifragile-habit",
@@ -2806,7 +2806,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     keywordC: "逆風投資流程",
     closeQuestion: "你願意用流程取代情緒，換長期穩定嗎？",
     calculatorRoute: "/quick-10",
-    calculatorName: "複利美夢 VS 崩盤現實 計算機",
+    calculatorName: "破產計算機 股票版",
   },
   {
     slug: "quick10-crash-reality-longterm-discipline",
@@ -2820,7 +2820,7 @@ const TOPIC_SEEDS: TopicSeed[] = [
     keywordC: "崩盤現實應對",
     closeQuestion: "下一次大跌來時，你會崩潰，還是照流程前進？",
     calculatorRoute: "/quick-10",
-    calculatorName: "複利美夢 VS 崩盤現實 計算機",
+    calculatorName: "破產計算機 股票版",
   },
   {
     slug: "quick12-take-home-salary-nhi2-intro",

@@ -1,15 +1,30 @@
 /* 僅供 MobileHeroSection（#mobile-app-view）— 不影響其他頁面 */
 
-.root {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+.titleRoot {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
   background: #0b1120;
-  padding: 16px 14px 20px;
+  padding: 16px 14px 12px;
   border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.titleRoot .titleBlock {
+  border-bottom: none;
+  padding-bottom: 4px;
+}
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  background: #0b1120;
+  padding: 12px 14px 14px;
+  border-radius: 14px;
 }
 
 .titleBlock {
@@ -80,96 +95,16 @@
   letter-spacing: 0.02em;
 }
 
-/* 進度區 */
-.progressCard {
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(15, 23, 42, 0.55);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  padding: 16px 16px 18px;
-}
-
-.progressTop {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.progressLines {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  text-align: left;
-}
-
-.progressLinePrimary {
-  font-size: 14px;
-  font-weight: 600;
-  color: #e2e8f0;
-  line-height: 1.45;
-}
-
-.progressLineSecondary {
-  font-size: 13px;
-  font-weight: 500;
-  color: #94a3b8;
-  line-height: 1.45;
-}
-
-.pctBadge {
-  flex-shrink: 0;
-  font-size: 20px;
-  font-weight: 800;
-  color: #4ade80;
-  line-height: 1;
-  padding: 4px 0;
-  text-shadow: 0 0 24px rgba(74, 222, 128, 0.35);
-}
-
-.progressBarRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.startDot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: linear-gradient(145deg, #4ade80, #22c55e);
-  flex-shrink: 0;
-  box-shadow: 0 0 12px rgba(34, 197, 94, 0.65);
-}
-
-.track {
-  flex: 1;
-  min-width: 0;
-  height: 8px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
-  overflow: hidden;
-}
-
-.fill {
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #16a34a, #22c55e, #4ade80);
-  transition: width 0.85s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
 /* CTA */
 .cta {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 52px;
-  padding: 14px 18px;
-  border-radius: 14px;
-  font-size: 16px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14px;
   font-weight: 800;
   color: #020617;
   text-decoration: none;
@@ -199,13 +134,13 @@
 .kpiGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 8px;
   align-items: stretch;
 }
 
 .kpiCard {
-  padding: 14px 10px 16px;
-  border-radius: 12px;
+  padding: 10px 8px 12px;
+  border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(15, 23, 42, 0.72);
   backdrop-filter: blur(10px);
@@ -221,10 +156,10 @@
 }
 
 .kpiLabel {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   color: #94a3b8;
-  margin: 0 0 10px;
+  margin: 0 0 6px;
   line-height: 1.35;
 }
 

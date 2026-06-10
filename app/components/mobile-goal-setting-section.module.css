@@ -1,73 +1,99 @@
 /* 僅 MobileGoalSettingSection — 不影響桌機 */
 
 .root {
-  padding: 22px 16px 24px;
-  border-radius: 16px;
+  padding: 14px 16px 16px;
+  border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(11, 17, 32, 0.75);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
   width: 100%;
   box-sizing: border-box;
 }
 
-.titleBlock {
-  text-align: left;
+/* 藥丸 Tab */
+.modeTabs {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modeTab {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 8px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.modeTabActive {
+  color: #f8fafc;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.35), rgba(34, 197, 94, 0.28));
+  box-shadow:
+    0 0 0 1px rgba(74, 222, 128, 0.25),
+    0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.inputPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+  padding-top: 4px;
 }
 
 .title {
-  font-size: 22px;
+  font-size: 16px;
   font-weight: 700;
-  color: #f1f5f9;
-  margin: 0 0 6px;
-  letter-spacing: -0.02em;
-}
-
-.subtitle {
-  font-size: 13px;
-  font-weight: 500;
-  color: #94a3b8;
-  margin: 0;
-  line-height: 1.45;
-}
-
-/* 核心：目標月收入 */
-.sliderSection {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  color: #e2e8f0;
+  margin: 6px 0 2px;
+  letter-spacing: 0.02em;
+  text-align: left;
+  line-height: 1.35;
 }
 
 .bigNumArea {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0;
   width: 100%;
+  padding: 4px 0 2px;
 }
 
 .sliderToast {
-  margin: 0 auto 10px;
-  padding: 7px 14px;
+  margin: 0 auto 8px;
+  padding: 6px 12px;
   border-radius: 999px;
   border: 1px solid rgba(253, 224, 71, 0.35);
   background: linear-gradient(165deg, rgba(30, 27, 75, 0.92), rgba(15, 23, 42, 0.96));
   color: #fde047;
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
   animation: toastPop 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes toastPop {
   0% {
     opacity: 0;
-    transform: translateY(10px) scale(0.96);
+    transform: translateY(8px) scale(0.96);
   }
   100% {
     opacity: 1;
@@ -75,18 +101,11 @@
   }
 }
 
-.sliderLabel {
-  font-size: 14px;
-  font-weight: 600;
-  color: #e2e8f0;
-  margin: 0;
-}
-
 .bigNumWrap {
   text-align: center;
-  padding: 4px 4px 2px;
-  transition: opacity 0.2s ease;
+  padding: 4px 6px 2px;
   width: 100%;
+  transition: opacity 0.2s ease;
 }
 
 .bigNumWrapFlash {
@@ -99,7 +118,7 @@
     transform: scale(0.96);
   }
   45% {
-    transform: scale(1.05);
+    transform: scale(1.04);
   }
   100% {
     opacity: 1;
@@ -111,7 +130,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: 4px;
   margin: 0;
   line-height: 1.05;
@@ -119,31 +137,45 @@
 
 .bigNumDigits {
   display: block;
-  font-size: clamp(2.25rem, 10vw, 2.85rem);
-  font-weight: 800;
+  max-width: 100%;
+  font-size: clamp(2rem, 10vw, 2.75rem);
+  font-weight: 900;
   color: #facc15;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 28px rgba(250, 204, 21, 0.22);
+  text-shadow: 0 0 24px rgba(250, 204, 21, 0.28);
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.bigNumDigitsCyan {
+  color: #67e8f9;
+  font-size: clamp(2.35rem, 11.5vw, 3.1rem);
+  text-shadow: 0 0 28px rgba(103, 232, 249, 0.32);
 }
 
 .bigUnit {
   display: block;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: #94a3b8;
-  letter-spacing: 0.12em;
-  margin: 0;
+  letter-spacing: 0.08em;
+}
+
+.yearsInputGlow {
+  box-shadow:
+    inset 0 0 0 1px rgba(103, 232, 249, 0.25),
+    0 0 16px rgba(34, 211, 238, 0.12);
 }
 
 .sliderWrap {
   position: relative;
-  padding: 12px 0 6px;
+  padding: 6px 0 4px;
 }
 
 .range {
   width: 100%;
-  height: 28px;
+  height: 24px;
   margin: 0;
   background: transparent;
   -webkit-appearance: none;
@@ -158,7 +190,7 @@
 }
 
 .range::-webkit-slider-runnable-track {
-  height: 10px;
+  height: 8px;
   border-radius: 999px;
   background: linear-gradient(
     90deg,
@@ -168,307 +200,228 @@
     rgba(255, 255, 255, 0.1) var(--fill-pct, 25%),
     rgba(255, 255, 255, 0.1) 100%
   );
-  transition: filter 0.15s ease;
 }
 
 .range::-moz-range-track {
-  height: 10px;
+  height: 8px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.1);
 }
 
 .range::-moz-range-progress {
-  height: 10px;
+  height: 8px;
   border-radius: 999px;
   background: linear-gradient(90deg, #15803d, #22c55e, #86efac);
+}
+
+.rangeYears::-webkit-slider-runnable-track {
+  background: linear-gradient(
+    90deg,
+    #0e7490 0%,
+    #22d3ee 42%,
+    #67e8f9 var(--fill-pct, 25%),
+    rgba(255, 255, 255, 0.1) var(--fill-pct, 25%),
+    rgba(255, 255, 255, 0.1) 100%
+  );
 }
 
 .range::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: linear-gradient(145deg, #fef08a, #eab308, #ca8a04);
-  border: 3px solid rgba(255, 255, 255, 0.95);
-  box-shadow:
-    0 2px 14px rgba(234, 179, 8, 0.55),
-    0 0 0 1px rgba(250, 204, 21, 0.35);
-  margin-top: -10px;
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 12px rgba(234, 179, 8, 0.5);
+  margin-top: -9px;
   cursor: grab;
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
 }
 
-.range:hover::-webkit-slider-thumb {
-  box-shadow:
-    0 4px 22px rgba(234, 179, 8, 0.75),
-    0 0 24px rgba(250, 204, 21, 0.45);
-  transform: scale(1.06);
+.rangeYears::-webkit-slider-thumb {
+  background: linear-gradient(145deg, #a5f3fc, #22d3ee, #0891b2);
+  box-shadow: 0 2px 12px rgba(34, 211, 238, 0.45);
 }
 
 .range::-moz-range-thumb {
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: linear-gradient(145deg, #fef08a, #eab308, #ca8a04);
-  border: 3px solid rgba(255, 255, 255, 0.95);
-  box-shadow:
-    0 2px 14px rgba(234, 179, 8, 0.55),
-    0 0 0 1px rgba(250, 204, 21, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.95);
   cursor: grab;
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.range:hover::-moz-range-thumb {
-  box-shadow:
-    0 4px 22px rgba(234, 179, 8, 0.75),
-    0 0 24px rgba(250, 204, 21, 0.45);
-  transform: scale(1.06);
-}
-
-.range:active::-webkit-slider-thumb {
-  cursor: grabbing;
-  transform: scale(1.08);
-  box-shadow:
-    0 2px 18px rgba(234, 179, 8, 0.85),
-    0 0 28px rgba(250, 204, 21, 0.55);
-}
-
-.range:active::-moz-range-thumb {
-  cursor: grabbing;
-  transform: scale(1.08);
 }
 
 .scaleRow {
   display: flex;
   justify-content: space-between;
   font-size: 11px;
+  font-weight: 600;
   color: #64748b;
-  margin-top: 8px;
-  padding: 0 2px;
-}
-
-.manualRow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  width: 100%;
   margin-top: 6px;
-  margin-bottom: 14px;
-  padding-top: 14px;
-  padding-bottom: 4px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 0 4px;
+  font-variant-numeric: tabular-nums;
 }
 
-.manualLabel {
-  font-size: 11px;
-  color: #64748b;
-  font-weight: 500;
-}
-
-.manualInput {
-  width: 112px;
-  padding: 6px 8px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(0, 0, 0, 0.28);
-  color: #cbd5e1;
-  font-size: 12px;
-  font-weight: 500;
-  text-align: center;
-}
-
-/* 次要：兩欄 */
-.secondaryGrid {
+/* 結果雙欄 */
+.resultsGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   align-items: stretch;
-  padding-bottom: 12px;
+  position: relative;
+  margin-top: 2px;
 }
 
-.cell {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.resultsGrid::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 10px;
+  bottom: 10px;
+  width: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(148, 163, 184, 0.22) 18%,
+    rgba(186, 230, 253, 0.42) 50%,
+    rgba(148, 163, 184, 0.22) 82%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.resultSecondary,
+.resultPrimary {
+  padding: 14px 12px;
+  border-radius: 12px;
   min-width: 0;
-}
-
-.cellLabel {
-  font-size: 12px;
-  font-weight: 600;
-  color: #94a3b8;
-}
-
-.segmented {
-  display: flex;
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  height: 36px;
   box-sizing: border-box;
 }
 
-.segLabel {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  cursor: pointer;
-  font-weight: 500;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
-}
-
-.segLabel:last-child {
-  border-right: none;
-}
-
-.segOn {
-  background: rgba(34, 197, 94, 0.22);
-  color: #4ade80;
-  font-weight: 700;
-}
-
-.segOff {
-  background: rgba(0, 0, 0, 0.25);
-  color: #9ca3af;
-}
-
-.yearsInputWrap {
-  display: flex;
-  align-items: stretch;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  overflow: hidden;
-  background: rgba(0, 0, 0, 0.35);
-  height: 36px;
-}
-
-.yearsField {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  background: transparent;
-  color: #e5e7eb;
-  font-size: 14px;
-  font-weight: 600;
-  text-align: center;
-  padding: 0 6px;
-}
-
-.yearsStep {
-  display: flex;
-  flex-direction: column;
-  width: 28px;
-  flex-shrink: 0;
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.yearsStep button {
-  flex: 1;
-  min-height: 0;
-  padding: 0;
-  border: none;
-  background: rgba(255, 255, 255, 0.1);
-  color: #e5e7eb;
-  font-size: 13px;
-  cursor: pointer;
-  line-height: 1;
-}
-
-.yearsStep button + button {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-/* 結果區 */
-.resultsStack {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-top: 20px;
-}
-
-.resultYearsHint {
-  margin-top: 10px;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  color: rgba(134, 239, 172, 0.75);
-  line-height: 1.45;
+.resultSecondary {
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  background: rgba(15, 23, 42, 0.55);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .resultPrimary {
-  padding: 18px 16px;
-  border-radius: 14px;
-  border: 1px solid rgba(74, 222, 128, 0.35);
-  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(74, 222, 128, 0.34);
+  background: rgba(15, 23, 42, 0.58);
   box-shadow:
-    0 0 0 1px rgba(34, 197, 94, 0.08),
-    0 8px 28px rgba(0, 0, 0, 0.35),
-    0 0 40px rgba(34, 197, 94, 0.12);
-  transition: transform 0.2s ease;
-}
-
-.resultPrimary:hover {
-  transform: scale(1.01);
-}
-
-.resultSecondary {
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(251, 191, 36, 0.22);
-  background: rgba(15, 23, 42, 0.5);
-  transition: transform 0.2s ease;
-}
-
-.resultSecondary:hover {
-  transform: scale(1.01);
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 0 24px rgba(34, 197, 94, 0.1);
 }
 
 .resultLabel {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   color: #94a3b8;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   letter-spacing: 0.02em;
+  line-height: 1.35;
+}
+
+.resultValueSecondary {
+  font-size: clamp(1.05rem, 4.8vw, 1.35rem);
+  font-weight: 800;
+  color: #fbbf24;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  text-shadow: 0 0 16px rgba(251, 191, 36, 0.18);
 }
 
 .resultValuePrimary {
-  font-size: clamp(1.35rem, 5.5vw, 1.65rem);
+  font-size: clamp(1.05rem, 4.8vw, 1.35rem);
   font-weight: 800;
   color: #4ade80;
-  letter-spacing: 0.06em;
   line-height: 1.2;
-  transition: opacity 0.2s ease;
   font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  text-shadow: 0 0 16px rgba(74, 222, 128, 0.2);
 }
 
 .resultValuePrimaryFlash {
   animation: numFlash 0.35s ease;
 }
 
-.resultValueSecondary {
-  font-size: clamp(1.05rem, 4vw, 1.15rem);
-  font-weight: 700;
-  color: #c9a227;
-  letter-spacing: 0.05em;
-  line-height: 1.2;
-  font-variant-numeric: tabular-nums;
+.resultYearsHint {
+  margin-top: 8px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: rgba(134, 239, 172, 0.78);
+  line-height: 1.4;
 }
 
-.hint {
-  font-size: 11px;
-  color: #64748b;
+/* 底部主結果卡 */
+.etaCard {
+  text-align: center;
+  padding: 16px 14px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(74, 222, 128, 0.28);
+  background: rgba(15, 23, 42, 0.62);
+  box-shadow:
+    0 0 0 1px rgba(34, 197, 94, 0.08),
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    0 0 32px rgba(34, 197, 94, 0.12);
+  margin-top: 2px;
+}
+
+.etaLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  margin: 0 0 10px;
+  letter-spacing: 0.04em;
+}
+
+.etaMainRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.2em 0.35em;
+  margin: 0 0 6px;
+  max-width: 100%;
+  line-height: 1.15;
+}
+
+.etaMain {
+  max-width: 100%;
+  font-size: clamp(1.85rem, 9.5vw, 2.5rem);
+  font-weight: 900;
+  line-height: 1.1;
   margin: 0;
-  line-height: 1.5;
-  padding-top: 4px;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  background: linear-gradient(180deg, #4ade80 0%, #22c55e 45%, #16a34a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 18px rgba(74, 222, 128, 0.35));
+}
+
+.etaMainMuted {
+  opacity: 0.55;
+}
+
+.etaUnitInline {
+  flex-shrink: 0;
+  font-size: clamp(0.85rem, 3.8vw, 1rem);
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.etaSub {
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+  margin: 8px 0 0;
+  line-height: 1.4;
 }

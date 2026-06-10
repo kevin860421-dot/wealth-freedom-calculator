@@ -3,6 +3,8 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
+import { QuickStepperSliderField } from "@/app/components/quick-stepper-slider";
+import stepperStyles from "@/app/components/quick-stepper-slider.module.css";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
@@ -204,134 +206,59 @@ export default function QuickCalculator3View() {
         >
           <div style={{ display: "grid", gap: 10 }}>
             <div style={{ padding: 10, borderRadius: 14, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" }}>
-              <div style={{ fontSize: 16, opacity: 0.9, fontWeight: 900 }}>希望月領金額</div>
-              <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, width: "100%", minWidth: 0 }}>
-                <input
-                  inputMode="numeric"
-                  value={hopeMonthlyText}
-                  onChange={(e) => setHopeMonthlyText(sanitizeCalcInput(e.target.value))}
-                  onBlur={commitHopeMonthly}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      commitHopeMonthly();
-                      (e.currentTarget as HTMLInputElement).blur();
-                    }
-                  }}
-                  aria-label="希望月領金額"
-                  style={{
-                    flex: "1 1 160px",
-                    minWidth: 0,
-                    height: 48,
-                    borderRadius: 12,
-                    border: "1px solid rgba(255,255,255,0.14)",
-                    background: "rgba(0,0,0,0.20)",
-                    color: "#e8eefc",
-                    padding: "0 12px",
-                    outline: "none",
-                    fontSize: 22,
-                    fontWeight: 950,
-                    fontVariantNumeric: "tabular-nums",
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => bumpHopeMonthly(-1000)}
-                  aria-label="希望月領減 1000"
-                  style={pillBtn}
-                >
-                  –
-                </button>
-                <button
-                  type="button"
-                  onClick={() => bumpHopeMonthly(1000)}
-                  aria-label="希望月領加 1000"
-                  style={pillBtn}
-                >
-                  +
-                </button>
-              </div>
-              <input
-                type="range"
+              <QuickStepperSliderField
+                label="希望月領金額"
+                labelStyle={{ fontSize: 16, opacity: 0.9, fontWeight: 900 }}
+                text={hopeMonthlyText}
+                value={clampNum(hopeMonthly, MONEY_MIN, MONEY_MAX)}
                 min={MONEY_MIN}
                 max={MONEY_MAX}
                 step={100}
-                value={clampNum(hopeMonthly, MONEY_MIN, MONEY_MAX)}
-                onChange={(e) => {
-                  const v = Math.round(clampNum(Number(e.target.value), MONEY_MIN, MONEY_MAX) / 100) * 100;
-                  setHopeMonthly(v);
-                  setHopeMonthlyText(formatTwd(v));
+                bumpStep={1000}
+                ariaLabel="希望月領金額"
+                tall
+                onTextChange={(v) => setHopeMonthlyText(sanitizeCalcInput(v))}
+                onCommit={commitHopeMonthly}
+                onBump={bumpHopeMonthly}
+                onChange={(v) => {
+                  const rounded = Math.round(clampNum(v, MONEY_MIN, MONEY_MAX) / 100) * 100;
+                  setHopeMonthly(rounded);
+                  setHopeMonthlyText(formatTwd(rounded));
                 }}
-                aria-label="希望月領金額拉條"
-                style={rangeStyle}
               />
             </div>
 
             <div style={{ padding: 10, borderRadius: 14, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" }}>
-              <div style={{ fontSize: 16, opacity: 0.9, fontWeight: 900 }}>預計幾年</div>
-              <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, rowGap: 8, justifyContent: "space-between", width: "100%", minWidth: 0 }}>
-                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, flex: "1 1 auto", minWidth: 0 }}>
-                  <input
-                    inputMode="numeric"
-                    value={yearsText}
-                    onChange={(e) => {
-                      const raw = sanitizeCalcInput(e.target.value);
-                      setYearsText(raw);
-                      if (!/[+\-*/()]/.test(raw)) {
-                        const n = parseMoneyInputToInt(raw);
-                        if (n !== null) setYears(Math.round(clampNum(n, YEARS_MIN, YEARS_MAX)));
-                      }
-                    }}
-                    onBlur={commitYears}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        commitYears();
-                        (e.currentTarget as HTMLInputElement).blur();
-                      }
-                    }}
-                    aria-label="預計年數"
-                    style={{
-                      flex: "1 1 64px",
-                      minWidth: 48,
-                      height: 44,
-                      borderRadius: 12,
-                      border: "1px solid rgba(255,255,255,0.14)",
-                      background: "rgba(0,0,0,0.20)",
-                      color: "#e8eefc",
-                      padding: "0 10px",
-                      outline: "none",
-                      fontSize: 20,
-                      fontWeight: 950,
-                      fontVariantNumeric: "tabular-nums",
-                      boxSizing: "border-box",
-                    }}
-                  />
-                  <button type="button" onClick={() => bumpYears(-1)} aria-label="年數減 1" style={yearBtn}>
-                    –
-                  </button>
-                  <button type="button" onClick={() => bumpYears(1)} aria-label="年數加 1" style={yearBtn}>
-                    +
-                  </button>
-                  <div style={{ fontSize: 16, opacity: 0.85, fontWeight: 900 }}>年</div>
-                </div>
+              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, justifyContent: "space-between", marginBottom: 6 }}>
+                <div style={{ fontSize: 16, opacity: 0.9, fontWeight: 900 }}>預計幾年</div>
                 <div style={{ fontSize: 12, opacity: 0.82, fontWeight: 800, whiteSpace: "nowrap", flexShrink: 0 }}>
                   年化 {INVEST_ANNUAL_PCT}%
                 </div>
               </div>
-              <input
-                type="range"
+              <QuickStepperSliderField
+                text={yearsText}
+                value={clampNum(years, YEARS_MIN, YEARS_MAX)}
                 min={YEARS_MIN}
                 max={YEARS_MAX}
                 step={1}
-                value={clampNum(years, YEARS_MIN, YEARS_MAX)}
-                onChange={(e) => {
-                  const v = Math.round(clampNum(Number(e.target.value), YEARS_MIN, YEARS_MAX));
-                  setYears(v);
-                  setYearsText(String(v));
+                bumpStep={1}
+                ariaLabel="預計年數"
+                inputSuffix={<span className={stepperStyles.inputSuffix}>年</span>}
+                onTextChange={(v) => {
+                  const raw = sanitizeCalcInput(v);
+                  setYearsText(raw);
+                  if (!/[+\-*/()]/.test(raw)) {
+                    const n = parseMoneyInputToInt(raw);
+                    if (n !== null) setYears(Math.round(clampNum(n, YEARS_MIN, YEARS_MAX)));
+                  }
                 }}
-                aria-label="預計幾年拉條"
-                style={rangeStyle}
+                onCommit={commitYears}
+                onBump={bumpYears}
+                onChange={(v) => {
+                  const next = Math.round(clampNum(v, YEARS_MIN, YEARS_MAX));
+                  setYears(next);
+                  setYearsText(String(next));
+                }}
               />
             </div>
 

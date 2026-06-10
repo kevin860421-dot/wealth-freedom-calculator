@@ -1,0 +1,41 @@
+import { TICKER_PRESETS, type TickerPreset } from "./ticker-presets";
+
+/** 從 ticker-presets label 取出顯示用簡稱，如「元大台灣50」 */
+export function getEtfShortName(label: string): string {
+  const paren = label.indexOf("（");
+  if (paren >= 0) return label.slice(0, paren).trim();
+  const dash = label.indexOf("-");
+  if (dash >= 0) return label.slice(0, dash).trim();
+  return label.trim();
+}
+
+function normalizeQuery(raw: string): string {
+  return raw.replace(/\s/g, "").toLowerCase();
+}
+
+type SearchEntry = {
+  preset: TickerPreset;
+  haystack: string;
+};
+
+const ETF_SEARCH_INDEX: SearchEntry[] = TICKER_PRESETS.map((preset) => {
+  const short = getEtfShortName(preset.label);
+  const haystack = normalizeQuery(`${preset.id}${short}${preset.label}`);
+  return { preset, haystack };
+});
+
+/**
+ * 模糊過濾：代號片段或名稱／簡稱任一包含查詢字串即匹配（不分大小寫、忽略空白）。
+ */
+export function filterTickerPresetsByQuery(raw: string, limit = 80): TickerPreset[] {
+  const q = normalizeQuery(raw.trim());
+  if (!q) return TICKER_PRESETS;
+  const out: TickerPreset[] = [];
+  for (const { preset, haystack } of ETF_SEARCH_INDEX) {
+    if (haystack.includes(q)) {
+      out.push(preset);
+      if (out.length >= limit) break;
+    }
+  }
+  return out;
+}

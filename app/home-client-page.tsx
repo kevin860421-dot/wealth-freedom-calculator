@@ -16,15 +16,23 @@ import {
   TICKER_PRESETS,
   buildTickerDividendMonthsMap,
   buildDefault54cRatioMap,
+  formatApproxSharesLine,
 } from "./ticker-presets";
+import { filterTickerPresetsByQuery } from "./etf-fuzzy-search";
 import {
   blogPostPath,
   getPublishedBlogPosts,
   getHomeFooterBlogPosts,
 } from "./blog/posts/registry";
-import { MobileGoalSettingSection } from "./components/mobile-goal-setting-section";
+import {
+  MobileGoalSettingSection,
+  type MobileGoalCalcMode,
+} from "./components/mobile-goal-setting-section";
+import { HomeEmployeeEtfFaqSection } from "./components/home-employee-etf-faq-section";
+import { HomeLegalDisclaimerSection } from "./components/home-legal-disclaimer-section";
+import { HomeCopyrightNoticeSection } from "./components/home-copyright-notice-section";
 import heroGold from "./components/hero-gold-title.module.css";
-import { MobileHeroSection } from "./components/mobile-hero-section";
+import { MobileHeroSection, MobileHeroTitleSection } from "./components/mobile-hero-section";
 import { MobileStockParamsSection } from "./components/mobile-stock-params-section";
 import type { StockParamsAdvancedBlockProps } from "./components/stock-params-advanced-block";
 import type { TaxSettingsMode } from "./components/tax-settings-panel";
@@ -49,9 +57,10 @@ const ETF_DIVIDEND_MONTHS = buildTickerDividendMonthsMap();
 /** 首次載入與「恢復預設」時使用的預設標的（與 ticker-presets 第一檔一致） */
 const DEFAULT_SELECTED_ETF_ID = "0050";
 const DEFAULT_ETF_PRESET = TICKER_PRESETS.find((p) => p.id === DEFAULT_SELECTED_ETF_ID) ?? TICKER_PRESETS[0]!;
-/** 試算起始年月預設（與 getPeriodSnapshots 之 startYear／startMonth 預設一致） */
-const DEFAULT_SIM_START_YEAR = 2026;
-const DEFAULT_SIM_START_MONTH = 3;
+/** 試算起始年月：預設為載入當下的系統年月 */
+function currentSimYearMonth(d = new Date()): { year: number; month: number } {
+  return { year: d.getFullYear(), month: d.getMonth() + 1 };
+}
 /** 標的代碼篩選僅供當次操作；不寫入快照，避免還原後下拉只剩子集合 */
 const ETF_CODE_FILTER_PERSIST = "";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -519,18 +528,18 @@ export default function Home() {
   const [selectedEtf, setSelectedEtf] = useState<string>(DEFAULT_SELECTED_ETF_ID);
   const todayYear = new Date().getFullYear();
   const todayMonth = new Date().getMonth() + 1;
-  const [defaultYearStr, setDefaultYearStr] = useState(() => String(DEFAULT_SIM_START_YEAR));
-  const [defaultMonthStr, setDefaultMonthStr] = useState(() => String(DEFAULT_SIM_START_MONTH));
+  const [defaultYearStr, setDefaultYearStr] = useState(() => String(currentSimYearMonth().year));
+  const [defaultMonthStr, setDefaultMonthStr] = useState(() => String(currentSimYearMonth().month));
   const defaultYear = useMemo(() => {
     const n = parseInt(defaultYearStr, 10);
-    return Number.isFinite(n) && n >= 2000 && n <= 2100 ? n : DEFAULT_SIM_START_YEAR;
-  }, [defaultYearStr]);
+    return Number.isFinite(n) && n >= 2000 && n <= 2100 ? n : todayYear;
+  }, [defaultYearStr, todayYear]);
   const defaultMonth = useMemo(() => {
     const n = parseInt(defaultMonthStr, 10);
-    return Number.isFinite(n) && n >= 1 && n <= 12 ? n : DEFAULT_SIM_START_MONTH;
-  }, [defaultMonthStr]);
-  const [initialYearStr, setInitialYearStr] = useState(() => String(DEFAULT_SIM_START_YEAR));
-  const [initialMonthStr, setInitialMonthStr] = useState(() => String(DEFAULT_SIM_START_MONTH));
+    return Number.isFinite(n) && n >= 1 && n <= 12 ? n : todayMonth;
+  }, [defaultMonthStr, todayMonth]);
+  const [initialYearStr, setInitialYearStr] = useState(() => String(currentSimYearMonth().year));
+  const [initialMonthStr, setInitialMonthStr] = useState(() => String(currentSimYearMonth().month));
   const initialYear = useMemo(() => {
     const n = parseInt(initialYearStr, 10);
     return Number.isFinite(n) && n >= 2000 && n <= 2100 ? n : defaultYear;
@@ -541,6 +550,8 @@ export default function Home() {
   }, [initialMonthStr, defaultMonth]);
   const [nthPeriod, setNthPeriod] = useState(1);
   const [targetYearsToAchieve, setTargetYearsToAchieve] = useState("20");
+  const [mobileGoalCalcMode, setMobileGoalCalcMode] = useState<MobileGoalCalcMode>("forward");
+  const [mobileReverseYears, setMobileReverseYears] = useState(10);
   const [stickyBarPinned, setStickyBarPinned] = useState(false);
   const [stickyBarVisible, setStickyBarVisible] = useState(false);
   const [etfLandingPreset, setEtfLandingPreset] = useState<EtfLandingPreset | null>(null);
@@ -570,6 +581,32 @@ export default function Home() {
   const lastScrollYRef = useRef(0);
   const goalSettingCardRef = useRef<HTMLDivElement | null>(null);
   const wasPastHeroRef = useRef(false);
+
+  const isMobileLayoutActive = useCallback((): boolean => {
+    if (typeof window === "undefined") return false;
+    const previewMobile = document.documentElement.getAttribute("data-preview-mobile") === "true";
+    return previewMobile || window.matchMedia("(max-width: 768px)").matches;
+  }, []);
+
+  /** 手機以 #mobile-stock-params 為 sticky 錨點（存股參數在目標設定上方）；桌機用 #desktop-goal-setting */
+  const resolveStickyScrollAnchorEl = useCallback((): HTMLElement | null => {
+    if (typeof window === "undefined") return goalSettingCardRef.current;
+    if (isMobileLayoutActive()) {
+      return (
+        document.getElementById("mobile-stock-params") ??
+        document.getElementById("mobile-goal-setting") ??
+        goalSettingCardRef.current
+      );
+    }
+    return goalSettingCardRef.current ?? document.getElementById("desktop-goal-setting");
+  }, [isMobileLayoutActive]);
+
+  const scrollToMobileStockParams = useCallback(() => {
+    if (!isMobileLayoutActive()) return;
+    requestAnimationFrame(() => {
+      document.getElementById("mobile-stock-params")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [isMobileLayoutActive]);
   const [taxBracketRate, setTaxBracketRate] = useState(0.20);
   const [applyTaxInTable, setApplyTaxInTable] = useState(true);
   const [applyNhi2InTable, setApplyNhi2InTable] = useState(true);
@@ -730,7 +767,7 @@ export default function Home() {
       const y = typeof window !== "undefined" ? window.scrollY : 0;
       if (stickyBarPinned) return;
       // 以「目標設定」卡片為準：只要區塊進入視窗就顯示（門檻放寬 95%），備用 y > 280
-      const goalCard = goalSettingCardRef.current;
+      const goalCard = resolveStickyScrollAnchorEl();
       const goalRect = goalCard?.getBoundingClientRect();
       const threshold = typeof window !== "undefined" ? window.innerHeight * 0.95 : 400;
       const reachedGoal = goalRect ? goalRect.top < threshold : y > 280;
@@ -760,7 +797,7 @@ export default function Home() {
       window.clearTimeout(t2);
       window.removeEventListener("scroll", onScroll);
     };
-  }, [stickyBarPinned]);
+  }, [stickyBarPinned, resolveStickyScrollAnchorEl]);
 
   const totalPriceForEstimateNum = totalPriceForEstimateStr.trim() === ""
     ? computedTotalForEstimate
@@ -801,12 +838,7 @@ export default function Home() {
   }, []);
 
   const filteredEtfs = useMemo(() => {
-    const code = etfCodeFilter.replace(/\s/g, "").slice(0, 5);
-    const list = !code
-      ? TICKER_PRESETS
-      : TICKER_PRESETS.filter(
-          (p) => p.id.includes(code) || p.id.startsWith(code) || p.label.includes(code),
-        );
+    const list = filterTickerPresetsByQuery(etfCodeFilter);
     if (selectedEtf && selectedEtf !== "none") {
       const cur = TICKER_PRESETS.find((p) => p.id === selectedEtf);
       if (cur && !list.some((p) => p.id === selectedEtf)) {
@@ -1015,31 +1047,36 @@ export default function Home() {
     ],
   );
 
-  /** 輸入接近時自動選到 ETF：完全符合或篩選後僅一檔則自動選取 */
-  const handleEtfCodeChange = useCallback((raw: string) => {
-    setEtfCodeFilter(raw);
-    const code = raw.replace(/\s/g, "").slice(0, 5);
-    const exact = TICKER_PRESETS.find((p) => p.id === code);
-    if (exact) {
-      setSelectedEtf(exact.id);
-      setAnnualReturnRate(exact.annualReturn);
-      handlePayoutFrequencyChange(exact.frequency as PayoutFrequency);
-      setDividendYieldPct(exact.dividendYieldPct ?? "");
-      setStockDividendPct(exact.stockDividendPct ?? "");
-      setRateSource("dividend");
-      return;
-    }
-    const byPrefix = TICKER_PRESETS.filter((p) => p.id.startsWith(code) || p.id.includes(code));
-    if (byPrefix.length === 1) {
-      const one = byPrefix[0];
-      setSelectedEtf(one.id);
-      setAnnualReturnRate(one.annualReturn);
-      handlePayoutFrequencyChange(one.frequency as PayoutFrequency);
-      setDividendYieldPct(one.dividendYieldPct ?? "");
-      setStockDividendPct(one.stockDividendPct ?? "");
-      setRateSource("dividend");
-    }
-  }, []);
+  /** 輸入完全符合代號，或純數字且僅一檔匹配時自動選取；名稱模糊搜尋由下拉選單點選 */
+  const handleEtfCodeChange = useCallback(
+    (raw: string) => {
+      setEtfCodeFilter(raw);
+      const code = raw.replace(/\s/g, "");
+      const exact = TICKER_PRESETS.find((p) => p.id === code);
+      if (exact) {
+        setSelectedEtf(exact.id);
+        setAnnualReturnRate(exact.annualReturn);
+        handlePayoutFrequencyChange(exact.frequency as PayoutFrequency);
+        setDividendYieldPct(exact.dividendYieldPct ?? "");
+        setStockDividendPct(exact.stockDividendPct ?? "");
+        setRateSource("dividend");
+        return;
+      }
+      if (/^\d+$/.test(code)) {
+        const byPrefix = TICKER_PRESETS.filter((p) => p.id.startsWith(code) || p.id.includes(code));
+        if (byPrefix.length === 1) {
+          const one = byPrefix[0];
+          setSelectedEtf(one.id);
+          setAnnualReturnRate(one.annualReturn);
+          handlePayoutFrequencyChange(one.frequency as PayoutFrequency);
+          setDividendYieldPct(one.dividendYieldPct ?? "");
+          setStockDividendPct(one.stockDividendPct ?? "");
+          setRateSource("dividend");
+        }
+      }
+    },
+    [handlePayoutFrequencyChange],
+  );
 
   /** 從任一處「選擇 ETF」下拉選單變更：同步篩選碼＋套用預設參數，避免手機多區塊代碼／選單不同步 */
   const selectEtfFromMenu = useCallback(
@@ -1193,11 +1230,14 @@ export default function Home() {
   /** 當前本金＋當期（當月/當季等）投入的總和，用於「約可買」試算 */
   const balanceWithPeriodInvestment = currentPrincipalNum + (monthlyContributionNum + monthlyExtraNum) * periodMonthsForBalance;
 
-  /** 第 N 次投入對應的目標月份（1～12），用於判斷是否為配息月 */
-  const nthPeriodTargetMonth = useMemo(() => {
+  /** 第 N 次投入對應年月（與進階區「對應年月」一致） */
+  const nthPeriodTargetCalendar = useMemo(() => {
     const totalMonths = periodMonthsForBalance * nthPeriod;
-    return ((((initialMonth - 1) + totalMonths) % 12) + 12) % 12 + 1;
-  }, [initialMonth, periodMonthsForBalance, nthPeriod]);
+    const targetMonth = ((((initialMonth - 1) + totalMonths) % 12) + 12) % 12 + 1;
+    const targetYear = initialYear + Math.floor(((initialMonth - 1) + totalMonths) / 12);
+    return { targetYear, targetMonth, totalMonths };
+  }, [initialYear, initialMonth, periodMonthsForBalance, nthPeriod]);
+  const nthPeriodTargetMonth = nthPeriodTargetCalendar.targetMonth;
 
   /** 當月是否為所選 ETF 的配息月（非配息月則股利=0、可再投入=0） */
   const isNthPeriodDividendMonth = useMemo(() => {
@@ -1253,7 +1293,16 @@ export default function Home() {
     return { shares, zhang };
   }, [selectedEtfInfo, nthPeriodEstimate.afterFee]);
 
-  const targetYearsNum = targetYearsToAchieveEmpty || targetYearsToAchieveNum <= 0 ? 20 : targetYearsToAchieveNum;
+  const targetYearsNum =
+    mobileGoalCalcMode === "reverse"
+      ? Math.max(1, Math.min(100, mobileReverseYears))
+      : targetYearsToAchieveEmpty || targetYearsToAchieveNum <= 0
+        ? 20
+        : targetYearsToAchieveNum;
+
+  const simTargetYearsEmpty = mobileGoalCalcMode === "reverse" ? false : targetYearsToAchieveEmpty;
+  const simTargetYearsNum =
+    mobileGoalCalcMode === "reverse" ? mobileReverseYears : targetYearsToAchieveNum;
 
   const heavySimPayload = useMemo(
     (): HeavySimPayload => ({
@@ -1266,8 +1315,8 @@ export default function Home() {
       targetQuarterIncomeNum,
       effectiveTaxRateForSim,
       targetYearsNum,
-      targetYearsToAchieveEmpty,
-      targetYearsToAchieveNum,
+      targetYearsToAchieveEmpty: simTargetYearsEmpty,
+      targetYearsToAchieveNum: simTargetYearsNum,
       currentPrincipalNum,
       sharePrice: selectedEtfInfo?.price ?? 100,
       dividendMonths: selectedEtfInfo?.dividendMonths,
@@ -1284,8 +1333,10 @@ export default function Home() {
       targetQuarterIncomeNum,
       effectiveTaxRateForSim,
       targetYearsNum,
-      targetYearsToAchieveEmpty,
-      targetYearsToAchieveNum,
+      simTargetYearsEmpty,
+      simTargetYearsNum,
+      mobileGoalCalcMode,
+      mobileReverseYears,
       currentPrincipalNum,
       selectedEtfInfo?.price,
       selectedEtfInfo?.dividendMonths,
@@ -1316,6 +1367,14 @@ export default function Home() {
     const annualRate = effectiveAnnualRate / 100;
     return Math.round((targetQuarterIncomeNum * 12) / annualRate);
   }, [targetQuarterIncomeNum, effectiveAnnualRate]);
+
+  /** 年期反推：依目前每月投入，於選定年期後可領的月收（簡化：期末資產×年化÷12） */
+  const reverseMonthlyIncome = useMemo(() => {
+    if (effectiveAnnualRate <= 0) return null;
+    const bal = simulationAtTargetYears.finalBalance;
+    if (bal <= 0) return null;
+    return Math.round((bal * (effectiveAnnualRate / 100)) / 12);
+  }, [simulationAtTargetYears.finalBalance, effectiveAnnualRate]);
 
   const intervalMonths =
     payoutFrequency === "month"
@@ -1353,8 +1412,11 @@ export default function Home() {
     setReinvestRatio(80);
     setTargetYearsToAchieve("20");
     setNthPeriod(1);
-    setInitialYearStr(String(DEFAULT_SIM_START_YEAR));
-    setInitialMonthStr(String(DEFAULT_SIM_START_MONTH));
+    const now = currentSimYearMonth();
+    setInitialYearStr(String(now.year));
+    setInitialMonthStr(String(now.month));
+    setDefaultYearStr(String(now.year));
+    setDefaultMonthStr(String(now.month));
     setEtfCodeFilter("");
     setSelectedEtf(DEFAULT_SELECTED_ETF_ID);
     setAnnualReturnRate(DEFAULT_ETF_PRESET.annualReturn);
@@ -1494,7 +1556,7 @@ export default function Home() {
 
   useEffect(() => {
     setMobileAccumShowNextTen(false);
-  }, [periodSnapshots.length]);
+  }, [periodSnapshots.length, nthPeriod, initialYear, initialMonth]);
 
   const [accumTableVisibleRows, setAccumTableVisibleRows] = useState(ACCUM_TABLE_INITIAL_ROWS);
   const accumDesktopScrollRef = useRef<HTMLDivElement | null>(null);
@@ -2015,20 +2077,39 @@ export default function Home() {
     monthlyExtraNum,
   ]);
 
-  /** 手機版「累積金額與股數表」卡片：試算時間軸第 1 期（與試算起始年月一致，例如 2026/3） */
+  /** 手機累積表錨點：對齊「第幾次投入」的對應年月列 */
+  const accumMobileAnchorIndex = useMemo(() => {
+    const { targetYear, targetMonth, totalMonths } = nthPeriodTargetCalendar;
+    for (let i = 0; i < periodSnapshots.length; i++) {
+      const row = periodSnapshots[i]!;
+      const monthInLabel = row.periodLabel.match(/年(\d{1,2})月$/);
+      if (monthInLabel && row.year === targetYear && parseInt(monthInLabel[1]!, 10) === targetMonth) {
+        return i;
+      }
+    }
+    return Math.min(Math.max(0, totalMonths), Math.max(0, periodSnapshots.length - 1));
+  }, [periodSnapshots, nthPeriodTargetCalendar]);
+
+  /** 手機版「近一期」：第 N 次投入對應年月那一列 */
   const accumulatedPeriodRecentMobile = useMemo(() => {
     if (accumulatedPeriodRowModels.length === 0) return null;
-    return accumulatedPeriodRowModels[0]!;
-  }, [accumulatedPeriodRowModels]);
+    const idx = Math.min(accumMobileAnchorIndex, accumulatedPeriodRowModels.length - 1);
+    return accumulatedPeriodRowModels[idx] ?? null;
+  }, [accumulatedPeriodRowModels, accumMobileAnchorIndex]);
 
-  /**
-   * 手機「未來10期」：接續第 1 期之後的第 2～11 期，依時間正序（例如 2026/4 起），不含倒數或從表末回推。
-   */
+  /** 手機「未來10期」：自對應年月之後連續 10 期（時間正序） */
   const accumulatedPeriodNextTenMobile = useMemo(() => {
     const m = accumulatedPeriodRowModels;
-    if (m.length <= 1) return [];
-    return m.slice(1, 11);
-  }, [accumulatedPeriodRowModels]);
+    const start = accumMobileAnchorIndex + 1;
+    if (start >= m.length) return [];
+    return m.slice(start, start + 10);
+  }, [accumulatedPeriodRowModels, accumMobileAnchorIndex]);
+
+  useEffect(() => {
+    if (!mobileAccumShowNextTen) return;
+    const need = accumMobileAnchorIndex + 11;
+    setAccumTableVisibleRows((n) => Math.max(n, Math.min(periodSnapshots.length, need)));
+  }, [mobileAccumShowNextTen, accumMobileAnchorIndex, periodSnapshots.length]);
 
   /** 本期總投入欄寬：依數字長度（含手動覆蓋） */
   const totalInflowColWidthDyn = useMemo(() => {
@@ -2695,6 +2776,7 @@ export default function Home() {
 
   return (
     <main
+      className="home-client-main"
       style={{
         minHeight: "100vh",
         background: "linear-gradient(180deg, #020617 0%, #0f172a 50%, #020617 100%)",
@@ -2776,8 +2858,11 @@ export default function Home() {
                   setReinvestRatio(80);
                   setTargetYearsToAchieve("20");
                   setNthPeriod(1);
-                  setInitialYearStr(String(DEFAULT_SIM_START_YEAR));
-                  setInitialMonthStr(String(DEFAULT_SIM_START_MONTH));
+                  const now = currentSimYearMonth();
+                  setInitialYearStr(String(now.year));
+                  setInitialMonthStr(String(now.month));
+                  setDefaultYearStr(String(now.year));
+                  setDefaultMonthStr(String(now.month));
                   setEtfCodeFilter("");
                   setSelectedEtf(DEFAULT_SELECTED_ETF_ID);
                   setAnnualReturnRate(DEFAULT_ETF_PRESET.annualReturn);
@@ -3287,7 +3372,7 @@ export default function Home() {
                   }}
                   onBlur={() => {
                     const n = parseInt(defaultYearStr, 10);
-                    if (!Number.isFinite(n) || n < 2000) setDefaultYearStr(String(DEFAULT_SIM_START_YEAR));
+                    if (!Number.isFinite(n) || n < 2000) setDefaultYearStr(String(todayYear));
                     else if (n > 2100) setDefaultYearStr("2100");
                   }}
                   style={{ ...inputStyle, width: 46, height: 24, padding: "4px 6px", fontSize: 11, textAlign: "center", border: "none", borderRadius: 0 }}
@@ -3309,7 +3394,7 @@ export default function Home() {
                   }}
                   onBlur={() => {
                     const n = parseInt(defaultMonthStr, 10);
-                    if (!Number.isFinite(n) || n < 1) setDefaultMonthStr(String(DEFAULT_SIM_START_MONTH));
+                    if (!Number.isFinite(n) || n < 1) setDefaultMonthStr(String(todayMonth));
                     else if (n > 12) setDefaultMonthStr("12");
                   }}
                   style={{ ...inputStyle, width: 34, height: 24, padding: "4px 6px", fontSize: 11, textAlign: "center", border: "none", borderRadius: 0 }}
@@ -3409,15 +3494,17 @@ export default function Home() {
             onClick={() => {
               setStickyBarVisible(true);
               setStickyBarPinned(true);
+              scrollToMobileStockParams();
             }}
-            title="打開參數橫幅（▼ 往下展開）"
+            title={mobileTaxLayoutActive ? "打開參數橫幅（本金／月投／年化等）" : "打開參數橫幅（▼ 往下展開）"}
             style={{
               position: "fixed",
               top: 0,
               right: 16,
-              width: 36,
+              width: mobileTaxLayoutActive ? "auto" : 36,
+              minWidth: mobileTaxLayoutActive ? 52 : undefined,
               height: 22,
-              padding: 0,
+              padding: mobileTaxLayoutActive ? "0 10px" : 0,
               border: "none",
               borderTop: "none",
               borderRadius: "0 0 6px 6px",
@@ -3433,9 +3520,9 @@ export default function Home() {
               zIndex: 2147483647,
               outline: "none",
             }}
-            aria-label="打開橫幅"
+            aria-label={mobileTaxLayoutActive ? "打開參數橫幅" : "打開橫幅"}
           >
-            ▼
+            {mobileTaxLayoutActive ? "參數" : "▼"}
           </button>,
           document.body
         )}
@@ -3939,9 +4026,7 @@ export default function Home() {
                     {Math.floor(currentPrincipalNum).toLocaleString("zh-TW")} 元
                   </div>
                   <div style={{ fontSize: 10, color: "#9ca3af", marginTop: 2 }}>
-                    {selectedEtfInfo?.price != null && selectedEtfInfo.price > 0
-                      ? `約 ${Math.floor(currentPrincipalNum / selectedEtfInfo.price).toLocaleString("zh-TW")} 股`
-                      : ""}
+                    {formatApproxSharesLine(currentPrincipalNum, selectedEtfInfo)}
                   </div>
                 </div>
                 <div style={{ display: "flex", flexDirection: "row", gap: 12, alignItems: "flex-end", flexWrap: "wrap", flex: "1 1 auto", minWidth: 0 }}>
@@ -4073,7 +4158,7 @@ export default function Home() {
                           }}
                           onBlur={() => {
                             const n = parseInt(defaultYearStr, 10);
-                            if (!Number.isFinite(n) || n < 2000) setDefaultYearStr(String(DEFAULT_SIM_START_YEAR));
+                            if (!Number.isFinite(n) || n < 2000) setDefaultYearStr(String(todayYear));
                             else if (n > 2100) setDefaultYearStr("2100");
                           }}
                           style={{ ...inputStyle, width: 72, height: 28, textAlign: "center", border: "none", borderRadius: 0 }}
@@ -4095,7 +4180,7 @@ export default function Home() {
                           }}
                           onBlur={() => {
                             const n = parseInt(defaultMonthStr, 10);
-                            if (!Number.isFinite(n) || n < 1) setDefaultMonthStr(String(DEFAULT_SIM_START_MONTH));
+                            if (!Number.isFinite(n) || n < 1) setDefaultMonthStr(String(todayMonth));
                             else if (n > 12) setDefaultMonthStr("12");
                           }}
                           style={{ ...inputStyle, width: 56, height: 28, textAlign: "center", border: "none", borderRadius: 0 }}
@@ -4283,61 +4368,67 @@ export default function Home() {
         </div>
 
         <div id="mobile-app-view">
-          <MobileHeroSection
-            title={heroTitle}
-            fireEtaStr={fireEtaStr}
-            achievementPercent={achievementPercent}
-            targetQuarterIncomeNum={targetQuarterIncomeNum}
-            showHomeHeroFirstLink={showHomeHeroFirstLink}
-            homeHeroFirstEntry={homeHeroFirstEntry}
-            blogHref={homeHeroBlogHref}
-            simulationAtTargetYears={{
-              finalBalance: simulationAtTargetYears.finalBalance,
-              totalDividends: simulationAtTargetYears.totalDividends,
-            }}
-          />
+          <MobileHeroTitleSection title={heroTitle} />
           {etfLandingBanner ? (
-            <div className="mx-3 mb-3" style={etfLandingBannerStyle} role="note" aria-label={`${etfLandingPreset?.code} 專用表單預設提示`}>
+            <div className="mx-3 -mt-1 mb-0" style={etfLandingBannerStyle} role="note" aria-label={`${etfLandingPreset?.code} 專用表單預設提示`}>
               {etfLandingBanner}
             </div>
           ) : null}
-          <MobileGoalSettingSection
-            targetQuarterIncome={targetQuarterIncome}
-            setTargetQuarterIncome={setTargetQuarterIncome}
-            targetQuarterIncomeNum={targetQuarterIncomeNum}
-            targetYearsToAchieve={targetYearsToAchieve}
-            setTargetYearsToAchieve={setTargetYearsToAchieve}
-            payoutFrequency={payoutFrequency}
-            handlePayoutFrequencyChange={handlePayoutFrequencyChange}
-            requiredMonthlyToAchieveInYears={requiredMonthlyToAchieveInYears}
-            suggestedMonthlyDisplay={suggestedMonthlyDisplay}
-            requiredAssetsForTarget={requiredAssetsForTarget}
-            commitFormula={commitFormula}
-            parseFormula={parseFormula}
-          />
-          <MobileStockParamsSection
-            onRestoreDefaults={restoreStockParamsDefaults}
-            onOpenSaveTarget={() => setSaveTargetModalOpen(true)}
-            onOpenLoadTarget={() => setLoadTargetModalOpen(true)}
-            currentPrincipalStr={currentPrincipalStr}
-            setCurrentPrincipalStr={setCurrentPrincipalStr}
-            commitFormulaWithCommas={commitFormulaWithCommas}
-            parseFormula={parseFormula}
-            monthlyContribution={monthlyContribution}
-            setMonthlyContribution={setMonthlyContribution}
-            monthlyExtra={monthlyExtra}
-            setMonthlyExtra={setMonthlyExtra}
-            commitFormula={commitFormula}
-            annualReturnRate={annualReturnRate}
-            setAnnualReturnRate={setAnnualReturnRate}
-            setRateSource={setRateSource}
-            rateSource={rateSource}
-            dividendYieldPct={dividendYieldPct}
-            stockDividendPct={stockDividendPct}
-            currentPrincipalNum={currentPrincipalNum}
-            selectedEtfInfo={selectedEtfInfo}
-            advancedProps={stockAdvancedBlockProps}
-          />
+          <div id="mobile-main-flow" className="flex flex-col gap-3">
+            <MobileStockParamsSection
+              fireEtaYears={fireEtaYears}
+              fireEtaMonths={fireEtaMonths}
+              etaComputing={heavySimComputing}
+              onRestoreDefaults={restoreStockParamsDefaults}
+              onOpenSaveTarget={() => setSaveTargetModalOpen(true)}
+              onOpenLoadTarget={() => setLoadTargetModalOpen(true)}
+              currentPrincipalStr={currentPrincipalStr}
+              setCurrentPrincipalStr={setCurrentPrincipalStr}
+              commitFormulaWithCommas={commitFormulaWithCommas}
+              parseFormula={parseFormula}
+              monthlyContribution={monthlyContribution}
+              setMonthlyContribution={setMonthlyContribution}
+              monthlyExtra={monthlyExtra}
+              setMonthlyExtra={setMonthlyExtra}
+              commitFormula={commitFormula}
+              annualReturnRate={annualReturnRate}
+              rateSource={rateSource}
+              dividendYieldPct={dividendYieldPct}
+              stockDividendPct={stockDividendPct}
+              currentPrincipalNum={currentPrincipalNum}
+              selectedEtfInfo={selectedEtfInfo}
+              advancedProps={stockAdvancedBlockProps}
+            />
+            <MobileGoalSettingSection
+              targetQuarterIncome={targetQuarterIncome}
+              setTargetQuarterIncome={setTargetQuarterIncome}
+              targetQuarterIncomeNum={targetQuarterIncomeNum}
+              requiredMonthlyToAchieveInYears={requiredMonthlyToAchieveInYears}
+              suggestedMonthlyDisplay={suggestedMonthlyDisplay}
+              requiredAssetsForTarget={requiredAssetsForTarget}
+              parseFormula={parseFormula}
+              fireEtaStr={fireEtaStr}
+              fireEtaYears={fireEtaYears}
+              reverseMonthlyIncome={reverseMonthlyIncome}
+              reverseYears={mobileReverseYears}
+              setReverseYears={setMobileReverseYears}
+              calcMode={mobileGoalCalcMode}
+              onCalcModeChange={setMobileGoalCalcMode}
+            />
+            {mobileGoalCalcMode !== "reverse" ? (
+              <MobileHeroSection
+                fireEtaStr={fireEtaStr}
+                hideEtaCard
+                showHomeHeroFirstLink={showHomeHeroFirstLink}
+                homeHeroFirstEntry={homeHeroFirstEntry}
+                blogHref={homeHeroBlogHref}
+                simulationAtTargetYears={{
+                  finalBalance: simulationAtTargetYears.finalBalance,
+                  totalDividends: simulationAtTargetYears.totalDividends,
+                }}
+              />
+            ) : null}
+          </div>
 
           {/* 手機：我的自選股 / PWA 安裝引導（往上移到主流程中） */}
           <div className="mt-2">
@@ -4379,8 +4470,9 @@ export default function Home() {
           </div>
         </div>
 
-        {/* 8️⃣ 累積金額與股數表（稅金級距 + 二代健保 + 如何減稅 + 股票選單與占比 + 自訂比值）— 往上移 */}
-        <div style={{ ...cardStyle }}>
+        {/* 8️⃣ 累積金額與股數表 ＋ 股金設定與試算（試算表在上、股金設定在下） */}
+        <div id="home-stock-tax-card" className="home-stock-tax-card" style={{ ...cardStyle }}>
+          <div id="home-tax-settings-section" className="home-tax-settings-section">
           {/* 股金設定與試算 */}
           <div style={{ marginBottom: 0 }}>
             <h2 style={{ fontSize: 24, fontWeight: 600, color: "#e5e7eb", margin: "0 0 8px 0" }}>股金設定與試算</h2>
@@ -4715,7 +4807,9 @@ export default function Home() {
               </div>
             </div>
           </div>
+          </div>
 
+          <div id="home-accum-table-section" className="home-accum-table-section">
           <div
             style={{
               display: "flex",
@@ -4748,8 +4842,19 @@ export default function Home() {
                       : "rounded-xl border border-white/10 bg-slate-950/40 p-4 shadow-[0_4px_24px_rgba(0,0,0,0.25)]"
                   }
                 >
-                  <div className="mb-3 border-b border-white/10 pb-2 text-lg font-bold text-slate-100">
-                    試算第1期 · {accumulatedPeriodRecentMobile.row.periodLabel}
+                  <div className="mb-3 flex items-start justify-between gap-3 border-b border-white/10 pb-2">
+                    <div className="min-w-0 text-lg font-bold leading-snug text-slate-100">
+                      近一期
+                      <span className="mt-0.5 block text-sm font-semibold text-slate-400">
+                        {accumulatedPeriodRecentMobile.row.periodLabel}
+                      </span>
+                    </div>
+                    <span
+                      className="shrink-0 rounded-full border border-emerald-400/45 bg-emerald-500/15 px-2.5 py-1 text-xs font-black leading-none text-emerald-300"
+                      aria-label={`試算第 ${nthPeriod} 期`}
+                    >
+                      第 {nthPeriod} 期
+                    </span>
                   </div>
                   <div className="flex flex-col gap-4">
                     <div>
@@ -4793,8 +4898,9 @@ export default function Home() {
                         <div className="flex flex-col gap-4">
                           <h3 className="text-center text-sm font-bold text-slate-300">未來10期</h3>
                           <div className="flex flex-col gap-4">
-                            {accumulatedPeriodNextTenMobile.map((d) => {
+                            {accumulatedPeriodNextTenMobile.map((d, futureIdx) => {
                               const hasDiv = d.dividendThisGross > 0;
+                              const periodNum = nthPeriod + futureIdx + 1;
                               return (
                                 <div
                                   key={d.i}
@@ -4804,7 +4910,15 @@ export default function Home() {
                                       : "rounded-xl border border-white/10 bg-slate-950/40 p-4 shadow-[0_4px_24px_rgba(0,0,0,0.25)]"
                                   }
                                 >
-                                  <div className="mb-2 border-b border-white/10 pb-2 text-base font-bold text-slate-100">{d.row.periodLabel}</div>
+                                  <div className="mb-2 flex items-start justify-between gap-2 border-b border-white/10 pb-2">
+                                    <span className="min-w-0 text-base font-bold leading-snug text-slate-100">{d.row.periodLabel}</span>
+                                    <span
+                                      className="shrink-0 rounded-full border border-emerald-400/35 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-black leading-none text-emerald-300/90"
+                                      aria-label={`試算第 ${periodNum} 期`}
+                                    >
+                                      第 {periodNum} 期
+                                    </span>
+                                  </div>
                                   <div className="flex flex-col gap-3">
                                     <div className="flex flex-wrap items-baseline justify-between gap-2">
                                       <span className="text-xs font-semibold text-slate-500">股利</span>
@@ -4932,6 +5046,7 @@ export default function Home() {
           </div>
           </div>
           </div>
+          </div>
         </div>
 
         {/* 7️⃣ ASSET GROWTH CHART - 預留 Chart.js（往下移） */}
@@ -5035,187 +5150,9 @@ export default function Home() {
               合作／廣告欄位預留
             </span>
           </div>
-          <section
-            aria-labelledby="employee-etf-faq-heading"
-            style={{
-              ...cardStyle,
-              lineHeight: 1.8,
-            }}
-          >
-            <h2
-              id="employee-etf-faq-heading"
-              style={{ fontSize: 24, fontWeight: 700, color: "#e5e7eb", margin: "0 0 14px" }}
-            >
-              上班族最常搜尋的 ETF 存股常見問題 (FAQ)
-            </h2>
-            <p style={{ margin: "0 0 18px", color: "#9ca3af", fontSize: 14 }}>
-              這裡不談空泛理財雞湯，只整理上班族做 ETF 存股、月領被動收入、二代健保與正二槓桿試算時，最容易算錯的五個問題。
-            </p>
-            <ol style={{ display: "flex", flexDirection: "column", gap: 18, margin: 0, paddingLeft: 22 }}>
-              <li style={{ paddingLeft: 4 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: "#f5c451", margin: "0 0 8px" }}>
-                  問題一：00878、00919 存到幾張可以退休？如何規劃月領 3 萬被動收入？
-                </h3>
-                <p style={{ margin: 0, color: "#d1d5db", fontSize: 14 }}>
-                  很多年輕上班族常搜尋 00878 存到幾張可以退休。以目標月領 3 萬高股息為例，利用本站的 ETF 複利計算機，輸入每月定期定額一萬，系統會自動幫你試算除權息股利再投入後，需要多少張數與達標年期才能完成小資族被動收入規劃。
-                </p>
-              </li>
-              <li style={{ paddingLeft: 4 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: "#f5c451", margin: "0 0 8px" }}>
-                  問題二：00929 與高股息 ETF 的二代健保免扣門檻（2萬元）怎麼算？
-                </h3>
-                <p style={{ margin: 0, color: "#d1d5db", fontSize: 14 }}>
-                  單期配息超過 2 萬元就會被扣 2.11% 的二代健保補充保費。存股族在網上瘋傳的 00929 二代健保免扣門檻，關鍵在於搞懂 54C 應稅股利占比。本大計算機直接幫你把 54C 占比、8.5% 抵減稅額與二代健保門檻鎖定，輸入預計持有張數即可精準進行壓力測試，避免股利被稅費白白吃掉。
-                </p>
-              </li>
-              <li style={{ paddingLeft: 4 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: "#f5c451", margin: "0 0 8px" }}>
-                  問題三：長期投資存股，選 0050 定期定額還是買正二（00631R）開槓桿？
-                </h3>
-                <p style={{ margin: 0, color: "#d1d5db", fontSize: 14 }}>
-                  在 PTT 與論壇上熱議的 0050 定期定額試算與正二（00631R）槓桿流抉擇，核心差異在於稅務流失。00631R 台灣50正2屬於期貨型 ETF 不發股利，能做到 54C 占比為 0% 且免疫二代健保。在本工具中，你可以將兩者下修報酬率進行壓力測試，看看到底誰的實質複利資產成長最驚人。
-                </p>
-              </li>
-              <li style={{ paddingLeft: 4 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: "#f5c451", margin: "0 0 8px" }}>
-                  問題四：手上有閒錢，應該先還清房貸、信貸，還是拿去買 ETF 定期定額存股？
-                </h3>
-                <p style={{ margin: 0, color: "#d1d5db", fontSize: 14 }}>
-                  這在理財社群上是天天熱議的話題。許多人搜尋「有錢先還房貸還是存股」或「借信貸買 00878 划算嗎」。核心關鍵在於你的實質利差空間。利用本站的槓桿抉擇計算機，你可以輸入貸款利率與 ETF 預估報酬率，它會自動幫你扣除台灣的股利所得稅與二代健保費，幫你精準評估利用低利貸款進行套利是否真的具備實質利差，避免盲目開槓桿導致財務翻車。
-                </p>
-              </li>
-              <li style={{ paddingLeft: 4 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: "#f5c451", margin: "0 0 8px" }}>
-                  問題五：高股息 ETF 換成月配息（如 00929）或季配息，頻繁配息會有哪些缺點？
-                </h3>
-                <p style={{ margin: 0, color: "#d1d5db", fontSize: 14 }}>
-                  配息頻率越高（例如從半年配改成月配息），每次配息被銀行扣除的匯費與股利再投入的手續費次數就越多。網路上常有人搜尋「月配息缺點」與「手續費損耗」，本萬萬稅計算機直接將配息頻率與每期扣除資金明細化。如果每期定期定額投入的金額不夠大，頻繁配息產生的摩擦成本會嚴重吃掉你的複利速度，你必須看扣完稅費後的再投入，才是最真實的財富自由年期。
-                </p>
-              </li>
-            </ol>
-          </section>
-          <section
-            aria-labelledby="legal-disclaimer-heading"
-            style={{
-              marginBottom: 20,
-              padding: "16px 18px",
-              borderRadius: 12,
-              border: "1px solid rgba(251,191,36,0.35)",
-              background: "rgba(30,27,15,0.55)",
-              color: "#d1d5db",
-              fontSize: 12,
-              lineHeight: 1.65,
-              textAlign: "left",
-            }}
-          >
-            <h2
-              id="legal-disclaimer-heading"
-              style={{
-                margin: "0 0 12px",
-                fontSize: 14,
-                fontWeight: 700,
-                color: "#fcd34d",
-                letterSpacing: "0.02em",
-              }}
-            >
-              法律聲明與免責條款
-            </h2>
-            <p style={{ margin: "0 0 10px", color: "#e5e7eb" }}>
-              您使用本網頁（含試算表、圖表、匯出檔案及所有顯示之數字與文字說明，以下合稱「本工具」）前，請詳閱下列條款。一經使用本工具，即表示您已閱讀、理解並同意受下列條款拘束；若您不同意，請勿使用本工具。
-            </p>
-            <ol style={{ margin: "0 0 10px", paddingLeft: 20, color: "#cbd5e1" }}>
-              <li style={{ marginBottom: 8 }}>
-                <strong style={{ color: "#fbbf24" }}>僅供參考，非專業建議：</strong>
-                本工具所產出之試算、模擬、預估報酬、稅費、股數、FIRE 時程及其他數值，均係依您輸入之假設與簡化模型計算，<strong>僅供一般性參考</strong>，不構成投資理財、資產配置、證券買賣、稅務申報、法律、會計或其他專業意見或建議，亦不代表對任何標的之推介、保證或預測。
-              </li>
-              <li style={{ marginBottom: 8 }}>
-                <strong style={{ color: "#fbbf24" }}>實際狀況以法令與機構為準：</strong>
-                所得稅、股利課稅、二代健保補充保費、抵減上限、級距、申報方式、ETF 實際配息、淨值、手續費、匯率及金融市場報酬等，均可能隨法規、政策、契約或市場而變動；<strong>請以中華民國現行法令、主管機關函釋、稽徵機關認定、券商／基金公司公告及您個案之事實為準。</strong>
-              </li>
-              <li style={{ marginBottom: 8 }}>
-                <strong style={{ color: "#fbbf24" }}>資料與正確性：</strong>
-                本工具可能使用預設參數、歷史或第三方資訊作為輸入便利，該等資訊<strong>未必即時、完整或正確</strong>；開發者未就試算結果之正確性、完整性、適用性或可達成性為任何明示或默示之擔保。
-              </li>
-              <li style={{ marginBottom: 8 }}>
-                <strong style={{ color: "#fbbf24" }}>持續優化與微調：</strong>
-                本工具將不定期優化與更新；對於計算邏輯、參數、介面或說明中可能之錯誤、疏漏或不一致，開發者得隨時酌情微調或修正。<strong>惟該等優化與微調並不保證</strong>試算結果之準確度、完整性，亦不擔保與法令、稽徵實務或市場實況完全一致。
-              </li>
-              <li style={{ marginBottom: 8 }}>
-                <strong style={{ color: "#fbbf24" }}>責任限制：</strong>
-                因使用或無法使用本工具、信賴本工具之輸出、或依該輸出所為之任何決定，所致之任何直接、間接、附隨、特別或衍生性損害（包含但不限於投資損失、稅務爭議、機會成本），<strong>使用者應自行評估並承擔全部風險與責任</strong>；在法律允許之最大範圍內，本工具之開發者與提供方不就前述事項負賠償或補償責任。
-              </li>
-              <li style={{ marginBottom: 0 }}>
-                <strong style={{ color: "#fbbf24" }}>條款變更：</strong>
-                得隨時修改本聲明內容；修改後於本頁公告即視為您知悉，請定期查閱。
-              </li>
-            </ol>
-            <p style={{ margin: 0, fontSize: 11, color: "#9ca3af" }}>
-              若您需要個人化之投資、稅務或法律諮詢，請洽具合格證照之專業人員。
-            </p>
-          </section>
-
-          <section
-            aria-labelledby="copyright-notice-heading"
-            style={{
-              position: "relative",
-              marginBottom: 20,
-              padding: "14px 18px 36px",
-              borderRadius: 12,
-              border: "1px solid rgba(148, 163, 184, 0.22)",
-              background: "rgba(15, 23, 42, 0.42)",
-              textAlign: "left",
-            }}
-          >
-            <h2
-              id="copyright-notice-heading"
-              style={{
-                margin: "0 0 10px",
-                fontSize: 13,
-                fontWeight: 700,
-                color: "#94a3b8",
-                letterSpacing: "0.04em",
-              }}
-            >
-              版權說明
-            </h2>
-            <div style={{ fontSize: 11, lineHeight: 1.72, color: "#9ca3af" }}>
-              <p style={{ margin: "0 0 10px" }}>
-                本網頁之<strong style={{ color: "#a1a1aa" }}>程式碼、試算邏輯與專案檔案</strong>
-                係以<strong style={{ color: "#a1a1aa" }}>開放原始碼（Open Source）</strong>
-                方式提供；具體授權條件以公開儲存庫內之{" "}
-                <strong style={{ color: "#a1a1aa" }}>LICENSE</strong> 及各檔案標頭為準（常見為 MIT
-                等寬鬆授權，惟以前開文件為準）。
-              </p>
-              <p style={{ margin: "0 0 10px" }}>
-                在遵守該授權條款之前提下，您得<strong style={{ color: "#a1a1aa" }}>免費使用、研究、修改、重製與再散布</strong>
-                本專案（含商業與非商業用途），無須另行取得個別書面同意；仍請依所適用之授權保留或重製著作權與授權聲明（例如 MIT
-                之「License」與「Copyright」文字）。
-              </p>
-              <p style={{ margin: "0 0 10px" }}>
-                <strong style={{ color: "#a1a1aa" }}>開放授權不代表任何擔保：</strong>
-                本專案係依現狀（AS IS）提供，開發者不就正確性、完整性、可商用性、不侵權或符合特定目的為任何明示或默示之保證；亦不承擔因使用或無法使用所生之損害賠償責任，於法律允許之最大範圍內為限。
-              </p>
-              <p style={{ margin: "0 0 10px" }}>
-                <strong style={{ color: "#a1a1aa" }}>不得據以主張對開發者之訴追：</strong>
-                您同意：不得以「曾使用本開源專案／本工具」「信賴本工具輸出」或「本專案為開源可自由使用」等事由，單獨或主要作為對本專案作者、維護者或提供方提起民事、刑事、行政程序、仲裁、檢舉或索賠之依據；相關爭議與風險之評估仍應依上方「法律聲明與免責條款」及您所在地法令，由您自行承擔。
-              </p>
-              <p style={{ margin: 0, fontSize: 10.5, color: "#6b7280" }}>
-                本工具所依賴之第三方套件（例如 React、Next.js、試算相關函式庫等）各依其原專案授權條款；再散布或商用時請一併遵守。
-              </p>
-            </div>
-            <div
-              style={{
-                position: "absolute",
-                right: 14,
-                bottom: 10,
-                fontSize: 10,
-                color: "#6b7280",
-                letterSpacing: "0.02em",
-              }}
-            >
-              版本　第 {APP_VERSION} 版
-            </div>
-          </section>
+          <HomeEmployeeEtfFaqSection />
+          <HomeLegalDisclaimerSection />
+          <HomeCopyrightNoticeSection appVersion={APP_VERSION} />
 
           <div style={{ fontSize: 11, color: "#6b7280", textAlign: "center" }}>
             <span>財富自由計算機</span>

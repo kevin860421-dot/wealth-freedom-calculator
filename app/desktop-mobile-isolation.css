@@ -21,8 +21,18 @@
   }
 
   #mobile-app-view {
-    display: block !important;
+    display: flex !important;
+    flex-direction: column;
+    gap: 16px;
+    padding: 0 12px;
+    box-sizing: border-box;
   }
+
+}
+
+/** 僅底部浮動三鍵出現時，預留空間避免遮住內容 */
+html[data-stock-params-dock="visible"] .home-client-main {
+  padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
 /**
@@ -34,7 +44,11 @@ html[data-preview-mobile="true"] #desktop-app-view {
 }
 
 html[data-preview-mobile="true"] #mobile-app-view {
-  display: block !important;
+  display: flex !important;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 12px;
+  box-sizing: border-box;
 }
 
 /**
@@ -83,7 +97,8 @@ html[data-preview-mobile="true"] #mobile-goal-setting {
   }
 
   #mobile-stock-params {
-    display: block !important;
+    display: flex !important;
+    flex-direction: column;
   }
 }
 
@@ -92,7 +107,8 @@ html[data-preview-mobile="true"] #desktop-stock-params {
 }
 
 html[data-preview-mobile="true"] #mobile-stock-params {
-  display: block !important;
+  display: flex !important;
+  flex-direction: column;
 }
 
 /**
@@ -126,6 +142,23 @@ html[data-preview-mobile="true"] #desktop-tax-settings-row {
 
 html[data-preview-mobile="true"] #mobile-tax-settings-row {
   display: block !important;
+}
+
+/** 首頁大卡：累積表在上、股金設定與試算在下（DOM 順序保留以利維護，以 flex order 對調） */
+.home-stock-tax-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-accum-table-section {
+  order: 1;
+}
+
+.home-tax-settings-section {
+  order: 2;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /** sticky 橫幅：桌機顯示勾選；手機顯示「自動」文案（與手機稅務區一致） */

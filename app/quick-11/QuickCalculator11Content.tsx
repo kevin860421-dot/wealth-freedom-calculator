@@ -2,11 +2,28 @@
 
 import Link from "next/link";
 import { AnimatePresence, animate, motion } from "framer-motion";
+import {
+  amountFromInvertedRange,
+  clampRangeAmount,
+  invertedFillPct,
+  invertedRangeDisplay,
+} from "@/app/components/quick-inverted-range";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
 import { Quick11InterestPkChart } from "./quick11-interest-pk-chart";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
-import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type RefObject,
+} from "react";
 import { buildLoanSchedules, evaluateCalcInput, formatMoney, type LoanMethod, type PaymentRow } from "./logic";
 import { QUICK11_LOAN_PRESETS } from "./loan-scenarios";
 import type { Quick11EmbedPreset } from "./embed-preset";
@@ -15,7 +32,7 @@ import { buildRateShowdownRows } from "./rate-showdown";
 import { RateShowdownModal } from "./rate-showdown-modal";
 import { RateShowdownTeaser } from "./rate-showdown-teaser";
 import { Quick11BottomToolsCard } from "./quick11-bottom-tools-card";
-import { Quick11ExcelLeadBlock } from "./quick11-excel-lead-block";
+import { Quick11ExcelDownloadButton } from "./quick11-excel-download-button";
 import { Quick11ExcelWizardModal } from "./quick11-excel-wizard-modal";
 import { hasQuick11ExitIntentSeen, Quick11ExitIntentModal } from "./quick11-exit-intent-modal";
 import { Quick11IdleNudgeCard } from "./quick11-idle-nudge-card";
@@ -86,6 +103,8 @@ function parseAndClamp(raw: string, fallback: number, min: number, max: number, 
 /** 與 `embed-preset`／mini-blog 嵌入一致：允許機車貸、學貸等小額本金。 */
 const LOAN_PRINCIPAL_MIN = 50_000;
 const LOAN_PRINCIPAL_MAX = 50_000_000;
+const LOAN_YEARS_MIN = 1;
+const LOAN_YEARS_MAX = 100;
 
 /** 寬限期年／月獨立儲存；總月數不得超過 cap（必要時只壓 m，年不變；年變時只壓 m）。 */
 function clampGraceYM(yIn: number, mIn: number, cap: number): { y: number; m: number } {
@@ -200,7 +219,6 @@ export function QuickCalculator11Content({
     if (t < 0 || t > 13) return 0;
     return t;
   });
-  const [pageDirection, setPageDirection] = useState(0);
   const [earlyStartMonth, setEarlyStartMonth] = useState(1);
   const [earlyStartMonthText, setEarlyStartMonthText] = useState("1");
   const [extraMonthlyPayment, setExtraMonthlyPayment] = useState(10_000);
@@ -241,6 +259,7 @@ export function QuickCalculator11Content({
   const tabButtonRefs = useRef<Record<number, HTMLButtonElement | null>>({});
   const topTabScrollRef = useRef<HTMLDivElement | null>(null);
   const bottomTabScrollRef = useRef<HTMLDivElement | null>(null);
+  const pageContentRef = useRef<HTMLDivElement | null>(null);
   const exitIntentTryOpenRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -647,7 +666,7 @@ export function QuickCalculator11Content({
 
   const tabScrollOuterClass = "min-w-0 flex-1 overflow-hidden";
   const tabScrollViewportClass =
-    "h-full w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden";
+    "w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden";
 
   const syncTabStripScroll = useCallback(
     (viewport: HTMLDivElement | null, pageId: number) => {
@@ -691,10 +710,12 @@ export function QuickCalculator11Content({
 
   const switchPage = (nextPage: number) => {
     const bounded = Math.max(0, Math.min(pageTabs.length - 1, nextPage));
-    setPageDirection(bounded > currentPage ? 1 : -1);
     setCurrentPage(bounded);
     if (bounded === 1) setMethod("annuity");
     if (bounded === 2) setMethod("equalPrincipal");
+    window.requestAnimationFrame(() => {
+      pageContentRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    });
   };
 
   const applyLoanPreset = (preset: LoanPresetAction) => {
@@ -1178,22 +1199,22 @@ export function QuickCalculator11Content({
                     label="貸款年期"
                     unit="年"
                     isLight={isLight}
-                    sliderMin={1}
-                    sliderMax={50}
+                    sliderMin={LOAN_YEARS_MIN}
+                    sliderMax={LOAN_YEARS_MAX}
                     sliderStep={1}
                     value={loanYears}
                     text={loanYearsText}
                     onTextChange={(next) => {
                       setLoanYearsText(next);
-                      setLoanYears(parseAndClamp(next, loanYears, 1, 50, true));
+                      setLoanYears(parseAndClamp(next, loanYears, LOAN_YEARS_MIN, LOAN_YEARS_MAX, true));
                     }}
                     onCommit={(next) => {
-                      const normalized = parseAndClamp(next, loanYears, 1, 50, true);
+                      const normalized = parseAndClamp(next, loanYears, LOAN_YEARS_MIN, LOAN_YEARS_MAX, true);
                       setLoanYears(normalized);
                       setLoanYearsText(String(normalized));
                     }}
                     onBump={(delta) => {
-                      const next = Math.min(50, Math.max(1, loanYears + delta));
+                      const next = Math.min(LOAN_YEARS_MAX, Math.max(LOAN_YEARS_MIN, loanYears + delta));
                       setLoanYears(next);
                       setLoanYearsText(String(next));
                     }}
@@ -1208,23 +1229,24 @@ export function QuickCalculator11Content({
             ) : null}
 
             <div
-              className={`overflow-hidden rounded-lg border ${
+              ref={pageContentRef}
+              id="quick11-page-content"
+              className={`rounded-lg border ${
                 isLight ? Q11_WHITE_PANEL : "border-slate-700 bg-slate-900/60"
               }`}
             >
-              <AnimatePresence mode="wait" custom={pageDirection}>
+              <AnimatePresence mode="wait">
                 <motion.section
                   key={currentPage}
-                  custom={pageDirection}
                   variants={{
-                    enter: (dir: number) => ({ x: dir >= 0 ? 90 : -90, opacity: 0 }),
-                    center: { x: 0, opacity: 1 },
-                    exit: (dir: number) => ({ x: dir >= 0 ? -90 : 90, opacity: 0 }),
+                    enter: { opacity: 0 },
+                    center: { opacity: 1 },
+                    exit: { opacity: 0 },
                   }}
                   initial="enter"
                   animate="center"
                   exit="exit"
-                  transition={{ duration: 0.24, ease: "easeOut" }}
+                  transition={{ duration: 0.18, ease: "easeOut" }}
                   drag="x"
                   dragConstraints={{ left: 0, right: 0 }}
                   dragElastic={0.1}
@@ -1663,6 +1685,12 @@ export function QuickCalculator11Content({
               </AnimatePresence>
             </div>
 
+            {!embeddedInMiniBlog ? (
+              <div id="quick11-excel-lead" className="mt-1.5">
+                <Quick11ExcelDownloadButton isLight={isLight} onOpenWizard={() => setWizardOpen(true)} />
+              </div>
+            ) : null}
+
             <div
               className={`sticky bottom-2 z-20 -mx-0.5 rounded-lg border px-1 py-1.5 shadow-lg ${
                 isLight
@@ -1736,12 +1764,6 @@ export function QuickCalculator11Content({
             </div>
 
             {!embeddedInMiniBlog ? (
-              <div id="quick11-excel-lead" className="mt-2 flex flex-col gap-2.5">
-                <Quick11ExcelLeadBlock isLight={isLight} compact onOpenWizard={() => setWizardOpen(true)} />
-              </div>
-            ) : null}
-
-            {!embeddedInMiniBlog ? (
               <div className="mt-2.5">
                 <Quick11BottomToolsCard isLight={isLight} />
               </div>
@@ -1750,7 +1772,6 @@ export function QuickCalculator11Content({
             {!embeddedInMiniBlog ? (
               <>
                 <Quick11ShareSnapshotCapture snapshotRef={shareSnapshotRef} data={shareSnapshotData} />
-                <Quick11ExcelWizardModal open={wizardOpen} onClose={() => setWizardOpen(false)} snapshotRef={shareSnapshotRef} />
                 <Quick11ExitIntentModal
                   blocked={wizardOpen}
                   onTriggered={idleNudge.notifyExitIntentTriggered}
@@ -1783,6 +1804,8 @@ export function QuickCalculator11Content({
             ) : null}
           </section>
         </div>
+
+        <Quick11ExcelWizardModal open={wizardOpen} onClose={() => setWizardOpen(false)} snapshotRef={shareSnapshotRef} />
 
         <RateShowdownModal
           open={rateShowdownOpen}
@@ -2397,7 +2420,7 @@ type InputFieldProps = {
   onSlider: (value: number) => void;
   onEnterNext?: () => void;
   isLight?: boolean;
-  /** inline：[-] 左、輸入中、[+] 右圓形步進（FinTech 風） */
+  /** 保留相容；步進一律 + 左、輸入中、− 右 */
   stepperStyle?: "stacked" | "inline";
 };
 
@@ -2446,9 +2469,12 @@ function InputField(props: InputFieldProps) {
     onSlider,
     onEnterNext,
     isLight = false,
-    stepperStyle = "stacked",
+    stepperStyle: _stepperStyle = "stacked",
   } = props;
   const localInputRef = useRef<HTMLInputElement>(null);
+  const sliderAmount = clampRangeAmount(value, sliderMin, sliderMax);
+  const sliderDisplay = invertedRangeDisplay(sliderAmount, sliderMin, sliderMax);
+  const sliderFillPct = invertedFillPct(sliderAmount, sliderMin, sliderMax);
   const labelMaxPx = compact ? 13 : 16;
   const labelMinPx = compact ? 9 : 11;
   const inputMaxPx = compact ? 15 : 22;
@@ -2513,10 +2539,8 @@ function InputField(props: InputFieldProps) {
           {unit}
         </span>
       </div>
-      <div className={`flex min-w-0 items-center ${stepperStyle === "inline" ? "gap-2" : "items-stretch gap-1.5"}`}>
-        {stepperStyle === "inline" ? (
-          <StepperCircleButton sign="-" compact={compact} isLight={isLight} onClick={() => onBump(-bumpStep)} />
-        ) : null}
+      <div className="flex min-w-0 items-center gap-2">
+        <StepperCircleButton sign="+" compact={compact} isLight={isLight} onClick={() => onBump(bumpStep)} />
         <input
           ref={setInputRefs}
           value={text}
@@ -2539,38 +2563,20 @@ function InputField(props: InputFieldProps) {
           inputMode="decimal"
           placeholder="支援 +-*/"
         />
-        {stepperStyle === "inline" ? (
-          <StepperCircleButton sign="+" compact={compact} isLight={isLight} onClick={() => onBump(bumpStep)} />
-        ) : (
-          <div className={`grid shrink-0 grid-rows-2 gap-1 ${compact ? "w-8" : "w-9"}`}>
-            <button
-              type="button"
-              onClick={() => onBump(bumpStep)}
-              className={`rounded-sm border font-bold ${compact ? "h-[19px] text-[12px]" : "h-[21px] text-[13px]"} ${
-                isLight ? "border-slate-200 bg-white text-slate-900 hover:bg-slate-100" : "border-slate-600 bg-slate-900/80 text-slate-100 hover:bg-slate-800"
-              }`}
-            >
-              +
-            </button>
-            <button
-              type="button"
-              onClick={() => onBump(-bumpStep)}
-              className={`rounded-sm border font-bold ${compact ? "h-[19px] text-[12px]" : "h-[21px] text-[13px]"} ${
-                isLight ? "border-slate-200 bg-white text-slate-900 hover:bg-slate-100" : "border-slate-600 bg-slate-900/80 text-slate-100 hover:bg-slate-800"
-              }`}
-            >
-              -
-            </button>
-          </div>
-        )}
+        <StepperCircleButton sign="-" compact={compact} isLight={isLight} onClick={() => onBump(-bumpStep)} />
       </div>
       <input
         type="range"
         min={sliderMin}
         max={sliderMax}
         step={sliderStep}
-        value={value}
-        onChange={(e) => onSlider(Number(e.currentTarget.value))}
+        value={sliderDisplay}
+        style={{ "--fill-pct": sliderFillPct } as CSSProperties}
+        onChange={(e) => {
+          const raw = Number(e.currentTarget.value);
+          if (!Number.isFinite(raw)) return;
+          onSlider(amountFromInvertedRange(raw, sliderMin, sliderMax));
+        }}
         className={`mt-1 h-1.5 w-full cursor-pointer appearance-none rounded-lg ${isLight ? "bg-slate-200 accent-sky-600" : "bg-slate-700 accent-sky-500"}`}
       />
       {quickActions?.length ? (

@@ -1,7 +1,9 @@
 "use client";
 
-import type { CSSProperties } from "react";
-import { TICKER_PRESETS } from "../ticker-presets";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
+import { TICKER_PRESETS, formatApproxSharesLine, type TickerPreset } from "../ticker-presets";
+import { EtfFilterAutocomplete } from "./etf-filter-autocomplete";
+import { MobileTargetRateFields } from "./mobile-stepper-fields";
 
 export type PayoutFrequency = "month" | "quarter" | "semiannual" | "year";
 export type RateSource = "annual" | "dividend" | null;
@@ -184,6 +186,14 @@ export function StockParamsAdvancedBlock({
     lineHeight: 1.45,
     margin: "0 0 8px 0",
   };
+  const mobileSectionSubtitle: CSSProperties = {
+    display: "block",
+    fontSize: 11,
+    fontWeight: 500,
+    color: "#94a3b8",
+    letterSpacing: "0.01em",
+    marginTop: 2,
+  };
   const labelMobile: CSSProperties = {
     fontSize: 13,
     fontWeight: 600,
@@ -208,22 +218,64 @@ export function StockParamsAdvancedBlock({
     selectedEtfInfo.dividendMonths.length > 0 &&
     selectedEtfInfo.frequency !== "month";
 
+  const [payoutManualEngaged, setPayoutManualEngaged] = useState(false);
+  const engagePayoutSection = useCallback(() => setPayoutManualEngaged(true), []);
+
+  useEffect(() => {
+    if (selectedEtf !== "none") setPayoutManualEngaged(true);
+  }, [selectedEtf]);
+
+  const payoutFreqLabel =
+    payoutFrequency === "month"
+      ? "月配"
+      : payoutFrequency === "quarter"
+        ? "季配"
+        : payoutFrequency === "semiannual"
+          ? "半年配"
+          : "年配";
+
+  const payoutContextHint =
+    selectedEtf !== "none" && selectedEtfInfo
+      ? `已依 ${selectedEtf} 帶入年化、殖利率、「${payoutFreqLabel}」與除息月`
+      : "選定 ETF 後，年化、殖利率、頻率與除息月會自動帶入";
+
+  const rateFromDividend =
+    rateSource === "dividend" && (dividendYieldPct !== "" || stockDividendPct !== "");
+
+  const fieldH = m ? 44 : stackEtfRow ? 40 : 28;
+  const stepH = m ? 36 : 28;
+
+  const mobileMonthBadgeRow: CSSProperties = {
+    display: "flex",
+    flexDirection: "row",
+    gap: 8,
+    alignItems: "stretch",
+    width: "100%",
+    minHeight: fieldH,
+    height: fieldH,
+    boxSizing: "border-box",
+  };
+
+  const mobileMonthBadge: CSSProperties = {
+    flex: 1,
+    minWidth: 0,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "0 8px",
+    background: "rgba(0,0,0,0.28)",
+    borderRadius: 8,
+    border: "1px solid rgba(255,255,255,0.12)",
+    fontSize: 13,
+    fontWeight: 600,
+    color: "#e5e7eb",
+    boxSizing: "border-box",
+  };
+
   const dividendMonthBadgesEl = showDividendMonthBadges ? (
-    <div style={{ display: "flex", flexDirection: "row", gap: 6, flexWrap: "wrap", marginTop: 4 }}>
+    <div style={mobileMonthBadgeRow}>
       {selectedEtfInfo!.dividendMonths!.map((m, i) => (
-        <div
-          key={i}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            padding: "4px 10px",
-            background: "rgba(0,0,0,0.2)",
-            borderRadius: 6,
-            border: "1px solid rgba(255,255,255,0.1)",
-            fontSize: 12,
-            color: "#e5e7eb",
-          }}
-        >
+        <div key={i} style={mobileMonthBadge}>
           {m} 月
         </div>
       ))}
@@ -242,42 +294,73 @@ export function StockParamsAdvancedBlock({
 
   const etfMobileTwoCol: CSSProperties = {
     display: "grid",
-    gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+    /* 左篩選碼窄、右 ETF 名稱寬（約 4:6，至少容納 6 字） */
+    gridTemplateColumns: "minmax(0, 4fr) minmax(0, 6fr)",
     gap: 10,
-    alignItems: "start",
+    alignItems: "stretch",
     width: "100%",
     minWidth: 0,
   };
 
-  const fieldH = m ? 42 : stackEtfRow ? 40 : 28;
-  const stepH = m ? 36 : 28;
+  const mobileColCell: CSSProperties = {
+    minWidth: 0,
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+  };
+
+  const mobileLabelAligned: CSSProperties = {
+    ...labelMobile,
+    minHeight: 36,
+    display: "flex",
+    alignItems: "flex-end",
+    lineHeight: 1.3,
+    margin: 0,
+  };
 
   const mobileEtfPayoutLeadBlock =
     mobileGrouped && stackEtfRow ? (
       <>
-        <div style={mobileGroupBox("#a78bfa")}>
-          <p style={mobileSubTitle("#e9d5ff")}>① ETF 設定</p>
+        <div style={mobileGroupBox("#c084fc")}>
+          <p style={mobileSubTitle("#e9d5ff")}>
+            ② 投資標的篩選
+            <span style={mobileSectionSubtitle}>（選擇您的存股引擎）</span>
+          </p>
           <p style={mobileHintLine}>{default0050Hint}</p>
           <div style={etfMobileTwoCol}>
-            <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 4 }}>
-              <label style={labelMobile} title={etfFilterTitle}>
-                ETF 篩選（1–5 碼，共 {tickerPresetCount} 檔）
+            <div style={mobileColCell}>
+              <label style={mobileLabelAligned} title={etfFilterTitle}>
+                ETF 篩選
               </label>
-              <input
-                type="text"
-                placeholder="例：0050"
+              <EtfFilterAutocomplete
                 value={etfCodeFilter}
-                maxLength={5}
-                onChange={(e) => handleEtfCodeChange(e.target.value)}
-                style={{ ...inputStyle, width: "100%", boxSizing: "border-box", height: fieldH }}
+                onChange={handleEtfCodeChange}
+                onSelectEtf={setSelectedEtf}
+                placeholder="例：0050、元大"
+                title={etfFilterTitle}
+                height={fieldH}
+                inputStyle={inputStyle}
               />
             </div>
-            <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 4 }}>
-              <label style={labelMobile}>選擇 ETF</label>
+            <div style={mobileColCell}>
+              <label style={mobileLabelAligned}>選擇 ETF</label>
               <select
                 value={selectedEtf}
                 onChange={(e) => setSelectedEtf(e.target.value)}
-                style={{ ...inputStyle, paddingRight: 24, width: "100%", boxSizing: "border-box", minWidth: 0, height: fieldH }}
+                style={{
+                  ...inputStyle,
+                  paddingRight: 36,
+                  paddingLeft: 8,
+                  fontSize: 12,
+                  width: "100%",
+                  boxSizing: "border-box",
+                  minWidth: 0,
+                  height: fieldH,
+                  minHeight: fieldH,
+                  textOverflow: "ellipsis",
+                  overflow: "hidden",
+                  whiteSpace: "nowrap",
+                }}
               >
                 <option value="none">不使用預設（自行輸入年化）</option>
                 {filteredEtfs.map((etf) => (
@@ -289,16 +372,99 @@ export function StockParamsAdvancedBlock({
             </div>
           </div>
         </div>
-        <div style={mobileGroupBox("#38bdf8")}>
-          <p style={mobileSubTitle("#bae6fd")}>② 配息設定</p>
-          <p style={mobileHintLine}>{default0050Hint}</p>
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 10, alignItems: "start" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
-              <label style={labelMobile}>股利發放頻率</label>
+        <div
+          style={{
+            ...mobileGroupBox("#38bdf8"),
+            opacity: payoutManualEngaged ? 1 : 0.46,
+            filter: payoutManualEngaged ? "none" : "saturate(0.55) brightness(0.82)",
+            transition: "opacity 0.32s ease, filter 0.32s ease, box-shadow 0.32s ease, border-color 0.32s ease",
+            borderColor: payoutManualEngaged ? "rgba(56, 189, 248, 0.28)" : "rgba(255, 255, 255, 0.05)",
+            boxShadow: payoutManualEngaged
+              ? "0 0 22px rgba(56, 189, 248, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+              : "none",
+          }}
+          onPointerDown={engagePayoutSection}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 10,
+              flexWrap: "wrap",
+              marginBottom: 6,
+            }}
+          >
+            <p style={{ ...mobileSubTitle("#bae6fd"), margin: 0, lineHeight: 1.45 }}>
+              ③ 股利配息設定
+              <span style={mobileSectionSubtitle}>（殖利率、頻率與投入月份）</span>
+            </p>
+            <span
+              style={{
+                fontSize: 15,
+                fontWeight: 800,
+                letterSpacing: "0.06em",
+                color: payoutManualEngaged ? "#7dd3fc" : "#64748b",
+                textShadow: payoutManualEngaged ? "0 0 14px rgba(125, 211, 252, 0.45)" : "none",
+                transition: "color 0.32s ease, text-shadow 0.32s ease",
+                whiteSpace: "nowrap",
+              }}
+            >
+              預設自動帶入
+            </span>
+          </div>
+          <p
+            style={{
+              ...mobileHintLine,
+              fontSize: payoutManualEngaged ? 11 : 12,
+              color: payoutManualEngaged ? "#94a3b8" : "#64748b",
+              transition: "color 0.32s ease",
+            }}
+          >
+            {payoutContextHint}
+          </p>
+          <div
+            style={{
+              marginBottom: 10,
+              width: "100%",
+              minWidth: 0,
+              boxSizing: "border-box",
+              opacity: payoutManualEngaged ? 1 : 0.92,
+              transition: "opacity 0.28s ease",
+            }}
+            onPointerDown={engagePayoutSection}
+          >
+            <MobileTargetRateFields
+              annualReturnRate={annualReturnRate}
+              setAnnualReturnRate={setAnnualReturnRate}
+              setRateSource={setRateSource}
+              rateFromDividend={rateFromDividend}
+              dividendYieldPct={dividendYieldPct}
+              stockDividendPct={stockDividendPct}
+              setDividendYieldPct={setDividendYieldPct}
+              setStockDividendPct={setStockDividendPct}
+            />
+          </div>
+          <div style={etfMobileTwoCol}>
+            <div style={mobileColCell}>
+              <label style={mobileLabelAligned}>股利發放頻率</label>
               <select
                 value={payoutFrequency}
-                onChange={(e) => handlePayoutFrequencyChange(e.target.value as PayoutFrequency)}
-                style={{ ...inputStyle, paddingRight: 24, width: "100%", boxSizing: "border-box", height: fieldH }}
+                onFocus={engagePayoutSection}
+                onChange={(e) => {
+                  engagePayoutSection();
+                  handlePayoutFrequencyChange(e.target.value as PayoutFrequency);
+                }}
+                style={{
+                  ...inputStyle,
+                  paddingRight: 24,
+                  width: "100%",
+                  boxSizing: "border-box",
+                  height: fieldH,
+                  minHeight: fieldH,
+                  opacity: payoutManualEngaged ? 1 : 0.92,
+                  transition: "opacity 0.28s ease",
+                }}
               >
                 <option value="month">月領</option>
                 <option value="quarter">季領</option>
@@ -306,11 +472,25 @@ export function StockParamsAdvancedBlock({
                 <option value="year">年領</option>
               </select>
             </div>
-            <div style={{ minWidth: 0 }}>
-              <span style={{ ...labelMobile, display: "block", marginBottom: 4 }}>投入月份</span>
+            <div style={mobileColCell}>
+              <span style={mobileLabelAligned}>投入月份</span>
               {dividendMonthBadgesEl}
               {!showDividendMonthBadges ? (
-                <p style={{ fontSize: 11, color: "#94a3b8", margin: "4px 0 0", lineHeight: 1.45 }}>月配為每月；非月配顯示除息月</p>
+                <div
+                  style={{
+                    ...mobileMonthBadgeRow,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "0 10px",
+                    background: "rgba(0,0,0,0.2)",
+                    borderRadius: 8,
+                    border: "1px dashed rgba(255,255,255,0.1)",
+                  }}
+                >
+                  <p style={{ fontSize: 11, color: "#94a3b8", margin: 0, lineHeight: 1.4, textAlign: "center" }}>
+                    月配為每月；非月配顯示除息月
+                  </p>
+                </div>
               ) : null}
             </div>
           </div>
@@ -438,7 +618,7 @@ export function StockParamsAdvancedBlock({
               {Math.floor(currentPrincipalNum).toLocaleString("zh-TW")} 元
             </div>
             <div style={{ fontSize: 10, color: "#9ca3af", marginTop: 2 }}>
-              {selectedEtfInfo?.price != null && selectedEtfInfo.price > 0 ? `約 ${Math.floor(currentPrincipalNum / selectedEtfInfo.price).toLocaleString("zh-TW")} 股` : ""}
+              {formatApproxSharesLine(currentPrincipalNum, selectedEtfInfo as TickerPreset | null | undefined)}
             </div>
           </div>
         ) : null}
@@ -449,7 +629,9 @@ export function StockParamsAdvancedBlock({
               : { display: "contents" }
           }
         >
-          {mobileGrouped && stackEtfRow ? <p style={mobileSubTitle("#fde68a")}>③ 時間設定</p> : null}
+          {mobileGrouped && stackEtfRow ? (
+            <p style={mobileSubTitle("#fde68a")}>{mobileOmitEtfPayoutLead ? "④ 時間設定" : "③ 時間設定"}</p>
+          ) : null}
           <div
             style={{
               display: m ? "grid" : "flex",
@@ -650,7 +832,7 @@ export function StockParamsAdvancedBlock({
       >
         {mobileGrouped && stackEtfRow ? (
           <>
-            <p style={mobileSubTitle("#a7f3d0")}>④ 試算與再投入</p>
+            <p style={mobileSubTitle("#a7f3d0")}>{mobileOmitEtfPayoutLead ? "⑤ 試算與再投入" : "④ 試算與再投入"}</p>
             <p style={{ fontSize: 11, color: "#94a3b8", margin: "0 0 10px 0", lineHeight: 1.45 }}>只影響模擬細節</p>
           </>
         ) : null}

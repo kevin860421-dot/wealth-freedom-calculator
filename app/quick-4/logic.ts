@@ -35,7 +35,7 @@ export function parseMoneyInputToInt(s: string): number | null {
 export const MONEY_MIN = 0;
 export const MONEY_MAX = 1_000_000;
 export const YEARS_MIN = 1;
-export const YEARS_MAX = 80;
+export const YEARS_MAX = 100;
 export const YEAR_MIN = 2000;
 export const YEAR_MAX = 2100;
 

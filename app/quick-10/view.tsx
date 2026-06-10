@@ -1,24 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
 import { QuickBottomCtaStack } from "@/app/components/quick-bottom-cta-stack";
-import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
+import { Quick10HomeConsole } from "./quick10-home-console";
+import { Quick10NetWorthChart } from "./quick10-net-worth-chart";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
-import { quickChartYearTicks } from "@/lib/quick-chart-series";
 import { clampNum, simulateMonthlyBalances } from "@/lib/quick-calculator-math";
-import {
-  currentMarketIndex,
-  evalInput,
-  formatTwd,
-  historicalLowReference,
-  inputStyle,
-  miniBtn,
-  sanitizeCalcInput,
-} from "./logic";
+import { evalInput, formatTwd, historicalLowReference, HOME_YEARS_MAX, HOME_YEARS_MIN } from "./logic";
+import { QUICK10_DISPLAY_NAME } from "./quick10-brand";
+import { downloadQuick10ChartExcel } from "./quick10-excel-export";
+import { useQuick10MarketIndex } from "./use-quick10-market-index";
 
 export function Quick10HomePanel({ embedded = false }: { embedded?: boolean } = {}) {
+  const { marketIndex } = useQuick10MarketIndex();
   const [shareState, setShareState] = useState<"idle" | "copied">("idle");
   const [monthly, setMonthly] = useState(20000);
   const [monthlyText, setMonthlyText] = useState(formatTwd(20000));
@@ -34,6 +30,7 @@ export function Quick10HomePanel({ embedded = false }: { embedded?: boolean } = 
   const [crashPctText, setCrashPctText] = useState("-30");
   const [hoveredCard, setHoveredCard] = useState<"principal" | "normal" | "crash" | null>(null);
   const [showToast, setShowToast] = useState(false);
+  const [excelDownloadBusy, setExcelDownloadBusy] = useState(false);
   const prevToastConditionRef = useRef(false);
 
   const commitMoney = (raw: string) => {
@@ -43,7 +40,7 @@ export function Quick10HomePanel({ embedded = false }: { embedded?: boolean } = 
   };
 
   const commitYears = (raw = yearsText) => {
-    const next = evalInput(raw, years, 1, 40, true);
+    const next = evalInput(raw, years, HOME_YEARS_MIN, HOME_YEARS_MAX, true);
     setYears(next);
     setYearsText(String(next));
   };
@@ -61,14 +58,32 @@ export function Quick10HomePanel({ embedded = false }: { embedded?: boolean } = 
   };
 
   const bumpYears = (delta: number) => {
-    const next = Math.round(clampNum(years + delta, 1, 40));
+    const next = Math.round(clampNum(years + delta, HOME_YEARS_MIN, HOME_YEARS_MAX));
     setYears(next);
     setYearsText(String(next));
   };
 
-  const months = Math.round(clampNum(years, 1, 40) * 12);
+  const bumpMonthly = (delta: number) => {
+    const next = Math.round(clampNum(monthly + delta, 0, 500_000) / 100) * 100;
+    setMonthly(next);
+    setMonthlyText(formatTwd(next));
+  };
+
+  const bumpAnnualPct = (delta: number) => {
+    const next = Number(clampNum(annualPct + delta, 0, 30).toFixed(2));
+    setAnnualPct(next);
+    setAnnualPctText(String(next));
+  };
+
+  const bumpCrashPct = (delta: number) => {
+    const next = Number(clampNum(crashPct + delta, -99, 0).toFixed(2));
+    setCrashPct(next);
+    setCrashPctText(String(next));
+  };
+
+  const months = Math.round(clampNum(years, HOME_YEARS_MIN, HOME_YEARS_MAX) * 12);
   const principalTotal = Math.max(0, monthly * 12 * years);
-  const crashMarketPoints = Math.max(0, Math.round(currentMarketIndex * (1 + crashPct / 100)));
+  const crashMarketPoints = Math.max(0, Math.round(marketIndex * (1 + crashPct / 100)));
 
   const result = useMemo(() => {
     const normalSeries = simulateMonthlyBalances({
@@ -93,17 +108,21 @@ export function Quick10HomePanel({ embedded = false }: { embedded?: boolean } = 
   }, [annualPct, months, monthly, crashPct, principalTotal]);
 
   const horizonYears = Math.round(months / 12);
-  const tickYears = useMemo(() => quickChartYearTicks(horizonYears), [horizonYears]);
+  /** 圖表每年一點，十字線可滑動 1～N 年（不只 1/5/10 三格） */
+  const chartYears = useMemo(
+    () => Array.from({ length: Math.max(1, horizonYears) }, (_, i) => i + 1),
+    [horizonYears],
+  );
   const windCrashChart = useMemo(() => {
     const normal = result.normalSeries;
     const monthsTotal = months;
     const hy = horizonYears;
-    const a = tickYears.map((y) => {
+    const a = chartYears.map((y) => {
       const mi = Math.min(y * 12, monthsTotal);
       const idx = mi - 1;
       return idx >= 0 && idx < normal.length ? normal[idx] : 0;
     });
-    const b = tickYears.map((y) => {
+    const b = chartYears.map((y) => {
       const mi = Math.min(y * 12, monthsTotal);
       const idx = mi - 1;
       if (idx < 0) return 0;
@@ -111,7 +130,45 @@ export function Quick10HomePanel({ embedded = false }: { embedded?: boolean } = 
       return normal[idx];
     });
     return { a, b };
-  }, [result, months, horizonYears, tickYears]);
+  }, [result, months, horizonYears, chartYears]);
+
+  const handleDownloadExcelChart = useCallback(() => {
+    if (excelDownloadBusy || result.normalSeries.length === 0) return;
+    setExcelDownloadBusy(true);
+    try {
+      downloadQuick10ChartExcel({
+        monthly,
+        horizonYears,
+        annualPct,
+        crashPct,
+        marketIndex,
+        crashMarketPoints,
+        principalTotal,
+        terminal: result.terminal,
+        afterCrash: result.afterCrash,
+        years: chartYears,
+        windSeries: windCrashChart.a,
+        crashSeries: windCrashChart.b,
+      });
+    } finally {
+      window.setTimeout(() => setExcelDownloadBusy(false), 400);
+    }
+  }, [
+    excelDownloadBusy,
+    monthly,
+    horizonYears,
+    annualPct,
+    crashPct,
+    marketIndex,
+    crashMarketPoints,
+    principalTotal,
+    result.terminal,
+    result.afterCrash,
+    result.normalSeries.length,
+    chartYears,
+    windCrashChart.a,
+    windCrashChart.b,
+  ]);
 
   useEffect(() => {
     const isPositiveShock = result.afterCrash > principalTotal;
@@ -153,7 +210,7 @@ export function Quick10HomePanel({ embedded = false }: { embedded?: boolean } = 
       if (yRaw != null) {
         const v = Number(yRaw);
         if (Number.isFinite(v)) {
-          const next = Math.round(clampNum(v, 1, 40));
+          const next = Math.round(clampNum(v, HOME_YEARS_MIN, HOME_YEARS_MAX));
           setYears(next);
           setYearsText(String(next));
         }
@@ -232,229 +289,100 @@ export function Quick10HomePanel({ embedded = false }: { embedded?: boolean } = 
       `}</style>
 
         <section
-          style={{
-            background: "rgba(255,255,255,0.06)",
-            border: "1px solid rgba(255,255,255,0.10)",
-            borderRadius: 14,
-            padding: 8,
-            boxShadow: "0 10px 30px rgba(0,0,0,0.35)",
-            width: "100%",
-            boxSizing: "border-box",
-            minWidth: 0,
-          }}
+          className={embedded ? "space-y-3" : undefined}
+          style={
+            embedded
+              ? { width: "100%", minWidth: 0, boxSizing: "border-box" }
+              : {
+                  background: "rgba(15,23,42,0.6)",
+                  border: "1px solid rgb(51, 65, 85)",
+                  borderRadius: 14,
+                  padding: 8,
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.35)",
+                  width: "100%",
+                  boxSizing: "border-box",
+                  minWidth: 0,
+                }
+          }
         >
-          <div style={{ display: "grid", gap: 12 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12, width: "100%", minWidth: 0 }}>
-              <div style={{ padding: 8, borderRadius: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)", minWidth: 0 }}>
-                <div style={{ fontSize: 17, opacity: 0.95, fontWeight: 900 }}>每月投入金額</div>
-                <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 6, width: "100%", minWidth: 0 }}>
-                  <button type="button" onClick={() => commitMoney(String(monthly - 1000))} style={miniBtn} aria-label="減 1000">
-                    –
-                  </button>
-                  <input
-                    inputMode="numeric"
-                    value={monthlyText}
-                    onChange={(e) => {
-                      const raw = sanitizeCalcInput(e.target.value);
-                      setMonthlyText(raw);
-                      const next = Math.round(evalInput(raw, monthly, 0, 500000) / 100) * 100;
-                      setMonthly(next);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        commitMoney((e.currentTarget as HTMLInputElement).value);
-                        (e.currentTarget as HTMLInputElement).blur();
-                      }
-                    }}
-                    onBlur={(e) => commitMoney((e.currentTarget as HTMLInputElement).value)}
-                    style={{ ...inputStyle, textAlign: "center" }}
-                  />
-                  <button type="button" onClick={() => commitMoney(String(monthly + 1000))} style={miniBtn} aria-label="加 1000">
-                    +
-                  </button>
-                </div>
-              </div>
-
-              <div style={{ padding: 8, borderRadius: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)", minWidth: 0 }}>
-                <div style={{ fontSize: 17, opacity: 0.95, fontWeight: 900 }}>預計投入年數</div>
-                <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 6, width: "100%", minWidth: 0 }}>
-                  <button type="button" onClick={() => bumpYears(-1)} style={miniBtn} aria-label="年數減 1">
-                    –
-                  </button>
-                  <input
-                    inputMode="numeric"
-                    value={yearsText}
-                    onChange={(e) => {
-                      const raw = sanitizeCalcInput(e.target.value);
-                      setYearsText(raw);
-                      const next = evalInput(raw, years, 1, 40, true);
-                      setYears(next);
-                    }}
-                    onBlur={(e) => commitYears((e.currentTarget as HTMLInputElement).value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        commitYears((e.currentTarget as HTMLInputElement).value);
-                        (e.currentTarget as HTMLInputElement).blur();
-                      }
-                    }}
-                    style={{ ...inputStyle, textAlign: "center" }}
-                  />
-                  <button type="button" onClick={() => bumpYears(1)} style={miniBtn} aria-label="年數加 1">
-                    +
-                  </button>
-                </div>
-              </div>
-
-              <label style={{ display: "grid", gap: 6, minWidth: 0, padding: 8, borderRadius: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" }}>
-                <div style={{ fontSize: 17, opacity: 0.95, fontWeight: 900 }}>預期年化報酬率（%）</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, width: "100%", minWidth: 0 }}>
-                  <button type="button" onClick={() => commitAnnualPct(String(annualPct - 1))} style={miniBtn} aria-label="年化減 1%">
-                    –
-                  </button>
-                  <input
-                    inputMode="decimal"
-                    value={annualPctText}
-                    onChange={(e) => {
-                      const raw = sanitizeCalcInput(e.target.value);
-                      setAnnualPctText(raw);
-                      const next = Number(evalInput(raw, annualPct, 0, 30).toFixed(2));
-                      setAnnualPct(next);
-                    }}
-                    onBlur={(e) => commitAnnualPct((e.currentTarget as HTMLInputElement).value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        commitAnnualPct((e.currentTarget as HTMLInputElement).value);
-                        (e.currentTarget as HTMLInputElement).blur();
-                      }
-                    }}
-                    style={{ ...inputStyle, textAlign: "center", fontSize: 18, height: 44 }}
-                  />
-                  <button type="button" onClick={() => commitAnnualPct(String(annualPct + 1))} style={miniBtn} aria-label="年化加 1%">
-                    +
-                  </button>
-                </div>
-              </label>
-              <label style={{ display: "grid", gap: 6, minWidth: 0, padding: 8, borderRadius: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" }}>
-                <div style={{ fontSize: 17, opacity: 0.95, fontWeight: 900 }}>期末大跌（%）</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, width: "100%", minWidth: 0 }}>
-                  <button type="button" onClick={() => commitCrashPct(String(crashPct - 1))} style={miniBtn} aria-label="跌幅多 1%">
-                    –
-                  </button>
-                  <input
-                    inputMode="decimal"
-                    value={crashPctText}
-                    onChange={(e) => {
-                      const raw = sanitizeCalcInput(e.target.value);
-                      setCrashPctText(raw);
-                      const next = Number(evalInput(raw, crashPct, -99, 0).toFixed(2));
-                      setCrashPct(next);
-                    }}
-                    onBlur={(e) => commitCrashPct((e.currentTarget as HTMLInputElement).value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        commitCrashPct((e.currentTarget as HTMLInputElement).value);
-                        (e.currentTarget as HTMLInputElement).blur();
-                      }
-                    }}
-                    style={{ ...inputStyle, textAlign: "center", fontSize: 18, height: 44 }}
-                  />
-                  <button type="button" onClick={() => commitCrashPct(String(crashPct + 1))} style={miniBtn} aria-label="跌幅少 1%">
-                    +
-                  </button>
-                </div>
-                <div style={{ fontSize: 14, color: "#93c5fd", fontWeight: 800, lineHeight: 1.35 }}>
-                  📉 對應大盤：{crashMarketPoints.toLocaleString("en-US")} 點
-                </div>
-              </label>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
-              <div
-                onMouseEnter={() => setHoveredCard("principal")}
-                onMouseLeave={() => setHoveredCard(null)}
-                style={{
-                  padding: 10,
-                  borderRadius: 12,
-                  border: "1px solid rgba(255,255,255,0.16)",
-                  background: "rgba(15,23,42,0.55)",
-                  transition: "transform 140ms ease, box-shadow 140ms ease",
-                  transform: hoveredCard === "principal" ? "translateY(-2px)" : "translateY(0)",
-                  boxShadow: hoveredCard === "principal" ? "0 8px 20px rgba(0,0,0,0.25)" : "none",
-                }}
-              >
-                <div style={{ fontSize: 13, opacity: 0.9, fontWeight: 900, color: "rgba(229,231,235,0.95)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>投入本金</div>
-                <div style={{ marginTop: 6, fontSize: 19, fontWeight: 950, color: "#e5e7eb", overflowWrap: "anywhere" }}>{formatTwd(principalTotal)}</div>
-              </div>
-              <div
-                onMouseEnter={() => setHoveredCard("normal")}
-                onMouseLeave={() => setHoveredCard(null)}
-                style={{
-                  padding: 10,
-                  borderRadius: 12,
-                  border: "1px solid rgba(134,239,172,0.35)",
-                  background: "rgba(20,83,45,0.26)",
-                  transition: "transform 140ms ease, box-shadow 140ms ease",
-                  transform: hoveredCard === "normal" ? "translateY(-2px)" : "translateY(0)",
-                  boxShadow: hoveredCard === "normal" ? "0 10px 22px rgba(16,185,129,0.22)" : "none",
-                }}
-              >
-                <div style={{ fontSize: 13, opacity: 0.95, fontWeight: 900, color: "rgba(134,239,172,0.98)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>順風時，你擁有的財富</div>
-                <div style={{ marginTop: 6, fontSize: 19, fontWeight: 950, color: "rgba(134,239,172,0.98)", overflowWrap: "anywhere" }}>{formatTwd(result.terminal)}</div>
-              </div>
-              <div
-                onMouseEnter={() => setHoveredCard("crash")}
-                onMouseLeave={() => setHoveredCard(null)}
-                style={{
-                  padding: 10,
-                  borderRadius: 12,
-                  border: "1px solid rgba(251,146,60,0.35)",
-                  background: "rgba(124,45,18,0.26)",
-                  transition: "transform 140ms ease, box-shadow 140ms ease",
-                  transform: hoveredCard === "crash" ? "translateY(-2px)" : "translateY(0)",
-                  boxShadow: hoveredCard === "crash" ? "0 10px 22px rgba(251,146,60,0.24)" : "none",
-                }}
-              >
-                <div style={{ fontSize: 13, opacity: 0.95, fontWeight: 900, color: "rgba(251,146,60,0.98)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>最慘時，你還保有的底氣</div>
-                <div style={{ marginTop: 6, fontSize: 19, fontWeight: 950, color: "rgba(251,146,60,0.98)", overflowWrap: "anywhere" }}>{formatTwd(result.afterCrash)}</div>
-              </div>
-            </div>
-
-            {result.normalSeries.length > 0 ? (
-              <QuickDualLineChart
-                title="淨值走勢"
-                years={tickYears}
-                seriesA={windCrashChart.a}
-                seriesB={windCrashChart.b}
-                legendA={`順風複利（年化 ${annualPct}%）`}
-                legendB={`期末大跌（${crashPct}%）`}
-                colorA="rgba(134, 239, 172, 0.92)"
-                colorB="rgba(251, 146, 60, 0.92)"
-                dashSeriesB
-                referenceLineY={principalTotal}
-                showPointValues
-                showPointValuesScope="last"
-                pointLabelMode="smart"
-                formatPointValue={formatTwd}
-                topNotes={
-                  <text x="0" y="16" fontSize="13" fill="rgba(251,146,60,0.95)" fontWeight="900">
-                    情境大盤約 {crashMarketPoints.toLocaleString("en-US")} 點（對照）
-                  </text>
-                }
-                legendFooter={
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ width: 12, borderTop: "2px dashed rgba(229,231,235,0.9)", display: "inline-block" }} />
-                      灰虚線為本金線（投入 {formatTwd(principalTotal)} 元）
-                    </span>
-                  </span>
-                }
-              />
-            ) : null}
-
+          <Quick10HomeConsole
+            crashMarketPoints={crashMarketPoints}
+            principalTotal={principalTotal}
+            terminal={result.terminal}
+            afterCrash={result.afterCrash}
+            monthly={monthly}
+            years={years}
+            annualPct={annualPct}
+            crashPct={crashPct}
+            monthlyText={monthlyText}
+            yearsText={yearsText}
+            annualPctText={annualPctText}
+            crashPctText={crashPctText}
+            onMonthlyTextChange={(raw) => {
+              setMonthlyText(raw);
+              const next = Math.round(evalInput(raw, monthly, 0, 500_000) / 100) * 100;
+              setMonthly(next);
+            }}
+            onYearsTextChange={(raw) => {
+              setYearsText(raw);
+              setYears(evalInput(raw, years, HOME_YEARS_MIN, HOME_YEARS_MAX, true));
+            }}
+            onAnnualPctTextChange={(raw) => {
+              setAnnualPctText(raw);
+              setAnnualPct(Number(evalInput(raw, annualPct, 0, 30).toFixed(2)));
+            }}
+            onCrashPctTextChange={(raw) => {
+              setCrashPctText(raw);
+              setCrashPct(Number(evalInput(raw, crashPct, -99, 0).toFixed(2)));
+            }}
+            commitMoney={commitMoney}
+            commitYears={commitYears}
+            commitAnnualPct={commitAnnualPct}
+            commitCrashPct={commitCrashPct}
+            bumpMonthly={bumpMonthly}
+            bumpYears={bumpYears}
+            bumpAnnualPct={bumpAnnualPct}
+            bumpCrashPct={bumpCrashPct}
+            onMonthlySlider={(v) => {
+              const next = Math.round(clampNum(v, 0, 500_000) / 100) * 100;
+              setMonthly(next);
+              setMonthlyText(formatTwd(next));
+            }}
+            onYearsSlider={(v) => {
+          const next = Math.round(clampNum(v, HOME_YEARS_MIN, HOME_YEARS_MAX));
+          setYears(next);
+          setYearsText(String(next));
+        }}
+            onAnnualPctSlider={(v) => {
+              const next = Number(clampNum(v, 0, 30).toFixed(2));
+              setAnnualPct(next);
+              setAnnualPctText(String(next));
+            }}
+            onCrashPctSlider={(v) => {
+              const next = Number(clampNum(v, -99, 0).toFixed(2));
+              setCrashPct(next);
+              setCrashPctText(String(next));
+            }}
+            hoveredCard={hoveredCard}
+            setHoveredCard={setHoveredCard}
+            onDownloadExcelChart={result.normalSeries.length > 0 ? handleDownloadExcelChart : undefined}
+            excelDownloadBusy={excelDownloadBusy}
+            chartSlot={
+              result.normalSeries.length > 0 ? (
+                <Quick10NetWorthChart
+                  title="淨值走勢"
+                  subtitle={`情境大盤約 ${crashMarketPoints.toLocaleString("en-US")} 點（對照）`}
+                  years={chartYears}
+                  seriesA={windCrashChart.a}
+                  seriesB={windCrashChart.b}
+                  principal={principalTotal}
+                  legendA={`順風複利（年化 ${annualPct}%）`}
+                  legendB={`期末大跌（${crashPct}%）`}
+                />
+              ) : null
+            }
+            footerSlot={
+              <>
             {showToast && result.afterCrash > principalTotal && (
               <div
                 style={{
@@ -495,7 +423,9 @@ export function Quick10HomePanel({ embedded = false }: { embedded?: boolean } = 
                 即便跌回兩年前的水平，你的資產依然比多數「沒投資只消費」情境更有防禦力。
               </div>
             )}
-          </div>
+              </>
+            }
+          />
         </section>
     </>
   );
@@ -506,7 +436,7 @@ export function Quick10HomePanel({ embedded = false }: { embedded?: boolean } = 
     <main
       style={{
         minHeight: "100vh",
-        background: "#0b1220",
+        background: "#020817",
         padding: "12px 12px 28px",
         color: "#e8eefc",
         display: "flex",
@@ -547,7 +477,7 @@ export function Quick10HomePanel({ embedded = false }: { embedded?: boolean } = 
             </button>
           </div>
           <div className="quick10-title-gradient" style={{ fontSize: 30, fontWeight: 950, marginTop: 10, lineHeight: 1.12 }}>
-            複利美夢 VS 崩盤現實 計算機
+            {QUICK10_DISPLAY_NAME}
           </div>
         </div>
         {homeSection}

@@ -43,7 +43,7 @@ export const INVEST_ANNUAL_PCT = 7;
 export const MONEY_MIN = 0;
 export const MONEY_MAX = 1_000_000;
 export const YEARS_MIN = 1;
-export const YEARS_MAX = 50;
+export const YEARS_MAX = 100;
 
 export function commitMoney(raw: string, current: number) {
   const hasOps = /[+\-*/()]/.test(raw);

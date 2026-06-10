@@ -23,7 +23,7 @@ function quickCalculatorLabel(n: number): string {
   if (n === 7) return `第7台｜${QUICK7_DISPLAY_TITLE}`;
   if (n === 8) return "第8台｜延遲享樂計算機";
   if (n === 9) return "第9台｜延遲享樂計算機 2";
-  if (n === 10) return "第10台｜複利美夢 VS 崩盤現實 計算機";
+  if (n === 10) return "第10台｜破產計算機 股票版";
   if (n === 11) return "第11台｜破產計算機";
   if (n === 12) return `第12台｜${QUICK12_DISPLAY_TITLE}`;
   return `第${n}台｜小計算機（建置中）`;

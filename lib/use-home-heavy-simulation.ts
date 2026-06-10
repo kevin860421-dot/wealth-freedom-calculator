@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   EMPTY_SIMULATION,
   serializeHeavySimPayload,
@@ -35,6 +35,7 @@ export function useHomeHeavySimulation(payload: HeavySimPayload, enabled = true)
   const workerRef = useRef<Worker | null>(null);
   const requestIdRef = useRef(0);
   const lastPayloadKeyRef = useRef<string | null>(null);
+  const payloadKey = useMemo(() => serializeHeavySimPayload(payload), [payload]);
 
   useEffect(() => {
     const worker = new Worker(new URL("./home-simulation.worker.ts", import.meta.url));
@@ -61,21 +62,20 @@ export function useHomeHeavySimulation(payload: HeavySimPayload, enabled = true)
 
   useEffect(() => {
     if (!enabled) {
-      setState((prev) => ({ ...prev, isComputing: false }));
+      setState((prev) => (prev.isComputing ? { ...prev, isComputing: false } : prev));
       return;
     }
     const worker = workerRef.current;
     if (!worker) return;
 
-    const payloadKey = serializeHeavySimPayload(payload);
     if (payloadKey === lastPayloadKeyRef.current) return;
     lastPayloadKeyRef.current = payloadKey;
 
     requestIdRef.current += 1;
     const id = requestIdRef.current;
-    setState((prev) => ({ ...prev, isComputing: true }));
+    setState((prev) => (prev.isComputing ? prev : { ...prev, isComputing: true }));
     worker.postMessage({ id, payload });
-  }, [payload, enabled]);
+  }, [payloadKey, payload, enabled]);
 
   return state;
 }

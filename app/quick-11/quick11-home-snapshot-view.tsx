@@ -173,7 +173,7 @@ export function Quick11HomeSnapshotView({ data }: { data: Quick11ShareSnapshotDa
             text={String(data.loanYears)}
             value={data.loanYears}
             sliderMin={1}
-            sliderMax={50}
+            sliderMax={100}
           />
         </div>
       </div>

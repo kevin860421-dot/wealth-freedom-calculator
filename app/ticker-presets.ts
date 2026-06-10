@@ -19,6 +19,21 @@ export type TickerPreset = {
   ratio54c?: string;
 };
 
+/** 從預設 label 判斷標的種類（例：「…- ETF - …」「…- 股票 - …」） */
+export function tickerAssetKind(label: string): "ETF" | "股票" | null {
+  if (label.includes("- ETF -")) return "ETF";
+  if (label.includes("- 股票 -")) return "股票";
+  return null;
+}
+
+/** 本金換算約可買股數，附代號與種類（例：約 270 股（0050 ETF）） */
+export function formatApproxSharesLine(principal: number, preset: Pick<TickerPreset, "id" | "label" | "price"> | null | undefined): string {
+  if (!preset?.price || preset.price <= 0) return "";
+  const shares = Math.floor(principal / preset.price).toLocaleString("zh-TW");
+  const kind = tickerAssetKind(preset.label);
+  return kind ? `約 ${shares} 股（${preset.id} ${kind}）` : `約 ${shares} 股（${preset.id}）`;
+}
+
 export const TICKER_PRESETS: TickerPreset[] = [
     {
       id: "0050",

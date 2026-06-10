@@ -1,7 +1,7 @@
 /* 僅 MobileStockParamsSection（#mobile-stock-params） */
 
 .root {
-  padding: 14px 18px 26px;
+  padding: 12px 12px 20px;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(11, 17, 32, 0.82);
@@ -10,75 +10,196 @@
   box-shadow: 0 0 0 1px rgba(57, 255, 20, 0.04), 0 12px 40px rgba(0, 0, 0, 0.35);
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 14px;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* 頂部航程儀表板 */
+.etaDashboard {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(74, 222, 128, 0.28);
+  background: linear-gradient(145deg, rgba(6, 78, 59, 0.35) 0%, rgba(15, 23, 42, 0.75) 55%, rgba(11, 17, 32, 0.9) 100%);
+  box-shadow:
+    0 0 0 1px rgba(34, 197, 94, 0.08),
+    0 8px 28px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  text-align: center;
+  transition: box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+.etaDashboardPulse {
+  border-color: rgba(74, 222, 128, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(34, 197, 94, 0.2),
+    0 0 24px rgba(34, 197, 94, 0.22),
+    0 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+.etaDashboardComputing {
+  opacity: 0.92;
+}
+
+.etaDashboardLead {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #cbd5e1;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+}
+
+.etaDashboardIcon {
+  margin-right: 4px;
+}
+
+.etaDashboardMain {
+  margin: 0;
+  font-size: clamp(15px, 4.2vw, 17px);
+  font-weight: 700;
+  color: #e2e8f0;
+  line-height: 1.35;
+}
+
+.etaDashboardHighlight {
+  display: inline-block;
+  font-size: clamp(1.35rem, 6.2vw, 1.65rem);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: #4ade80;
+  text-shadow: 0 0 20px rgba(74, 222, 128, 0.45);
+  animation: etaHighlightPop 0.45s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+@keyframes etaHighlightPop {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.65;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.paramsStack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   box-sizing: border-box;
 }
 
-/* 標的篩選／ETF／配息：置於標題下、基本設定前 */
+/* ② 投資標的 ＋ ③ 配息：接在 ① 起始資金設定之後 */
 .etfLeadWrap {
   width: 100%;
   min-width: 0;
-  margin-top: -6px;
 }
 
 .headRow {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
   padding-bottom: 14px;
 }
 
-.headActions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  width: fit-content;
-  max-width: 100%;
-  margin-left: auto;
+/* 固定底欄：原位置三鍵滑出視窗時才顯示（portal 至 body） */
+.floatingDock {
+  display: none;
+}
+
+.floatingDockVisible {
+  display: block;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9500;
+  padding: 10px 12px max(12px, env(safe-area-inset-bottom));
+  background: linear-gradient(
+    180deg,
+    rgba(11, 17, 32, 0) 0%,
+    rgba(11, 17, 32, 0.92) 22%,
+    rgba(11, 17, 32, 0.98) 100%
+  );
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.48);
   box-sizing: border-box;
 }
 
-/* 左紫／中藍／右綠：線框按鈕（寬度隨文字，不拉滿） */
+.floatingDockVisible .linkText {
+  min-height: 40px;
+}
+
+/* 左紫／中藍／右綠：線框按鈕（等寬等高，由外層 flex + flex-1 控制） */
 .linkText {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: fit-content;
-  max-width: 100%;
   box-sizing: border-box;
-  font-size: 13px;
-  line-height: 1.2;
-  padding: 6px 10px;
   border: 1px solid;
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.2);
   cursor: pointer;
   font-weight: 600;
   font-family: inherit;
-  flex-shrink: 0;
+  min-height: 38px;
   transition:
     filter 0.15s ease,
     background 0.15s ease,
     border-color 0.15s ease;
 }
 
-.linkText:hover {
+.linkText:hover:not(:disabled) {
   filter: brightness(1.08);
 }
 
 .linkSave {
   color: #c084fc;
   border-color: rgba(192, 132, 252, 0.55);
+  box-shadow: 0 0 12px rgba(192, 132, 252, 0.22);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
 }
 
-.linkSave:hover {
+.linkSave:hover:not(:disabled) {
   background: rgba(192, 132, 252, 0.12);
   border-color: rgba(192, 132, 252, 0.75);
+}
+
+.linkSavePending {
+  color: #64748b;
+  border-color: rgba(100, 116, 139, 0.32);
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.linkSavePending:disabled {
+  cursor: not-allowed;
 }
 
 .linkLoad {
@@ -111,41 +232,149 @@
   font-weight: 700;
   color: #f1f5f9;
   margin: 0;
+  width: 100%;
+  min-width: 0;
 }
 
 .basicCard {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 18px 16px 20px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.22);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 4px 24px rgba(0, 0, 0, 0.2), 0 0 20px rgba(57, 255, 20, 0.04);
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 8px 10px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-left: 3px solid #4ade80;
+  background: linear-gradient(165deg, rgba(15, 23, 42, 0.55), rgba(0, 0, 0, 0.42));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  margin-bottom: 0;
+  overflow: visible;
 }
+
 
 .basicFields {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.ratePairGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: stretch;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.ratePairCell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ratePairCell .inputRow {
+  width: 100%;
 }
 
 .sectionLabel {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
+  color: #86efac;
+  letter-spacing: 0.02em;
+  margin: 0 0 2px;
+  line-height: 1.35;
+}
+
+.sectionLabelSub {
+  display: block;
+  font-size: 10px;
+  font-weight: 500;
   color: #94a3b8;
-  letter-spacing: 0.04em;
-  margin: 0;
+  letter-spacing: 0.01em;
+  margin-top: 1px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .fieldInputWrap {
   position: relative;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.stepperRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.circleStepBtn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(15, 23, 42, 0.85);
+  color: #e2e8f0;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.35);
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.circleStepBtn:hover {
+  border-color: rgba(148, 163, 184, 0.35);
+  background: rgba(30, 41, 59, 0.95);
+}
+
+.circleStepBtn:active {
+  transform: scale(0.94);
+}
+
+.circleStepBtnPrincipal {
+  border-color: rgba(57, 255, 20, 0.28);
+  color: #4ade80;
+  box-shadow:
+    inset 0 1px 0 rgba(57, 255, 20, 0.08),
+    0 0 12px rgba(57, 255, 20, 0.1);
+}
+
+.circleStepBtnPrincipal:hover {
+  border-color: rgba(57, 255, 20, 0.45);
+  background: rgba(6, 78, 59, 0.35);
 }
 
 /* 即時變化：fade + slide */
@@ -181,17 +410,25 @@
 }
 
 .label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: #e2e8f0;
+  line-height: 1.3;
+}
+
+.labelCompact {
+  font-size: 11px;
+  line-height: 1.25;
 }
 
 .inputRow {
   display: flex;
   align-items: stretch;
-  height: 48px;
-  min-height: 48px;
-  border-radius: 12px;
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  min-height: 40px;
+  border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   overflow: hidden;
   background: rgba(0, 0, 0, 0.4);
@@ -228,17 +465,18 @@
 
 .inputField {
   flex: 1;
+  width: 100%;
   min-width: 0;
   border: none;
   background: transparent;
-  padding: 0 14px;
-  font-size: 15px;
+  padding: 0 10px;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   color: #e5e7eb;
   outline: none;
-  height: 48px;
-  min-height: 48px;
+  height: 40px;
+  min-height: 40px;
   box-sizing: border-box;
 }
 
@@ -306,27 +544,44 @@
 }
 
 .hint {
-  font-size: 11px;
+  font-size: 10px;
   color: #94a3b8;
-  line-height: 1.45;
+  line-height: 1.35;
   margin: 0;
 }
 
 .rateHint {
-  font-size: 11px;
+  font-size: 10px;
   color: #64748b;
-  margin: 4px 0 0;
+  line-height: 1.35;
+  margin: 2px 0 0;
 }
 
 .summaryCard {
-  padding: 18px 20px 20px;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 21px 20px 20px;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-top: 3px solid rgba(57, 255, 20, 0.45);
   background: linear-gradient(180deg, rgba(15, 23, 42, 0.75) 0%, rgba(15, 23, 42, 0.55) 100%);
   text-align: center;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28), 0 0 32px rgba(57, 255, 20, 0.08);
   transition: box-shadow 0.25s ease;
+}
+
+.summaryCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(90deg, rgba(57, 255, 20, 0.35), rgba(74, 222, 128, 0.85), rgba(57, 255, 20, 0.35));
+  box-shadow: 0 0 14px rgba(74, 222, 128, 0.35);
+  pointer-events: none;
 }
 
 .summaryPulse {
@@ -373,21 +628,23 @@
 
 /* 進階區：視覺降權（較暗、細邊框、無 glow），與基本設定區分層級 */
 .advancedShell {
+  height: auto;
   border-radius: 12px;
   border: 1px solid rgba(52, 211, 153, 0.12);
   background: linear-gradient(165deg, rgba(15, 23, 42, 0.55), rgba(0, 0, 0, 0.38));
-  padding: 10px 10px 12px;
+  padding: 12px 12px 14px;
   box-sizing: border-box;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  overflow: visible;
 }
 
 .advancedToggle {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
-  padding: 0;
+  padding: 0 16px 0 0;
   margin: 0;
   font: inherit;
   text-align: left;
@@ -398,39 +655,30 @@
   box-sizing: border-box;
 }
 
-.advancedToggle:hover {
-  color: #e2e8f0;
+.advancedToggle:hover .advancedToggleText {
+  color: #cbd5e1;
 }
 
 .advancedToggleText {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  flex: 1;
+  min-width: 0;
   font-size: 14px;
   font-weight: 600;
-  line-height: 1.35;
-}
-
-.advancedToggleSub {
-  font-size: 12px;
-  font-weight: 500;
+  line-height: 1.4;
   color: #94a3b8;
-}
-
-.advancedLead {
-  font-size: 12px;
-  color: #94a3b8;
-  line-height: 1.45;
-  margin: 8px 0 0;
-  padding: 0 0 2px;
 }
 
 .chevron {
   flex-shrink: 0;
+  align-self: center;
   font-size: 11px;
-  color: #64748b;
-  display: inline-block;
-  margin-top: 2px;
+  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin: 0;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

@@ -1,0 +1,59 @@
+.root {
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(11, 17, 32, 0.72);
+  line-height: 1.65;
+}
+
+.title {
+  margin: 0 0 10px;
+  font-size: clamp(1.05rem, 4.5vw, 1.5rem);
+  font-weight: 700;
+  color: #e5e7eb;
+  line-height: 1.35;
+}
+
+.intro {
+  margin: 0;
+  color: #9ca3af;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 18px 0 0;
+  padding-left: 22px;
+}
+
+.item {
+  padding-left: 4px;
+}
+
+.itemTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f5c451;
+  margin: 0 0 8px;
+  line-height: 1.4;
+}
+
+.itemBody {
+  margin: 0;
+  color: #d1d5db;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .root {
+    padding: 14px 14px;
+  }
+
+  .intro {
+    font-size: 13px;
+  }
+}

@@ -949,7 +949,7 @@ const QUICK_ROUTE_LINKS: Record<QuickRoute, readonly { href: string; title: stri
   "/quick-10": [
     {
       href: "/mini-blog/quick10-compound-dream-vs-crash-reality-guide",
-      title: "複利美夢 VS 崩盤現實",
+      title: "破產計算機 股票版",
       description: "順風好看，逆風更該先看。",
     },
     {

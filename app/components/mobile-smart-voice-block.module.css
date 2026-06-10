@@ -1,0 +1,111 @@
+.shell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 12px 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-left: 3px solid rgba(148, 163, 184, 0.35);
+  background: linear-gradient(165deg, rgba(15, 23, 42, 0.42), rgba(0, 0, 0, 0.38));
+  opacity: 0.72;
+}
+
+.copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #cbd5e1;
+  letter-spacing: 0.02em;
+}
+
+.sub {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #64748b;
+}
+
+.techNote {
+  margin: 6px 0 0;
+  font-size: 10px;
+  line-height: 1.4;
+  color: #475569;
+}
+
+.micBtn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.55);
+  color: #475569;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  opacity: 0.42;
+  filter: saturate(0.5) brightness(0.75);
+  transition:
+    opacity 0.2s ease,
+    filter 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.12s ease;
+}
+
+.micBtn:hover {
+  opacity: 0.58;
+  filter: saturate(0.65) brightness(0.88);
+}
+
+.micBtn:active,
+.micBtnPressed {
+  opacity: 0.95;
+  filter: none;
+  border-color: rgba(148, 163, 184, 0.35);
+  box-shadow: 0 0 16px rgba(148, 163, 184, 0.12);
+  transform: scale(0.96);
+}
+
+.toast {
+  position: absolute;
+  right: 10px;
+  top: -8px;
+  z-index: 2;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  animation: voiceToastIn 0.22s ease;
+  pointer-events: none;
+}
+
+@keyframes voiceToastIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

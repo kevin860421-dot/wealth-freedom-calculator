@@ -99,6 +99,62 @@
   font-weight: 600;
 }
 
+/* 桌機標題區；手機另用 headerMobile */
+.headerDesktop {
+  display: block;
+}
+
+.headerMobile {
+  display: none;
+}
+
+.mailExplainerMobileWrap {
+  display: none;
+}
+
+.panelBody {
+  display: block;
+}
+
+/* 手機：固定展開，標題區對齊 FAQ 預覽風格 */
+@media (max-width: 768px) {
+  .shell:hover {
+    transform: none;
+  }
+
+  .headerDesktop {
+    display: none;
+  }
+
+  .headerMobile {
+    display: block;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .mobileHeaderTitle {
+    margin: 0 0 8px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #e5e7eb;
+    line-height: 1.35;
+  }
+
+  .mobileHeaderIntro {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #9ca3af;
+  }
+
+  .mailExplainerMobileWrap {
+    display: block;
+    margin-bottom: 1rem;
+  }
+}
+
 .stepLabel {
   display: block;
   margin-bottom: 0.65rem;

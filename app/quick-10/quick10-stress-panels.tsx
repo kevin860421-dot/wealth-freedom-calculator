@@ -142,6 +142,7 @@ export function Quick10MarginPanel({ state, h }: { state: MarginTabState; h: Mar
             rightLabel="0%（不再跌）"
             onChange={h.setExtraDropPct}
             formatValue={(v) => `${v}%`}
+            accentClass="accent-red-500"
           />
         </div>
       </StressCard>
@@ -225,6 +226,7 @@ export function Quick10PledgePanel({ state, h }: { state: PledgeTabState; h: Ple
             rightLabel="0%（不跌）"
             onChange={h.setCrashPct}
             formatValue={(v) => `${v}%`}
+            accentClass="accent-red-500"
           />
         </div>
       </StressCard>

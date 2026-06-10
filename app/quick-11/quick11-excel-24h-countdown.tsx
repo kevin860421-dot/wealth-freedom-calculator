@@ -73,10 +73,12 @@ function getRemainingMsSnapshot(): number {
 type Quick11Excel24hCountdownProps = {
   /** Wizard 彈窗用較大字級 */
   size?: "default" | "large";
+  /** 僅跑倒數邏輯，不顯示 UI */
+  hidden?: boolean;
 };
 
 /** 限時 24 小時倒數（首次開啟彈窗起算，localStorage 持久） */
-export function Quick11Excel24hCountdown({ size = "default" }: Quick11Excel24hCountdownProps) {
+export function Quick11Excel24hCountdown({ size = "default", hidden = false }: Quick11Excel24hCountdownProps) {
   const large = size === "large";
   const remainingMs = useSyncExternalStore(
     subscribeCountdown,
@@ -84,7 +86,7 @@ export function Quick11Excel24hCountdown({ size = "default" }: Quick11Excel24hCo
     () => -1,
   );
 
-  if (remainingMs < 0) return null;
+  if (hidden || remainingMs < 0) return null;
 
   return (
     <div className="text-center" aria-live="polite">

@@ -393,7 +393,6 @@ export function ContactUsPanel() {
   const [mainDraftCopied, setMainDraftCopied] = useState(false);
   const [issuePickerOpen, setIssuePickerOpen] = useState(false);
   const [screenshotLightboxUrl, setScreenshotLightboxUrl] = useState<string | null>(null);
-
   const emailInputRef = useRef<HTMLInputElement>(null);
   const pickerTargetRef = useRef<{ mode: SegmentMode; rowId: string } | null>(null);
   const segmentAreaRefs = useRef<Map<string, HTMLInputElement>>(new Map());
@@ -876,21 +875,35 @@ ${mainBody}
     );
   }
 
+  const mailExplainer = (
+    <p className={styles.mailExplainer}>
+      本站<strong>無法代你按「寄出」</strong>：須在你的 Gmail／Outlook／Yahoo 裡完成最後一步。建議流程：可先按「另存草稿」複製全文備用 → 再按「送出訊息」開撰寫視窗。表單會<strong>自動暫存</strong>在本瀏覽器，登入信箱後若內文不見，貼上剪貼簿即可。
+    </p>
+  );
+
   return (
     <>
       <div className={styles.shell} data-contact-panel-shell>
         <header className={styles.header}>
-          <h2 className={styles.title}>
-            聯絡我們
-            <span className={styles.titleEn}>Contact</span>
-          </h2>
-          <p className={styles.subtitle}>有問題／建議／合作？我們會回覆你。</p>
-          <p className={styles.mailExplainer}>
-            本站<strong>無法代你按「寄出」</strong>：須在你的 Gmail／Outlook／Yahoo 裡完成最後一步。建議流程：可先按「另存草稿」複製全文備用 → 再按「送出訊息」開撰寫視窗。表單會<strong>自動暫存</strong>在本瀏覽器，登入信箱後若內文不見，貼上剪貼簿即可。
-          </p>
+          <div className={styles.headerDesktop}>
+            <h2 className={styles.title}>
+              聯絡我們
+              <span className={styles.titleEn}>Contact</span>
+            </h2>
+            <p className={styles.subtitle}>有問題／建議／合作？我們會回覆你。</p>
+            {mailExplainer}
+          </div>
+
+          <div className={styles.headerMobile}>
+            <h2 className={styles.mobileHeaderTitle}>聯絡我們 / 回報問題</h2>
+            <p className={styles.mobileHeaderIntro}>有問題／建議／合作？我們會回覆你。</p>
+          </div>
         </header>
 
-        <form onSubmit={(e) => void handleSubmit(e)} noValidate>
+        <div className={styles.panelBody}>
+          <div className={styles.mailExplainerMobileWrap}>{mailExplainer}</div>
+
+          <form onSubmit={(e) => void handleSubmit(e)} noValidate>
           <div className={styles.section}>
             <span className={styles.stepLabel}>Step 1 · 聯絡類型</span>
             <div className={styles.radioGroup} role="radiogroup" aria-label="聯絡類型">
@@ -1230,6 +1243,7 @@ ${mainBody}
             </button>
           </div>
         </form>
+        </div>
       </div>
 
       {sendModalOpen && (

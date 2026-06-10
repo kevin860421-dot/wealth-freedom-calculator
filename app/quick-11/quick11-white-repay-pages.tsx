@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  amountFromInvertedRange,
+  clampRangeAmount,
+  invertedRangeDisplay,
+} from "@/app/components/quick-inverted-range";
 import { useCallback, useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { formatMoney } from "./logic";
@@ -144,6 +149,35 @@ function GraceFitText({
   );
 }
 
+function InvertedRangeInput(props: {
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  onChange: (v: number) => void;
+  className: string;
+  ariaLabel: string;
+}) {
+  const amount = clampRangeAmount(props.value, props.min, props.max);
+  const display = invertedRangeDisplay(amount, props.min, props.max);
+  return (
+    <input
+      type="range"
+      min={props.min}
+      max={props.max}
+      step={props.step}
+      value={display}
+      onChange={(e) => {
+        const raw = Number(e.currentTarget.value);
+        if (!Number.isFinite(raw)) return;
+        props.onChange(amountFromInvertedRange(raw, props.min, props.max));
+      }}
+      className={props.className}
+      aria-label={props.ariaLabel}
+    />
+  );
+}
+
 function SliderRangeLabels({
   isLight,
   left,
@@ -159,8 +193,8 @@ function SliderRangeLabels({
   const sizeClass = size === "lg" ? "text-[13px]" : "text-[10px]";
   return (
     <div className={`mt-1.5 flex items-center justify-between font-bold tracking-wide ${sizeClass} ${tone}`}>
-      <span>{left}</span>
       <span>{right}</span>
+      <span>{left}</span>
     </div>
   );
 }
@@ -252,29 +286,27 @@ export function Quick11EarlyRepayWhitePage({
 
         <div className={isLight ? "space-y-3 pt-1" : "space-y-3 border-t border-gray-800/80 pt-3"}>
         <div>
-          <input
-            type="range"
+          <InvertedRangeInput
             min={1}
             max={maxStartMonth}
             step={1}
             value={startMonth}
-            onChange={(e) => onStartMonthSlider(Number(e.currentTarget.value))}
+            onChange={onStartMonthSlider}
             className={sliderClass}
-            aria-label="開始額外還款月份拉條"
+            ariaLabel="開始額外還款月份拉條"
           />
-          <SliderRangeLabels isLight={isLight} left="1個月" right={`${maxStartMonth}個月`} />
+          <SliderRangeLabels isLight={isLight} left="1" right={String(maxStartMonth)} />
         </div>
 
         <div>
-          <input
-            type="range"
+          <InvertedRangeInput
             min={0}
             max={100_000}
             step={1_000}
             value={extraMonthly}
-            onChange={(e) => onExtraChange(Number(e.currentTarget.value))}
+            onChange={onExtraChange}
             className={sliderClass}
-            aria-label="每月額外還款金額拉條"
+            ariaLabel="每月額外還款金額拉條"
           />
           <SliderRangeLabels isLight={isLight} left="NT$ 0" right="NT$ 10萬" />
         </div>
@@ -391,29 +423,27 @@ export function Quick11LumpSumWhitePage({
 
         <div className={isLight ? "space-y-3 pt-1" : "space-y-3 border-t border-gray-800/80 pt-3"}>
           <div>
-            <input
-              type="range"
+            <InvertedRangeInput
               min={1}
               max={maxLumpYear}
               step={1}
               value={lumpAtYear}
-              onChange={(e) => onYearSlider(Number(e.currentTarget.value))}
+              onChange={onYearSlider}
               className={sliderClass}
-              aria-label="大額還款年份拉條"
+              ariaLabel="大額還款年份拉條"
             />
-            <SliderRangeLabels isLight={isLight} left="1年" right={`${maxLumpYear}年`} />
+            <SliderRangeLabels isLight={isLight} left="1" right={String(maxLumpYear)} />
           </div>
 
           <div>
-            <input
-              type="range"
+            <InvertedRangeInput
               min={lumpAmountMin}
               max={lumpAmountMax}
               step={LUMP_AMOUNT_STEP}
               value={lumpAmount}
-              onChange={(e) => onLumpAmountChange(Number(e.currentTarget.value))}
+              onChange={onLumpAmountChange}
               className={sliderClass}
-              aria-label="大額還款金額拉條"
+              ariaLabel="大額還款金額拉條"
             />
             <SliderRangeLabels isLight={isLight} left="NT$ 10萬" right="NT$ 500萬" />
           </div>
@@ -525,21 +555,20 @@ export function Quick11GraceDelayWhitePage({
           </span>
         </p>
         <div>
-          <input
-            type="range"
+          <InvertedRangeInput
             min={0}
             max={graceMaxYears}
             step={1}
             value={graceYears}
-            onChange={(e) => onYearsSlider(Number(e.currentTarget.value))}
+            onChange={onYearsSlider}
             className={graceSlider}
-            aria-label="寬限期年數拉條"
+            ariaLabel="寬限期年數拉條"
           />
           <SliderRangeLabels
             isLight={isLight}
             size="lg"
-            left="0年（不使用）"
-            right={`${graceMaxYears}年（極限）`}
+            left="0（不使用）"
+            right={`${graceMaxYears}（極限）`}
           />
         </div>
       </div>

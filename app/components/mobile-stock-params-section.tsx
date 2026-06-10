@@ -1,10 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { formatApproxSharesLine, type TickerPreset } from "../ticker-presets";
 import { StockParamsAdvancedBlock, type StockParamsAdvancedBlockProps } from "./stock-params-advanced-block";
+import { MobileSmartVoiceBlock } from "./mobile-smart-voice-block";
+import { moneyStep, StepperTextField, type MoneySliderConfig } from "./mobile-stepper-fields";
 import styles from "./mobile-stock-params-section.module.css";
 
 export type MobileStockParamsSectionProps = {
+  fireEtaYears: number | null;
+  fireEtaMonths: number | null;
+  etaComputing?: boolean;
   onRestoreDefaults: () => void;
   onOpenSaveTarget: () => void;
   onOpenLoadTarget: () => void;
@@ -18,8 +25,6 @@ export type MobileStockParamsSectionProps = {
   setMonthlyExtra: (s: string) => void;
   commitFormula: (s: string) => string;
   annualReturnRate: number;
-  setAnnualReturnRate: (n: number) => void;
-  setRateSource: StockParamsAdvancedBlockProps["setRateSource"];
   rateSource: StockParamsAdvancedBlockProps["rateSource"];
   dividendYieldPct: StockParamsAdvancedBlockProps["dividendYieldPct"];
   stockDividendPct: StockParamsAdvancedBlockProps["stockDividendPct"];
@@ -38,10 +43,85 @@ function formatDeltaYuan(delta: number): string {
   return "";
 }
 
+function hasFilledAmount(raw: string, parseFormula: (s: string) => number): boolean {
+  const t = raw.trim().replace(/,/g, "");
+  if (t === "") return false;
+  const n = parseFormula(t);
+  return Number.isFinite(n) && n >= 0;
+}
+
 /**
  * 手機版「存股參數設定」：基本四欄＋摘要卡＋摺疊進階（與 StockParamsAdvancedBlock 同源資料）。
  */
+function formatEtaBracket(years: number | null, months: number | null): string {
+  if (years == null) return "40 年內尚難達成";
+  if (months != null && months > 0) return `${years} 年 ${months} 個月`;
+  return `${years} 年`;
+}
+
+type StockParamsActionButtonsProps = {
+  saveTargetReady: boolean;
+  onOpenSaveTarget: () => void;
+  onOpenLoadTarget: () => void;
+  onRestoreDefaults: () => void;
+  className?: string;
+  id?: string;
+};
+
+const actionBtnLayout =
+  "flex-1 min-w-0 py-2 px-1 text-center text-[11px] leading-tight whitespace-nowrap sm:text-xs";
+
+const StockParamsActionButtons = forwardRef<HTMLDivElement, StockParamsActionButtonsProps>(function StockParamsActionButtons(
+  {
+    saveTargetReady,
+    onOpenSaveTarget,
+    onOpenLoadTarget,
+    onRestoreDefaults,
+    className,
+    id,
+  },
+  ref,
+) {
+  return (
+    <div ref={ref} id={id} className={`flex w-full gap-2 items-stretch justify-between ${className ?? ""}`}>
+      <button
+        type="button"
+        className={`${actionBtnLayout} ${styles.linkText} ${saveTargetReady ? styles.linkSave : styles.linkSavePending}`}
+        disabled={!saveTargetReady}
+        aria-disabled={!saveTargetReady}
+        title={
+          saveTargetReady
+            ? "將目前試算存入籃位"
+            : "請先選擇 ETF，並填完下方本金、月投、加碼與報酬／殖利率"
+        }
+        onClick={() => {
+          if (saveTargetReady) onOpenSaveTarget();
+        }}
+      >
+        加入標的
+      </button>
+      <button
+        type="button"
+        className={`${actionBtnLayout} ${styles.linkText} ${styles.linkLoad}`}
+        onClick={onOpenLoadTarget}
+      >
+        使用我的標的
+      </button>
+      <button
+        type="button"
+        className={`${actionBtnLayout} ${styles.linkText} ${styles.linkRestore}`}
+        onClick={onRestoreDefaults}
+      >
+        恢復預設值
+      </button>
+    </div>
+  );
+});
+
 export function MobileStockParamsSection({
+  fireEtaYears,
+  fireEtaMonths,
+  etaComputing = false,
   onRestoreDefaults,
   onOpenSaveTarget,
   onOpenLoadTarget,
@@ -53,10 +133,7 @@ export function MobileStockParamsSection({
   setMonthlyContribution,
   monthlyExtra,
   setMonthlyExtra,
-  commitFormula,
   annualReturnRate,
-  setAnnualReturnRate,
-  setRateSource,
   rateSource,
   dividendYieldPct,
   stockDividendPct,
@@ -65,6 +142,23 @@ export function MobileStockParamsSection({
   advancedProps,
 }: MobileStockParamsSectionProps) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [clientMounted, setClientMounted] = useState(false);
+  const [mobileLayout, setMobileLayout] = useState(false);
+  const [showFloatingDock, setShowFloatingDock] = useState(false);
+  const [etaPulse, setEtaPulse] = useState(false);
+  const headActionsRef = useRef<HTMLDivElement>(null);
+  const prevEtaBracketRef = useRef(formatEtaBracket(fireEtaYears, fireEtaMonths));
+
+  const etaBracket = formatEtaBracket(fireEtaYears, fireEtaMonths);
+  const etaReady = fireEtaYears != null;
+
+  useEffect(() => {
+    if (prevEtaBracketRef.current === etaBracket) return;
+    prevEtaBracketRef.current = etaBracket;
+    setEtaPulse(true);
+    const t = window.setTimeout(() => setEtaPulse(false), 520);
+    return () => window.clearTimeout(t);
+  }, [etaBracket]);
 
   const targetPrincipal = Math.floor(currentPrincipalNum);
   const displayRef = useRef(targetPrincipal);
@@ -77,13 +171,44 @@ export function MobileStockParamsSection({
   const skipFeedbackSnap = useRef(true);
   const prevSnap = useRef({ p: targetPrincipal, m: 0, e: 0 });
 
-  const rateFromDividend =
-    rateSource === "dividend" && (dividendYieldPct !== "" || stockDividendPct !== "");
+  const { selectedEtf } = advancedProps;
+
+  const moneySlider = (trackDefault: number, step: number): MoneySliderConfig => ({
+    min: 0,
+    trackDefault,
+    step,
+    parse: (raw) => Math.max(0, parseFormula(raw) || 0),
+    format: (n) => Math.floor(Math.max(0, n)).toLocaleString("zh-TW"),
+  });
+
+  /** 下方標的＋基本欄位齊全時，「加入標的」才亮起 */
+  const saveTargetReady = useMemo(() => {
+    const principalOk = hasFilledAmount(currentPrincipalStr, parseFormula);
+    const monthlyOk = hasFilledAmount(monthlyContribution, parseFormula);
+    const extraOk = hasFilledAmount(monthlyExtra, parseFormula);
+    const etfOk = selectedEtf !== "none";
+    const rateOk =
+      rateSource === "dividend"
+        ? dividendYieldPct !== "" &&
+          stockDividendPct !== "" &&
+          Number(dividendYieldPct) > 0 &&
+          Number(stockDividendPct) > 0
+        : annualReturnRate > 0;
+    return principalOk && monthlyOk && extraOk && etfOk && rateOk;
+  }, [
+    currentPrincipalStr,
+    monthlyContribution,
+    monthlyExtra,
+    selectedEtf,
+    rateSource,
+    dividendYieldPct,
+    stockDividendPct,
+    annualReturnRate,
+    parseFormula,
+  ]);
 
   const sharesLine =
-    selectedEtfInfo?.price != null && selectedEtfInfo.price > 0
-      ? `約 ${Math.floor(currentPrincipalNum / selectedEtfInfo.price).toLocaleString("zh-TW")} 股`
-      : "—";
+    formatApproxSharesLine(currentPrincipalNum, selectedEtfInfo as TickerPreset | null | undefined) || "—";
 
   /** 摘要金額：數字 count-up（緩動），不變更計算邏輯 */
   useEffect(() => {
@@ -91,9 +216,11 @@ export function MobileStockParamsSection({
     const from = displayRef.current;
     if (target === from) return;
     if (rafPrincipal.current != null) cancelAnimationFrame(rafPrincipal.current);
+    let cancelled = false;
     const start = performance.now();
     const dur = 380;
     const step = (now: number) => {
+      if (cancelled) return;
       const t = Math.min(1, (now - start) / dur);
       const eased = 1 - (1 - t) ** 3;
       const v = Math.round(from + (target - from) * eased);
@@ -109,6 +236,7 @@ export function MobileStockParamsSection({
     rafPrincipal.current = requestAnimationFrame(step);
     setSummaryPulse(true);
     return () => {
+      cancelled = true;
       if (rafPrincipal.current != null) cancelAnimationFrame(rafPrincipal.current);
     };
   }, [targetPrincipal]);
@@ -155,27 +283,169 @@ export function MobileStockParamsSection({
     }
   }, [targetPrincipal, monthlyContribution, monthlyExtra, parseFormula]);
 
+  useEffect(() => {
+    setClientMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const syncMobile = () => {
+      const preview = document.documentElement.getAttribute("data-preview-mobile") === "true";
+      setMobileLayout(preview || window.matchMedia("(max-width: 768px)").matches);
+    };
+    syncMobile();
+    const mq = window.matchMedia("(max-width: 768px)");
+    mq.addEventListener("change", syncMobile);
+    const mo = new MutationObserver(syncMobile);
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-preview-mobile"] });
+    return () => {
+      mq.removeEventListener("change", syncMobile);
+      mo.disconnect();
+    };
+  }, []);
+
+  /** 手機：原位置三鍵滑出視窗時，底部浮動列才出現 */
+  useEffect(() => {
+    if (!mobileLayout) {
+      setShowFloatingDock(false);
+      return;
+    }
+    const el = headActionsRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        setShowFloatingDock(!entry.isIntersecting);
+      },
+      { threshold: 0 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [mobileLayout]);
+
+  useEffect(() => {
+    if (!mobileLayout || !showFloatingDock) {
+      document.documentElement.removeAttribute("data-stock-params-dock");
+      return;
+    }
+    document.documentElement.setAttribute("data-stock-params-dock", "visible");
+    return () => document.documentElement.removeAttribute("data-stock-params-dock");
+  }, [mobileLayout, showFloatingDock]);
+
+  const actionButtonProps = {
+    saveTargetReady,
+    onOpenSaveTarget,
+    onOpenLoadTarget,
+    onRestoreDefaults,
+  };
+
+  const fixedDock =
+    clientMounted && mobileLayout && showFloatingDock && typeof document !== "undefined"
+      ? createPortal(
+          <div className={`${styles.floatingDock} ${styles.floatingDockVisible}`} role="toolbar" aria-label="標的快捷操作">
+            <StockParamsActionButtons {...actionButtonProps} />
+          </div>,
+          document.body,
+        )
+      : null;
+
   return (
-    <section id="mobile-stock-params" className={styles.root} aria-labelledby="mobile-stock-params-title">
+    <section
+      id="mobile-stock-params"
+      className={`${styles.root} scroll-mt-24`}
+      aria-labelledby="mobile-stock-params-title"
+    >
+      <div
+        className={`${styles.etaDashboard} ${etaPulse ? styles.etaDashboardPulse : ""} ${etaComputing ? styles.etaDashboardComputing : ""}`}
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <p className={styles.etaDashboardLead}>
+          <span className={styles.etaDashboardIcon} aria-hidden>
+            🚀
+          </span>
+          您的財富自由航程預估：
+        </p>
+        <p className={styles.etaDashboardMain}>
+          【{" "}
+          <span key={etaBracket} className={styles.etaDashboardHighlight}>
+            {etaBracket}
+          </span>{" "}
+          】{etaReady ? "達成" : ""}
+        </p>
+      </div>
+
       <div className={styles.headRow}>
         <h2 id="mobile-stock-params-title" className={styles.title}>
           存股參數設定
         </h2>
-        <div className={styles.headActions}>
-          <button type="button" className={`${styles.linkText} ${styles.linkSave}`} onClick={onOpenSaveTarget}>
-            加入標的
-          </button>
-          <button type="button" className={`${styles.linkText} ${styles.linkLoad}`} onClick={onOpenLoadTarget}>
-            使用我的標的
-          </button>
-          <button type="button" className={`${styles.linkText} ${styles.linkRestore}`} onClick={onRestoreDefaults}>
-            恢復預設值
-          </button>
+        <StockParamsActionButtons ref={headActionsRef} id="mobile-stock-params-head-actions" {...actionButtonProps} />
+      </div>
+
+      <MobileSmartVoiceBlock />
+
+      <div className={styles.paramsStack}>
+      <div className={styles.basicCard}>
+        <p className={styles.sectionLabel}>
+          ① 起始資金設定
+          <span className={styles.sectionLabelSub}>（當前本金與月投入）</span>
+        </p>
+        <div className={styles.basicFields}>
+          <StepperTextField
+            label="當前本金 (TWD)"
+            value={currentPrincipalStr}
+            placeholder="例如：200000"
+            principal
+            feedback={feedback?.field === "principal" ? feedback.text : null}
+            onChange={setCurrentPrincipalStr}
+            onBlur={() => setCurrentPrincipalStr(commitFormulaWithCommas(currentPrincipalStr))}
+            onEnter={() => setCurrentPrincipalStr(commitFormulaWithCommas(currentPrincipalStr))}
+            onStep={(dir) => {
+              const n = Math.max(0, parseFormula(currentPrincipalStr) || 0);
+              const step = moneyStep(n);
+              const next = Math.max(0, n + dir * step);
+              setCurrentPrincipalStr(Math.floor(next).toLocaleString("zh-TW"));
+            }}
+            slider={moneySlider(2_000_000, 1_000)}
+          />
+
+          <StepperTextField
+            label="每月固定投入額 (TWD)"
+            value={monthlyContribution}
+            placeholder="例如：12000"
+            feedback={feedback?.field === "monthly" ? feedback.text : null}
+            onBlur={() => setMonthlyContribution(commitFormulaWithCommas(monthlyContribution))}
+            onChange={setMonthlyContribution}
+            onEnter={() => setMonthlyContribution(commitFormulaWithCommas(monthlyContribution))}
+            onStep={(dir) => {
+              const n = Math.max(0, parseFormula(monthlyContribution) || 0);
+              const step = moneyStep(n);
+              const next = Math.max(0, n + dir * step);
+              setMonthlyContribution(Math.floor(next).toLocaleString("zh-TW"));
+            }}
+            slider={moneySlider(80_000, 1_000)}
+          />
+
+          <StepperTextField
+            label="每月額外加碼／加班費 (TWD)"
+            value={monthlyExtra}
+            placeholder="例如：6000"
+            feedback={feedback?.field === "extra" ? feedback.text : null}
+            onChange={setMonthlyExtra}
+            onBlur={() => setMonthlyExtra(commitFormulaWithCommas(monthlyExtra))}
+            onEnter={() => setMonthlyExtra(commitFormulaWithCommas(monthlyExtra))}
+            onStep={(dir) => {
+              const n = Math.max(0, parseFormula(monthlyExtra) || 0);
+              const step = moneyStep(n);
+              const next = Math.max(0, n + dir * step);
+              setMonthlyExtra(Math.floor(next).toLocaleString("zh-TW"));
+            }}
+            slider={moneySlider(40_000, 1_000)}
+          />
         </div>
       </div>
 
-      {/* 手機：標的篩選／ETF／配息提到最上層，不必先展開「進階設定」才看得到 */}
-      <div className={styles.etfLeadWrap} aria-label="標的與配息">
+      {/* ② 投資標的 ＋ ③ 配息：接在起始資金設定之後 */}
+      <div className={styles.etfLeadWrap} aria-label="投資標的與股利配息">
         <StockParamsAdvancedBlock
           {...advancedProps}
           showAnnualInEtfRow={false}
@@ -185,199 +455,6 @@ export function MobileStockParamsSection({
           mobileEtfLeadOnly
         />
       </div>
-
-      <div className={styles.basicCard}>
-        <p className={styles.sectionLabel}>① 基本設定</p>
-        <div className={styles.basicFields}>
-          <div className={styles.field}>
-            <span className={styles.label}>當前本金 (TWD)</span>
-            <div className={styles.fieldInputWrap}>
-              {feedback?.field === "principal" ? (
-                <span className={styles.feedbackPop} key={feedback.text}>
-                  {feedback.text}
-                </span>
-              ) : null}
-              <div className={`${styles.inputRow} ${styles.inputRowPrincipal}`}>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={currentPrincipalStr}
-                  onChange={(e) => setCurrentPrincipalStr(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      setCurrentPrincipalStr(commitFormulaWithCommas(currentPrincipalStr));
-                      (e.target as HTMLInputElement).blur();
-                    }
-                  }}
-                  onBlur={() => setCurrentPrincipalStr(commitFormulaWithCommas(currentPrincipalStr))}
-                  onFocus={(e) => e.target.select()}
-                  className={`${styles.inputField} ${styles.inputFieldPrincipal}`}
-                  placeholder="例如：200000"
-                />
-                <div className={`${styles.steps} ${styles.stepsPrincipal}`}>
-                  <button
-                    type="button"
-                    aria-label="增加"
-                    className={`${styles.stepBtn} ${styles.stepBtnPrincipal}`}
-                    onClick={() => {
-                      const n = Math.max(0, parseFormula(currentPrincipalStr) || 0);
-                      const step = n > 100000 ? 5000 : 1000;
-                      setCurrentPrincipalStr(Math.floor(n + step).toLocaleString("zh-TW"));
-                    }}
-                  >
-                    ▲
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="減少"
-                    className={`${styles.stepBtn} ${styles.stepBtnPrincipal}`}
-                    onClick={() => {
-                      const n = Math.max(0, parseFormula(currentPrincipalStr) || 0);
-                      const step = n > 100000 ? 5000 : 1000;
-                      setCurrentPrincipalStr(Math.floor(Math.max(0, n - step)).toLocaleString("zh-TW"));
-                    }}
-                  >
-                    ▼
-                  </button>
-                </div>
-              </div>
-            </div>
-            <p className={styles.hint}>可手動覆蓋，預設依起始本金＋第幾次投入累積計算</p>
-          </div>
-
-          <div className={styles.field}>
-            <span className={styles.label}>每月固定投入額 (TWD)</span>
-            <div className={styles.fieldInputWrap}>
-              {feedback?.field === "monthly" ? (
-                <span className={styles.feedbackPop} key={feedback.text}>
-                  {feedback.text}
-                </span>
-              ) : null}
-              <div className={styles.inputRow}>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={monthlyContribution}
-                  onChange={(e) => setMonthlyContribution(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      setMonthlyContribution(commitFormula(monthlyContribution));
-                      (e.target as HTMLInputElement).blur();
-                    }
-                  }}
-                  onFocus={(e) => e.target.select()}
-                  className={styles.inputField}
-                  placeholder="例如：12000"
-                />
-                <div className={styles.steps}>
-                  <button
-                    type="button"
-                    aria-label="增加"
-                    className={styles.stepBtn}
-                    onClick={() => {
-                      const n = Math.max(0, parseFormula(monthlyContribution) || 0);
-                      const step = n > 100000 ? 5000 : 1000;
-                      setMonthlyContribution(String(n + step));
-                    }}
-                  >
-                    ▲
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="減少"
-                    className={styles.stepBtn}
-                    onClick={() => {
-                      const n = Math.max(0, parseFormula(monthlyContribution) || 0);
-                      const step = n > 100000 ? 5000 : 1000;
-                      setMonthlyContribution(String(Math.max(0, n - step)));
-                    }}
-                  >
-                    ▼
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.field}>
-            <span className={styles.label}>每月額外加碼／加班費 (TWD)</span>
-            <div className={styles.fieldInputWrap}>
-              {feedback?.field === "extra" ? (
-                <span className={styles.feedbackPop} key={feedback.text}>
-                  {feedback.text}
-                </span>
-              ) : null}
-              <div className={styles.inputRow}>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={monthlyExtra}
-                  onChange={(e) => setMonthlyExtra(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      setMonthlyExtra(commitFormula(monthlyExtra));
-                      (e.target as HTMLInputElement).blur();
-                    }
-                  }}
-                  onFocus={(e) => e.target.select()}
-                  className={styles.inputField}
-                  placeholder="例如：6000"
-                />
-                <div className={styles.steps}>
-                  <button
-                    type="button"
-                    aria-label="增加"
-                    className={styles.stepBtn}
-                    onClick={() => {
-                      const n = Math.max(0, parseFormula(monthlyExtra) || 0);
-                      const step = n > 100000 ? 5000 : 1000;
-                      setMonthlyExtra(String(n + step));
-                    }}
-                  >
-                    ▲
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="減少"
-                    className={styles.stepBtn}
-                    onClick={() => {
-                      const n = Math.max(0, parseFormula(monthlyExtra) || 0);
-                      const step = n > 100000 ? 5000 : 1000;
-                      setMonthlyExtra(String(Math.max(0, n - step)));
-                    }}
-                  >
-                    ▼
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.field}>
-            <span className={styles.label}>年化報酬率 (%)</span>
-            <div
-              className={`${styles.inputRow} ${styles.inputRowRate} ${rateFromDividend ? styles.inputRowDimmed : ""}`}
-            >
-              <input
-                type="number"
-                min={0}
-                step={0.1}
-                value={annualReturnRate === 0 ? "" : annualReturnRate}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setAnnualReturnRate(v === "" ? 0 : Number(v) || 0);
-                  setRateSource("annual");
-                }}
-                onFocus={(e) => e.target.select()}
-                className={`${styles.inputField} ${styles.inputFieldRate}`}
-              />
-            </div>
-            <p className={styles.rateHint}>7%～10% 約為長期市場常見區間；7.2% 約 10 年翻倍（複利示意）。</p>
-          </div>
-        </div>
       </div>
 
       <div className={`${styles.summaryCard} ${summaryPulse ? styles.summaryPulse : ""}`}>
@@ -393,31 +470,31 @@ export function MobileStockParamsSection({
           aria-expanded={advancedOpen}
           onClick={() => setAdvancedOpen((o) => !o)}
         >
-          <span className={styles.advancedToggleText}>
-            進階設定（選填）
-            <span className={styles.advancedToggleSub}>一般可略過</span>
-          </span>
+          <span className={styles.advancedToggleText}>進階設定</span>
           <span className={`${styles.chevron} ${advancedOpen ? styles.chevronOpen : ""}`} aria-hidden>
             ▼
           </span>
         </button>
-        <p className={styles.advancedLead}>不調整也可正常計算 · 預設已適用多數情境</p>
         <div
           className={`${styles.advancedPanel} ${advancedOpen ? styles.advancedPanelOpen : ""}`}
           aria-hidden={!advancedOpen}
         >
           <div className={styles.advancedPanelInner}>
-            <StockParamsAdvancedBlock
-              {...advancedProps}
-              showAnnualInEtfRow={false}
-              showInlinePrincipalCard={false}
-              stackEtfRow
-              mobileGrouped
-              mobileOmitEtfPayoutLead
-            />
+            {advancedOpen ? (
+              <StockParamsAdvancedBlock
+                {...advancedProps}
+                showAnnualInEtfRow={false}
+                showInlinePrincipalCard={false}
+                stackEtfRow
+                mobileGrouped
+                mobileOmitEtfPayoutLead
+              />
+            ) : null}
           </div>
         </div>
       </div>
+
+      {fixedDock}
     </section>
   );
 }

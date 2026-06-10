@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
+import { QuickStepperSliderField } from "@/app/components/quick-stepper-slider";
 import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
 import { QuickBottomCtaStack } from "@/app/components/quick-bottom-cta-stack";
@@ -222,85 +223,45 @@ export default function QuickCalculator1View({ showArticleToggle = true }: Quick
           }}
         >
           <div style={{ display: "grid", gap: 12 }}>
-            <label style={{ display: "grid", gap: 6, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 800 }}>月投金額</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", minWidth: 0 }}>
-                <input
-                  inputMode="numeric"
-                  value={monthlyInvestText}
-                  onChange={(e) => setMonthlyInvestText(sanitizeCalcInput(e.target.value))}
-                  onBlur={commitMonthlyInvest}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      commitMonthlyInvest();
-                      (e.currentTarget as HTMLInputElement).blur();
-                    }
-                  }}
-                  style={{ ...inputStyle, flex: "1 1 0", minWidth: 0 }}
-                />
-                <button type="button" onClick={() => bumpMonthlyInvest(-MONEY_BUMP)} style={miniBtn} aria-label={`月投金額減 ${MONEY_BUMP.toLocaleString("en-US")}`}>
-                  –
-                </button>
-                <button type="button" onClick={() => bumpMonthlyInvest(MONEY_BUMP)} style={miniBtn} aria-label={`月投金額加 ${MONEY_BUMP.toLocaleString("en-US")}`}>
-                  +
-                </button>
-              </div>
-              <input
-                type="range"
-                min={MONEY_MIN}
-                max={MONEY_MAX}
-                step={100}
-                value={clampNum(monthlyInvest, MONEY_MIN, MONEY_MAX)}
-                onChange={(e) => {
-                  const v = Math.round(clampNum(Number(e.target.value), MONEY_MIN, MONEY_MAX) / 100) * 100;
-                  setMonthlyInvest(v);
-                  setMonthlyInvestText(formatTwd(v));
-                }}
-                aria-label="月投金額拉條"
-                style={sliderStyle}
-              />
-            </label>
+            <QuickStepperSliderField
+              label="月投金額"
+              labelStyle={{ fontSize: 15, fontWeight: 800 }}
+              text={monthlyInvestText}
+              value={clampNum(monthlyInvest, MONEY_MIN, MONEY_MAX)}
+              min={MONEY_MIN}
+              max={MONEY_MAX}
+              step={100}
+              bumpStep={MONEY_BUMP}
+              ariaLabel="月投金額"
+              onTextChange={(v) => setMonthlyInvestText(sanitizeCalcInput(v))}
+              onCommit={commitMonthlyInvest}
+              onBump={bumpMonthlyInvest}
+              onChange={(v) => {
+                const rounded = Math.round(clampNum(v, MONEY_MIN, MONEY_MAX) / 100) * 100;
+                setMonthlyInvest(rounded);
+                setMonthlyInvestText(formatTwd(rounded));
+              }}
+            />
 
-            <label style={{ display: "grid", gap: 6, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 800 }}>預計幾年內達成</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", minWidth: 0 }}>
-                <input
-                  inputMode="numeric"
-                  value={yearsText}
-                  onChange={(e) => setYearsText(sanitizeCalcInput(e.target.value))}
-                  onBlur={commitYears}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      commitYears();
-                      (e.currentTarget as HTMLInputElement).blur();
-                    }
-                  }}
-                  style={{ ...inputStyle, flex: "1 1 0", minWidth: 0 }}
-                />
-                <button type="button" onClick={() => bumpYears(-1)} style={miniBtn} aria-label="年數減 1">
-                  –
-                </button>
-                <button type="button" onClick={() => bumpYears(1)} style={miniBtn} aria-label="年數加 1">
-                  +
-                </button>
-              </div>
-              <input
-                type="range"
-                min={YEARS_MIN}
-                max={YEARS_MAX}
-                step={1}
-                value={clampNum(years, YEARS_MIN, YEARS_MAX)}
-                onChange={(e) => {
-                  const v = Math.round(clampNum(Number(e.target.value), YEARS_MIN, YEARS_MAX));
-                  setYears(v);
-                  setYearsText(String(v));
-                }}
-                aria-label="預計年數拉條"
-                style={sliderStyle}
-              />
-            </label>
+            <QuickStepperSliderField
+              label="預計幾年內達成"
+              labelStyle={{ fontSize: 15, fontWeight: 800 }}
+              text={yearsText}
+              value={clampNum(years, YEARS_MIN, YEARS_MAX)}
+              min={YEARS_MIN}
+              max={YEARS_MAX}
+              step={1}
+              bumpStep={1}
+              ariaLabel="預計年數"
+              onTextChange={(v) => setYearsText(sanitizeCalcInput(v))}
+              onCommit={commitYears}
+              onBump={bumpYears}
+              onChange={(v) => {
+                const next = Math.round(clampNum(v, YEARS_MIN, YEARS_MAX));
+                setYears(next);
+                setYearsText(String(next));
+              }}
+            />
 
             <div style={{ ...cardStyle, borderColor: "rgba(147,197,253,0.45)" }}>
               <div style={{ fontSize: 15, fontWeight: 800 }}>預計月領金額</div>

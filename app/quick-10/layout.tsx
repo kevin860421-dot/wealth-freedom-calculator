@@ -1,13 +1,14 @@
 import type { ReactNode } from "react";
+import { QUICK10_DISPLAY_NAME, QUICK10_SHARE_TAGLINE } from "@/app/quick-10/quick10-brand";
 import { QuickCalculatorJsonLd } from "@/lib/quick-calculator-json-ld";
 import { buildQuickPageMetadata } from "@/lib/quick-open-graph-metadata";
 
-const shareTitle = "複利美夢 VS 崩盤現實 計算機｜不要只看美好複利而忽略風險，一秒算清期末大跌三十趴時的資產下場";
+const shareTitle = `${QUICK10_DISPLAY_NAME}｜${QUICK10_SHARE_TAGLINE}`;
 
 export const metadata = buildQuickPageMetadata({
   id: 10,
   shareTitle,
-  ogAlt: "複利美夢 VS 崩盤現實 計算機 — 不要只看美好複利而忽略風險，一秒算清期末大跌三十趴時的資產下場",
+  ogAlt: `${QUICK10_DISPLAY_NAME} — ${QUICK10_SHARE_TAGLINE}`,
 });
 
 export default function Quick10Layout({ children }: { children: ReactNode }) {

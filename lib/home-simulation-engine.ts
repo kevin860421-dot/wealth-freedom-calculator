@@ -201,8 +201,8 @@ export function getPeriodSnapshots(
   },
   sharePrice: number,
   maxYears: number = 20,
-  startYear: number = 2026,
-  startMonth: number = 3,
+  startYear: number = new Date().getFullYear(),
+  startMonth: number = new Date().getMonth() + 1,
 ): PeriodSnapshot[] {
   const {
     initialPrincipal,
