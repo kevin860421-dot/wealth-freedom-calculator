@@ -35,6 +35,8 @@ export function useHomeHeavySimulation(payload: HeavySimPayload, enabled = true)
   const workerRef = useRef<Worker | null>(null);
   const requestIdRef = useRef(0);
   const lastPayloadKeyRef = useRef<string | null>(null);
+  const payloadRef = useRef(payload);
+  payloadRef.current = payload;
   const payloadKey = useMemo(() => serializeHeavySimPayload(payload), [payload]);
 
   useEffect(() => {
@@ -74,8 +76,8 @@ export function useHomeHeavySimulation(payload: HeavySimPayload, enabled = true)
     requestIdRef.current += 1;
     const id = requestIdRef.current;
     setState((prev) => (prev.isComputing ? prev : { ...prev, isComputing: true }));
-    worker.postMessage({ id, payload });
-  }, [payloadKey, payload, enabled]);
+    worker.postMessage({ id, payload: payloadRef.current });
+  }, [payloadKey, enabled]);
 
   return state;
 }

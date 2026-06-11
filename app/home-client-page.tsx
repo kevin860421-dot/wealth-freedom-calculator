@@ -8,7 +8,7 @@ import {
   type CalculatorSnapshotV1,
   type PayoutFrequencyPersist,
 } from "../lib/calculator-persistence";
-import { type HeavySimPayload } from "../lib/home-simulation-engine";
+import { serializeHeavySimPayload, type HeavySimPayload } from "../lib/home-simulation-engine";
 import { useDebouncedValue } from "../lib/use-debounced-value";
 import { useHomeHeavySimulation } from "../lib/use-home-heavy-simulation";
 import { OPEN_LOAD_TARGET_MODAL_EVENT } from "../lib/watchlist-modal-events";
@@ -32,6 +32,7 @@ import { HomeEmployeeEtfFaqSection } from "./components/home-employee-etf-faq-se
 import { HomeLegalDisclaimerSection } from "./components/home-legal-disclaimer-section";
 import { HomeCopyrightNoticeSection } from "./components/home-copyright-notice-section";
 import heroGold from "./components/hero-gold-title.module.css";
+import { MobileAccumPreviewSection } from "./components/mobile-accum-preview-section";
 import { MobileHeroSection, MobileHeroTitleSection } from "./components/mobile-hero-section";
 import { MobileStockParamsSection } from "./components/mobile-stock-params-section";
 import type { StockParamsAdvancedBlockProps } from "./components/stock-params-advanced-block";
@@ -60,6 +61,37 @@ const DEFAULT_ETF_PRESET = TICKER_PRESETS.find((p) => p.id === DEFAULT_SELECTED_
 /** 試算起始年月：預設為載入當下的系統年月 */
 function currentSimYearMonth(d = new Date()): { year: number; month: number } {
   return { year: d.getFullYear(), month: d.getMonth() + 1 };
+}
+
+function periodRowCalendarOrd(row: { periodLabel: string; year: number; periodInYear: number }): number | null {
+  const m = row.periodLabel.match(/^(\d{4})年(?:(\d{1,2})月)?$/);
+  if (m) {
+    const y = parseInt(m[1]!, 10);
+    const mo = m[2] ? parseInt(m[2], 10) : 12;
+    return y * 12 + (mo - 1);
+  }
+  return row.year * 12 + (row.periodInYear - 1);
+}
+
+/** 找「≤ 目標年月」且最近的一期（配息頻率非月時亦適用） */
+function findAccumRowIndexForCalendar(
+  snapshots: { periodLabel: string; year: number; periodInYear: number }[],
+  targetYear: number,
+  targetMonth: number,
+): number {
+  if (snapshots.length === 0) return 0;
+  const targetOrd = targetYear * 12 + (targetMonth - 1);
+  let bestIdx = 0;
+  let bestOrd = -Infinity;
+  for (let i = 0; i < snapshots.length; i++) {
+    const ord = periodRowCalendarOrd(snapshots[i]!);
+    if (ord == null) continue;
+    if (ord <= targetOrd && ord >= bestOrd) {
+      bestOrd = ord;
+      bestIdx = i;
+    }
+  }
+  return bestIdx;
 }
 /** 標的代碼篩選僅供當次操作；不寫入快照，避免還原後下拉只剩子集合 */
 const ETF_CODE_FILTER_PERSIST = "";
@@ -638,6 +670,8 @@ export default function Home() {
   const [mobileAccumFullTableModalOpen, setMobileAccumFullTableModalOpen] = useState(false);
   /** 手機：累積表「計算說明」收合 */
   const [mobileAccumCalcHelpOpen, setMobileAccumCalcHelpOpen] = useState(false);
+  /** 手機：「二代健保與稅金」大區塊收合 */
+  const [mobileTaxNhiSectionOpen, setMobileTaxNhiSectionOpen] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined") return;
     const read = () => {
@@ -658,14 +692,14 @@ export default function Home() {
   useEffect(() => {
     if (!mobileTaxLayoutActive) return;
     if (taxSettingsMode !== "auto") return;
-    setApplyTaxInTable(true);
-    setApplyNhi2InTable(true);
+    setApplyTaxInTable((prev) => (prev ? prev : true));
+    setApplyNhi2InTable((prev) => (prev ? prev : true));
     if (taxBracketRate >= 0.3) {
-      setSeparateTaxOpen(true);
-      setMergeTaxOpen(false);
+      setSeparateTaxOpen((prev) => (prev ? prev : true));
+      setMergeTaxOpen((prev) => (prev ? false : prev));
     } else {
-      setSeparateTaxOpen(false);
-      setMergeTaxOpen(true);
+      setSeparateTaxOpen((prev) => (prev ? false : prev));
+      setMergeTaxOpen((prev) => (prev ? prev : true));
     }
   }, [mobileTaxLayoutActive, taxSettingsMode, taxBracketRate]);
   /** 表格手動覆蓋：key = "rowIdx_colKey"，value = 覆蓋的數值（顯示優先於算式結果） */
@@ -711,7 +745,8 @@ export default function Home() {
   }, [initialPrincipalNum, monthlyContributionNum, monthlyExtraNum, periodMonthsForBalance, nthPeriod, effectiveAnnualRateEarly, reinvestRatio, payoutFrequency, initialMonth, selectedEtf]);
   const [currentPrincipalStr, setCurrentPrincipalStr] = useState("");
   useEffect(() => {
-    setCurrentPrincipalStr(currentPrincipalComputed.toLocaleString("zh-TW"));
+    const next = currentPrincipalComputed.toLocaleString("zh-TW");
+    setCurrentPrincipalStr((prev) => (prev === next ? prev : next));
   }, [currentPrincipalComputed]);
   const currentPrincipalNum = (() => {
     const parsed = parseFormula(currentPrincipalStr);
@@ -733,7 +768,8 @@ export default function Home() {
   const computedTotalForEstimate = currentPrincipalNum + (monthlyContributionNum + monthlyExtraNum) * 12;
   const [totalPriceForEstimateStr, setTotalPriceForEstimateStr] = useState("");
   useEffect(() => {
-    setTotalPriceForEstimateStr(String(computedTotalForEstimate));
+    const next = String(computedTotalForEstimate);
+    setTotalPriceForEstimateStr((prev) => (prev === next ? prev : next));
   }, [computedTotalForEstimate]);
 
   const maxNthPeriod = 1200; // 每月投入，最多 100 年
@@ -1346,7 +1382,8 @@ export default function Home() {
   );
 
   /** localStorage／URL 還原完成前不重算，避免預設值 → 存檔值各算一輪建議月投 */
-  const debouncedHeavySimPayload = useDebouncedValue(heavySimPayload, 280, storageReady);
+  const heavySimPayloadKey = useMemo(() => serializeHeavySimPayload(heavySimPayload), [heavySimPayload]);
+  const debouncedHeavySimPayload = useDebouncedValue(heavySimPayload, 280, storageReady, serializeHeavySimPayload);
   const {
     simulation,
     simulationAtTargetYears,
@@ -1367,14 +1404,6 @@ export default function Home() {
     const annualRate = effectiveAnnualRate / 100;
     return Math.round((targetQuarterIncomeNum * 12) / annualRate);
   }, [targetQuarterIncomeNum, effectiveAnnualRate]);
-
-  /** 年期反推：依目前每月投入，於選定年期後可領的月收（簡化：期末資產×年化÷12） */
-  const reverseMonthlyIncome = useMemo(() => {
-    if (effectiveAnnualRate <= 0) return null;
-    const bal = simulationAtTargetYears.finalBalance;
-    if (bal <= 0) return null;
-    return Math.round((bal * (effectiveAnnualRate / 100)) / 12);
-  }, [simulationAtTargetYears.finalBalance, effectiveAnnualRate]);
 
   const intervalMonths =
     payoutFrequency === "month"
@@ -1560,10 +1589,7 @@ export default function Home() {
 
   const [accumTableVisibleRows, setAccumTableVisibleRows] = useState(ACCUM_TABLE_INITIAL_ROWS);
   const accumDesktopScrollRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    setAccumTableVisibleRows(ACCUM_TABLE_INITIAL_ROWS);
-  }, [periodSnapshots]);
+  const lastAccumSnapshotsKeyRef = useRef<string | null>(null);
 
   const accumTableRenderRowCount = Math.min(accumTableVisibleRows, periodSnapshots.length);
 
@@ -1581,16 +1607,32 @@ export default function Home() {
 
   useEffect(() => {
     if (!mobileAccumFullTableModalOpen) return;
-    setAccumTableVisibleRows(ACCUM_TABLE_INITIAL_ROWS);
+    setAccumTableVisibleRows((n) => (n === ACCUM_TABLE_INITIAL_ROWS ? n : ACCUM_TABLE_INITIAL_ROWS));
   }, [mobileAccumFullTableModalOpen]);
 
-  /** 列數少於容器高度時自動多載幾列，讓捲動能觸發增量載入 */
+  /**
+   * 試算表更新：重設可見列數；桌機可見且未出現捲軸時一次展開（避免依 accumTableVisibleRows 連鎖 >50 次 setState）。
+   */
   useEffect(() => {
+    if (periodSnapshots.length === 0) return;
+    const snapKey = `${heavySimPayloadKey}|${periodSnapshots.length}`;
+    if (lastAccumSnapshotsKeyRef.current === snapKey) return;
+    lastAccumSnapshotsKeyRef.current = snapKey;
+
+    setAccumTableVisibleRows((n) => (n === ACCUM_TABLE_INITIAL_ROWS ? n : ACCUM_TABLE_INITIAL_ROWS));
+
     const el = accumDesktopScrollRef.current;
-    if (!el || accumTableVisibleRows >= periodSnapshots.length) return;
-    if (el.scrollHeight > el.clientHeight + 8) return;
-    setAccumTableVisibleRows((n) => Math.min(periodSnapshots.length, n + ACCUM_TABLE_ROWS_PER_LOAD));
-  }, [accumTableVisibleRows, periodSnapshots.length]);
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) return;
+
+    const raf = requestAnimationFrame(() => {
+      const node = accumDesktopScrollRef.current;
+      if (!node || node.scrollHeight > node.clientHeight + 8) return;
+      setAccumTableVisibleRows((n) => (n >= periodSnapshots.length ? n : periodSnapshots.length));
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [periodSnapshots.length, heavySimPayloadKey]);
 
   const noInvestBalance20y = currentPrincipalNum + (monthlyContributionNum + monthlyExtraNum) * 240;
   const investBalance20y = periodSnapshots.length > 0 ? periodSnapshots[periodSnapshots.length - 1].balance : 0;
@@ -2077,39 +2119,34 @@ export default function Home() {
     monthlyExtraNum,
   ]);
 
-  /** 手機累積表錨點：對齊「第幾次投入」的對應年月列 */
+  /** 手機累積表錨點：試算表中 ≤ 今天最近的一列（近一期＝實際最新，非存股參數 nthPeriod） */
   const accumMobileAnchorIndex = useMemo(() => {
-    const { targetYear, targetMonth, totalMonths } = nthPeriodTargetCalendar;
-    for (let i = 0; i < periodSnapshots.length; i++) {
-      const row = periodSnapshots[i]!;
-      const monthInLabel = row.periodLabel.match(/年(\d{1,2})月$/);
-      if (monthInLabel && row.year === targetYear && parseInt(monthInLabel[1]!, 10) === targetMonth) {
-        return i;
-      }
-    }
-    return Math.min(Math.max(0, totalMonths), Math.max(0, periodSnapshots.length - 1));
-  }, [periodSnapshots, nthPeriodTargetCalendar]);
+    const now = currentSimYearMonth();
+    return findAccumRowIndexForCalendar(periodSnapshots, now.year, now.month);
+  }, [periodSnapshots]);
 
-  /** 手機版「近一期」：第 N 次投入對應年月那一列 */
+  /** 手機版「近一期」：錨點列（資料列未載入完前不顯示錯誤期別） */
   const accumulatedPeriodRecentMobile = useMemo(() => {
     if (accumulatedPeriodRowModels.length === 0) return null;
-    const idx = Math.min(accumMobileAnchorIndex, accumulatedPeriodRowModels.length - 1);
-    return accumulatedPeriodRowModels[idx] ?? null;
+    if (accumMobileAnchorIndex >= accumulatedPeriodRowModels.length) return null;
+    return accumulatedPeriodRowModels[accumMobileAnchorIndex] ?? null;
   }, [accumulatedPeriodRowModels, accumMobileAnchorIndex]);
 
-  /** 手機「未來10期」：自對應年月之後連續 10 期（時間正序） */
-  const accumulatedPeriodNextTenMobile = useMemo(() => {
+  /** 手機「最近10期」：近一期之前的最多 10 期（時間正序，不含近一期本身） */
+  const accumulatedPeriodPriorTenMobile = useMemo(() => {
     const m = accumulatedPeriodRowModels;
-    const start = accumMobileAnchorIndex + 1;
-    if (start >= m.length) return [];
-    return m.slice(start, start + 10);
+    const anchor = Math.min(accumMobileAnchorIndex, m.length - 1);
+    if (anchor <= 0) return [];
+    const start = Math.max(0, anchor - 10);
+    return m.slice(start, anchor);
   }, [accumulatedPeriodRowModels, accumMobileAnchorIndex]);
 
+  /** 手機近一期需載入至錨點列；展開最近10期時維持同範圍 */
   useEffect(() => {
-    if (!mobileAccumShowNextTen) return;
-    const need = accumMobileAnchorIndex + 11;
-    setAccumTableVisibleRows((n) => Math.max(n, Math.min(periodSnapshots.length, need)));
-  }, [mobileAccumShowNextTen, accumMobileAnchorIndex, periodSnapshots.length]);
+    const need = Math.min(periodSnapshots.length, accumMobileAnchorIndex + 1);
+    if (need <= 0) return;
+    setAccumTableVisibleRows((n) => (n >= need ? n : need));
+  }, [accumMobileAnchorIndex, periodSnapshots.length, heavySimPayloadKey]);
 
   /** 本期總投入欄寬：依數字長度（含手動覆蓋） */
   const totalInflowColWidthDyn = useMemo(() => {
@@ -2339,6 +2376,12 @@ export default function Home() {
           return `${targetYear} 年 ${targetMonth} 月`;
         })()
       : "—";
+  const mobileReverseTargetDateStr = useMemo(() => {
+    const now = new Date();
+    const targetYear = now.getFullYear() + mobileReverseYears;
+    const targetMonth = now.getMonth() + 1;
+    return `${targetYear} 年 ${targetMonth} 月`;
+  }, [mobileReverseYears]);
   const achievementPercent =
     requiredAssetsForTarget != null && requiredAssetsForTarget > 0
       ? Math.min(
@@ -4406,28 +4449,58 @@ export default function Home() {
               requiredMonthlyToAchieveInYears={requiredMonthlyToAchieveInYears}
               suggestedMonthlyDisplay={suggestedMonthlyDisplay}
               requiredAssetsForTarget={requiredAssetsForTarget}
-              parseFormula={parseFormula}
               fireEtaStr={fireEtaStr}
-              fireEtaYears={fireEtaYears}
-              reverseMonthlyIncome={reverseMonthlyIncome}
+              reverseTargetDateStr={mobileReverseTargetDateStr}
               reverseYears={mobileReverseYears}
               setReverseYears={setMobileReverseYears}
               calcMode={mobileGoalCalcMode}
               onCalcModeChange={setMobileGoalCalcMode}
             />
-            {mobileGoalCalcMode !== "reverse" ? (
+            {mobileGoalCalcMode === "forward" ? (
               <MobileHeroSection
+                calcMode={mobileGoalCalcMode}
                 fireEtaStr={fireEtaStr}
                 hideEtaCard
-                showHomeHeroFirstLink={showHomeHeroFirstLink}
-                homeHeroFirstEntry={homeHeroFirstEntry}
-                blogHref={homeHeroBlogHref}
                 simulationAtTargetYears={{
                   finalBalance: simulationAtTargetYears.finalBalance,
                   totalDividends: simulationAtTargetYears.totalDividends,
                 }}
+                fireCountdown={{
+                  fireEtaStr,
+                  fireEtaTargetDateStr,
+                  freedomAchieved,
+                  showMonthlySuggestion:
+                    !targetYearsToAchieveEmpty &&
+                    targetYearsToAchieveNum > 0 &&
+                    requiredMonthlyToAchieveInYears != null &&
+                    fireEtaYears != null &&
+                    fireEtaYears >= 20,
+                  targetYearsToAchieveNum,
+                  requiredMonthlyToAchieveInYears,
+                  compareYears: 20,
+                  noInvestBalance: noInvestBalance20y,
+                  investBalance: investBalance20y,
+                  diffVsNoInvest,
+                }}
+                accumPreview={
+                  <MobileAccumPreviewSection
+                    recent={accumulatedPeriodRecentMobile}
+                    priorTen={accumulatedPeriodPriorTenMobile}
+                    showPriorTen={mobileAccumShowNextTen}
+                    onTogglePriorTen={() => setMobileAccumShowNextTen((v) => !v)}
+                    onOpenFullTable={() => setMobileAccumFullTableModalOpen(true)}
+                  />
+                }
               />
-            ) : null}
+            ) : (
+              <MobileAccumPreviewSection
+                recent={accumulatedPeriodRecentMobile}
+                priorTen={accumulatedPeriodPriorTenMobile}
+                showPriorTen={mobileAccumShowNextTen}
+                onTogglePriorTen={() => setMobileAccumShowNextTen((v) => !v)}
+                onOpenFullTable={() => setMobileAccumFullTableModalOpen(true)}
+              />
+            )}
           </div>
 
           {/* 手機：我的自選股 / PWA 安裝引導（往上移到主流程中） */}
@@ -4436,8 +4509,11 @@ export default function Home() {
           </div>
         </div>
 
-        {/* 6️⃣ FIRE COUNTDOWN */}
-        <div style={{ ...cardStyle, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+        {/* 6️⃣ FIRE COUNTDOWN（手機版已併入 MobileHeroSection KPI 與 CTA 之間） */}
+        <div
+          id="home-fire-countdown-desktop"
+          style={{ ...cardStyle, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}
+        >
           <div>
             <h2 style={{ fontSize: 24, fontWeight: 600, color: "#e5e7eb", marginBottom: 12 }}>達成目標</h2>
             <div style={{ fontSize: 24, fontWeight: 700, color: "#39ff14" }}>{fireEtaStr !== "—" ? `剩下 ${fireEtaStr}` : fireEtaStr}</div>
@@ -4470,12 +4546,27 @@ export default function Home() {
           </div>
         </div>
 
-        {/* 8️⃣ 累積金額與股數表 ＋ 股金設定與試算（試算表在上、股金設定在下） */}
+        {/* 8️⃣ 累積金額與股數表 ＋ 二代健保與稅金（試算表在上、稅金區在下） */}
         <div id="home-stock-tax-card" className="home-stock-tax-card" style={{ ...cardStyle }}>
           <div id="home-tax-settings-section" className="home-tax-settings-section">
-          {/* 股金設定與試算 */}
+          {/* 二代健保與稅金 */}
           <div style={{ marginBottom: 0 }}>
-            <h2 style={{ fontSize: 24, fontWeight: 600, color: "#e5e7eb", margin: "0 0 8px 0" }}>股金設定與試算</h2>
+            <h2
+              className="hidden md:block"
+              style={{ fontSize: 24, fontWeight: 600, color: "#e5e7eb", margin: "0 0 8px 0" }}
+            >
+              二代健保與稅金
+            </h2>
+            <button
+              type="button"
+              className="md:hidden mb-2 flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-left"
+              onClick={() => setMobileTaxNhiSectionOpen((o) => !o)}
+              aria-expanded={mobileTaxNhiSectionOpen}
+            >
+              <span style={{ fontSize: 20, fontWeight: 600, color: "#e5e7eb" }}>二代健保與稅金</span>
+              <span className="text-slate-500">{mobileTaxNhiSectionOpen ? "▲" : "▼"}</span>
+            </button>
+            <div className={mobileTaxNhiSectionOpen ? "block" : "hidden md:block"}>
             {/* 桌機：重構前經典稅金版面（與 sticky 勾選一致，不受稅務模式自動同步影響） */}
             <div id="desktop-tax-settings-row">
               <LazyTaxSettingsDesktopClassicLeftColumn
@@ -4802,17 +4893,17 @@ export default function Home() {
                 ) : null}
               </div>
               <div className="rounded-xl border border-white/10 bg-black/25 p-4 text-sm leading-relaxed text-slate-500">
-                <div className="mb-2 font-semibold text-slate-200">每檔稅金說明</div>
                 <div>{taxMessage}</div>
               </div>
+            </div>
             </div>
           </div>
           </div>
 
           <div id="home-accum-table-section" className="home-accum-table-section">
           <div
+            className="hidden md:flex"
             style={{
-              display: "flex",
               flexWrap: "nowrap",
               alignItems: "center",
               gap: 12,
@@ -4821,7 +4912,12 @@ export default function Home() {
               ...(mobileTaxLayoutActive ? { paddingTop: 16, paddingBottom: 16 } : {}),
             }}
           >
-            <h2 style={{ fontSize: 24, fontWeight: 600, color: "#e5e7eb", margin: 0, flexShrink: 0 }}>累積金額與股數表</h2>
+            <h2
+              className="hidden md:block"
+              style={{ fontSize: 24, fontWeight: 600, color: "#e5e7eb", margin: 0, flexShrink: 0 }}
+            >
+              累積金額與股數表
+            </h2>
           </div>
           <div
             ref={accumDesktopScrollRef}
@@ -4830,173 +4926,6 @@ export default function Home() {
             style={{ overflowX: "auto", maxHeight: 360, overflowY: "auto", paddingRight: 10, boxSizing: "border-box" }}
           >
             {!mobileAccumFullTableModalOpen ? renderAccumulatedDesktopTable() : null}
-          </div>
-          <div className="flex flex-col gap-5 md:gap-4">
-          <div className="md:hidden flex flex-col gap-6">
-            {accumulatedPeriodRecentMobile ? (
-              <>
-                <div
-                  className={
-                    accumulatedPeriodRecentMobile.dividendThisGross > 0
-                      ? "rounded-xl border border-emerald-500/35 bg-emerald-950/25 p-4 shadow-[0_4px_24px_rgba(0,0,0,0.25)]"
-                      : "rounded-xl border border-white/10 bg-slate-950/40 p-4 shadow-[0_4px_24px_rgba(0,0,0,0.25)]"
-                  }
-                >
-                  <div className="mb-3 flex items-start justify-between gap-3 border-b border-white/10 pb-2">
-                    <div className="min-w-0 text-lg font-bold leading-snug text-slate-100">
-                      近一期
-                      <span className="mt-0.5 block text-sm font-semibold text-slate-400">
-                        {accumulatedPeriodRecentMobile.row.periodLabel}
-                      </span>
-                    </div>
-                    <span
-                      className="shrink-0 rounded-full border border-emerald-400/45 bg-emerald-500/15 px-2.5 py-1 text-xs font-black leading-none text-emerald-300"
-                      aria-label={`試算第 ${nthPeriod} 期`}
-                    >
-                      第 {nthPeriod} 期
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-4">
-                    <div>
-                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">股利</div>
-                      <div className="text-xl font-bold text-slate-100">
-                        {accumulatedPeriodRecentMobile.dividendThisGross > 0
-                          ? Math.round(accumulatedPeriodRecentMobile.dividendThisGross).toLocaleString("zh-TW")
-                          : "—"}
-                        {accumulatedPeriodRecentMobile.dividendThisGross > 0 ? (
-                          <span className="text-sm font-bold text-slate-400"> 元</span>
-                        ) : null}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">本期投入</div>
-                      <div className="text-xl font-bold text-slate-100">
-                        {Math.round(accumulatedPeriodRecentMobile.totalInflowThisPeriod).toLocaleString("zh-TW")}
-                        <span className="text-sm font-bold text-slate-400"> 元</span>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">總資產</div>
-                      <div className="text-xl font-bold text-slate-100">
-                        {Math.round(accumulatedPeriodRecentMobile.balanceBalVal).toLocaleString("zh-TW")}
-                        <span className="text-sm font-bold text-slate-400"> 元</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {accumulatedPeriodNextTenMobile.length > 0 ? (
-                  <div className="flex flex-col gap-4">
-                    <button
-                      type="button"
-                      className="w-full rounded-xl bg-transparent px-0 py-2.5 text-left text-sm font-medium text-slate-500 transition-colors hover:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/35"
-                      onClick={() => setMobileAccumShowNextTen((v) => !v)}
-                    >
-                      {mobileAccumShowNextTen ? "▲ 收合未來10期" : "▼ 展開未來10期"}
-                    </button>
-                    {mobileAccumShowNextTen ? (
-                      <div className="flex flex-col gap-6">
-                        <div className="flex flex-col gap-4">
-                          <h3 className="text-center text-sm font-bold text-slate-300">未來10期</h3>
-                          <div className="flex flex-col gap-4">
-                            {accumulatedPeriodNextTenMobile.map((d, futureIdx) => {
-                              const hasDiv = d.dividendThisGross > 0;
-                              const periodNum = nthPeriod + futureIdx + 1;
-                              return (
-                                <div
-                                  key={d.i}
-                                  className={
-                                    hasDiv
-                                      ? "rounded-xl border border-emerald-500/35 bg-emerald-950/25 p-4 shadow-[0_4px_24px_rgba(0,0,0,0.25)]"
-                                      : "rounded-xl border border-white/10 bg-slate-950/40 p-4 shadow-[0_4px_24px_rgba(0,0,0,0.25)]"
-                                  }
-                                >
-                                  <div className="mb-2 flex items-start justify-between gap-2 border-b border-white/10 pb-2">
-                                    <span className="min-w-0 text-base font-bold leading-snug text-slate-100">{d.row.periodLabel}</span>
-                                    <span
-                                      className="shrink-0 rounded-full border border-emerald-400/35 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-black leading-none text-emerald-300/90"
-                                      aria-label={`試算第 ${periodNum} 期`}
-                                    >
-                                      第 {periodNum} 期
-                                    </span>
-                                  </div>
-                                  <div className="flex flex-col gap-3">
-                                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                                      <span className="text-xs font-semibold text-slate-500">股利</span>
-                                      <span className="text-lg font-bold text-slate-100">
-                                        {d.dividendThisGross > 0 ? Math.round(d.dividendThisGross).toLocaleString("zh-TW") : "—"}
-                                        {d.dividendThisGross > 0 ? <span className="text-sm font-bold text-slate-400"> 元</span> : null}
-                                      </span>
-                                    </div>
-                                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                                      <span className="text-xs font-semibold text-slate-500">本期投入</span>
-                                      <span className="text-lg font-bold text-slate-100">
-                                        {Math.round(d.totalInflowThisPeriod).toLocaleString("zh-TW")}
-                                        <span className="text-sm font-bold text-slate-400"> 元</span>
-                                      </span>
-                                    </div>
-                                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                                      <span className="text-xs font-semibold text-slate-500">總資產</span>
-                                      <span className="text-lg font-bold text-slate-100">
-                                        {Math.round(d.balanceBalVal).toLocaleString("zh-TW")}
-                                        <span className="text-sm font-bold text-slate-400"> 元</span>
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          className="flex min-h-[3.5rem] w-full items-center justify-center rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 px-4 py-3.5 text-base font-medium text-white shadow-lg shadow-emerald-950/30 transition hover:scale-[1.01] hover:brightness-110 active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50"
-                          onClick={() => {
-                            if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("calc-engagement"));
-                            setMobileAccumFullTableModalOpen(true);
-                          }}
-                        >
-                          查看完整明細
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        className="flex min-h-[3.5rem] w-full items-center justify-center rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 px-4 py-3.5 text-base font-medium text-white shadow-lg shadow-emerald-950/30 transition hover:scale-[1.01] hover:brightness-110 active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50"
-                        onClick={() => {
-                          if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("calc-engagement"));
-                          setMobileAccumFullTableModalOpen(true);
-                        }}
-                      >
-                        查看完整明細
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    className="flex min-h-[3.5rem] w-full items-center justify-center rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 px-4 py-3.5 text-base font-medium text-white shadow-lg shadow-emerald-950/30 transition hover:scale-[1.01] hover:brightness-110 active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50"
-                    onClick={() => {
-                      if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("calc-engagement"));
-                      setMobileAccumFullTableModalOpen(true);
-                    }}
-                  >
-                    查看完整明細
-                  </button>
-                )}
-              </>
-            ) : null}
-            <div className="rounded-xl border border-white/10 bg-slate-950/30 p-4">
-              <button
-                type="button"
-                onClick={() => {
-                  if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("calc-engagement"));
-                  downloadTableExcel();
-                }}
-                className="min-h-[3rem] w-full rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-200/95 transition hover:border-emerald-500/35 hover:bg-emerald-500/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
-              >
-                下載 Excel
-              </button>
-            </div>
           </div>
           <div className="hidden md:block">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
@@ -5041,16 +4970,14 @@ export default function Home() {
           </div>
           <p style={{ fontSize: 11, color: "#6b7280", marginTop: 8, marginBottom: 0 }}>期數依配息頻率（月／季／半年／年）對照；本次股息＝該期 gross 股利；再投入股利比例＝股利再投入的百分比；扣除稅金／二代健保未達 2 萬門檻顯示「未達標」；須扣除資金＝補稅＋補充保費＋手續費；手續費每期皆有：投入買入與股利再投入皆 0.1425%（最低 20 元）；上期餘額＝上期結餘；固定投入／額外加碼＝該期固定投入（依配息頻率換算期數）；股利再投入＝股息扣除稅費後再投入金額；本期總投入＝固定投入（已扣手續費）＋股利再投入。股數以選定 ETF 股價試算。</p>
           <div style={{ marginTop: 12, padding: "6px 8px", background: "rgba(0,0,0,0.25)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)", fontSize: 11, color: "#9ca3af", lineHeight: 1.5 }}>
-            <div style={{ fontWeight: 600, color: "#e5e7eb", marginBottom: 6 }}>每檔稅金說明</div>
             <div>{taxMessage}</div>
-          </div>
           </div>
           </div>
           </div>
         </div>
 
-        {/* 7️⃣ ASSET GROWTH CHART - 預留 Chart.js（往下移） */}
-        <div style={{ ...cardStyle }}>
+        {/* 7️⃣ ASSET GROWTH CHART - 預留 Chart.js（手機版隱藏） */}
+        <div id="home-asset-growth-chart" style={{ ...cardStyle }}>
           <h2 style={{ fontSize: 24, fontWeight: 600, color: "#e5e7eb", marginBottom: 12 }}>資產成長曲線</h2>
           <div style={{ height: 280, background: "rgba(0,0,0,0.2)", borderRadius: 12, border: "1px dashed rgba(57,255,20,0.3)", display: "flex", alignItems: "center", justifyContent: "center", color: "#6b7280", fontSize: 12 }}>
             X 軸：年份 · Y 軸：資產（Chart.js 預留區塊）

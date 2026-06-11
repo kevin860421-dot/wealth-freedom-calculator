@@ -88,6 +88,15 @@
   }
 }
 
+.dockActiveZone {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
 .paramsStack {
   display: flex;
   flex-direction: column;
@@ -117,10 +126,6 @@
 /* 固定底欄：原位置三鍵滑出視窗時才顯示（portal 至 body） */
 .floatingDock {
   display: none;
-}
-
-.floatingDockVisible {
-  display: block;
   position: fixed;
   left: 0;
   right: 0;
@@ -140,11 +145,15 @@
   box-sizing: border-box;
 }
 
+.floatingDock.floatingDockVisible {
+  display: block;
+}
+
 .floatingDockVisible .linkText {
   min-height: 40px;
 }
 
-/* 左紫／中藍／右綠：線框按鈕（等寬等高，由外層 flex + flex-1 控制） */
+/* 左紫／中藍／右綠：線框按鈕（等寬等高，由外層 grid grid-cols-3 控制） */
 .linkText {
   display: flex;
   align-items: center;

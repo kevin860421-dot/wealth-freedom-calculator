@@ -80,7 +80,11 @@ export function FooterStatsStrip() {
       <div className={styles.row}>
         {/* 欄 1：造訪統計 */}
         <div className={styles.leftStack}>
-          <aside className={`${styles.card} ${styles.cardStats}`} aria-label="造訪統計">
+          <aside
+            id="home-footer-visit-stats"
+            className={`${styles.card} ${styles.cardStats}`}
+            aria-label="造訪統計"
+          >
             <div className={styles.cardHead}>
               <span className={styles.cardIcon} aria-hidden>
                 ◎

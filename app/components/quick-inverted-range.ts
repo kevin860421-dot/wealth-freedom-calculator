@@ -13,8 +13,9 @@ export function amountFromInvertedRange(raw: number, min: number, max: number): 
   return clampRangeAmount(max - raw + min, min, max);
 }
 
+/** 左大右小：填色須對齊滑桿 thumb（用 display 值，非實際 amount） */
 export function invertedFillPct(amount: number, min: number, max: number): string {
-  const a = clampRangeAmount(amount, min, max);
+  const display = invertedRangeDisplay(amount, min, max);
   if (max <= min) return "0%";
-  return `${((a - min) / (max - min)) * 100}%`;
+  return `${((display - min) / (max - min)) * 100}%`;
 }

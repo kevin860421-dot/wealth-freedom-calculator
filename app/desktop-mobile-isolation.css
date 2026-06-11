@@ -30,10 +30,10 @@
 
 }
 
-/** 僅底部浮動三鍵出現時，預留空間避免遮住內容 */
-html[data-stock-params-dock="visible"] .home-client-main {
-  padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
-}
+/**
+ * 底部浮動三鍵：勿動態加大 main padding（會觸發 IntersectionObserver 版面回饋迴圈）。
+ * 浮動列為 position:fixed 覆蓋；需要時使用者可自行多滑一點。
+ */
 
 /**
  * Cursor 內嵌 Simple Browser 常為寬視窗，@media 不會觸發。
@@ -111,8 +111,45 @@ html[data-preview-mobile="true"] #mobile-stock-params {
   flex-direction: column;
 }
 
+/** 首頁 FIRE 達成目標／存股比較：手機已併入 Hero KPI 與 CTA 之間 */
+#home-fire-countdown-desktop {
+  display: grid;
+}
+
+@media (max-width: 768px) {
+  #home-fire-countdown-desktop {
+    display: none !important;
+  }
+}
+
+html[data-preview-mobile="true"] #home-fire-countdown-desktop {
+  display: none !important;
+}
+
+/** 首頁資產成長曲線：僅桌機顯示 */
+@media (max-width: 768px) {
+  #home-asset-growth-chart {
+    display: none !important;
+  }
+}
+
+html[data-preview-mobile="true"] #home-asset-growth-chart {
+  display: none !important;
+}
+
+/** 頁尾「造訪概況」：僅桌機顯示（手機隱藏） */
+@media (max-width: 768px) {
+  #home-footer-visit-stats {
+    display: none !important;
+  }
+}
+
+html[data-preview-mobile="true"] #home-footer-visit-stats {
+  display: none !important;
+}
+
 /**
- * 首頁「股金設定與試算」：桌機經典兩欄／手機稅務模式兩欄，與 Hero 相同切換邏輯。
+ * 首頁「二代健保與稅金」：桌機經典兩欄／手機稅務模式兩欄，與 Hero 相同切換邏輯。
  */
 #desktop-tax-settings-row {
   display: flex;
@@ -144,7 +181,7 @@ html[data-preview-mobile="true"] #mobile-tax-settings-row {
   display: block !important;
 }
 
-/** 首頁大卡：累積表在上、股金設定與試算在下（DOM 順序保留以利維護，以 flex order 對調） */
+/** 首頁大卡：累積表在上、二代健保與稅金在下（DOM 順序保留以利維護，以 flex order 對調） */
 .home-stock-tax-card {
   display: flex;
   flex-direction: column;

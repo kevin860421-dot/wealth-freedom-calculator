@@ -68,8 +68,7 @@ type StockParamsActionButtonsProps = {
   id?: string;
 };
 
-const actionBtnLayout =
-  "flex-1 min-w-0 py-2 px-1 text-center text-[11px] leading-tight whitespace-nowrap sm:text-xs";
+const actionBtnLayout = "w-full min-w-0 text-center text-xs py-2 leading-tight";
 
 const StockParamsActionButtons = forwardRef<HTMLDivElement, StockParamsActionButtonsProps>(function StockParamsActionButtons(
   {
@@ -83,7 +82,7 @@ const StockParamsActionButtons = forwardRef<HTMLDivElement, StockParamsActionBut
   ref,
 ) {
   return (
-    <div ref={ref} id={id} className={`flex w-full gap-2 items-stretch justify-between ${className ?? ""}`}>
+    <div ref={ref} id={id} className={`grid w-full grid-cols-3 gap-2 items-stretch ${className ?? ""}`}>
       <button
         type="button"
         className={`${actionBtnLayout} ${styles.linkText} ${saveTargetReady ? styles.linkSave : styles.linkSavePending}`}
@@ -144,9 +143,14 @@ export function MobileStockParamsSection({
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [clientMounted, setClientMounted] = useState(false);
   const [mobileLayout, setMobileLayout] = useState(false);
-  const [showFloatingDock, setShowFloatingDock] = useState(false);
+  const [headActionsInView, setHeadActionsInView] = useState(true);
+  const [dockActiveZoneInView, setDockActiveZoneInView] = useState(true);
+  const [pastBlock3, setPastBlock3] = useState(false);
   const [etaPulse, setEtaPulse] = useState(false);
   const headActionsRef = useRef<HTMLDivElement>(null);
+  const dockActiveZoneRef = useRef<HTMLDivElement>(null);
+  const block3Ref = useRef<HTMLDivElement>(null);
+  const dockIoRef = useRef<IntersectionObserver | null>(null);
   const prevEtaBracketRef = useRef(formatEtaBracket(fireEtaYears, fireEtaMonths));
 
   const etaBracket = formatEtaBracket(fireEtaYears, fireEtaMonths);
@@ -303,31 +307,80 @@ export function MobileStockParamsSection({
     };
   }, []);
 
-  /** 手機：原位置三鍵滑出視窗時，底部浮動列才出現 */
+  /**
+   * 手機：頂部三鍵滑出視窗 → 底部浮動列出現；
+   * 仍在語音／①②③ 操作區內可顯示；一旦整段滑過 ③ 配息區即自動隱藏。
+   * （僅在值變更時 setState，避免與版面 padding 互相觸發無限更新。）
+   */
   useEffect(() => {
-    if (!mobileLayout) {
-      setShowFloatingDock(false);
+    if (!mobileLayout || !clientMounted) {
+      setHeadActionsInView((prev) => (prev ? prev : true));
+      setDockActiveZoneInView((prev) => (prev ? prev : true));
+      setPastBlock3((prev) => (prev ? false : prev));
+      dockIoRef.current?.disconnect();
+      dockIoRef.current = null;
       return;
     }
-    const el = headActionsRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        setShowFloatingDock(!entry.isIntersecting);
-      },
-      { threshold: 0 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [mobileLayout]);
+
+    let cancelled = false;
+    const raf = requestAnimationFrame(() => {
+      if (cancelled) return;
+      const headEl = headActionsRef.current;
+      const zoneEl = dockActiveZoneRef.current;
+      const block3El = block3Ref.current;
+      if (!headEl || !zoneEl || !block3El) return;
+
+      dockIoRef.current?.disconnect();
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.target === headEl) {
+              const next = entry.isIntersecting;
+              setHeadActionsInView((prev) => (prev === next ? prev : next));
+            }
+            if (entry.target === zoneEl) {
+              const next = entry.isIntersecting;
+              setDockActiveZoneInView((prev) => (prev === next ? prev : next));
+            }
+            if (entry.target === block3El) {
+              const next = !entry.isIntersecting && entry.boundingClientRect.bottom < 0;
+              setPastBlock3((prev) => (prev === next ? prev : next));
+            }
+          }
+        },
+        { root: null, rootMargin: "0px", threshold: 0 },
+      );
+      dockIoRef.current = io;
+      io.observe(headEl);
+      io.observe(zoneEl);
+      io.observe(block3El);
+    });
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
+      dockIoRef.current?.disconnect();
+      dockIoRef.current = null;
+    };
+  }, [mobileLayout, clientMounted]);
+
+  const showFloatingDock = mobileLayout && !headActionsInView && dockActiveZoneInView && !pastBlock3;
 
   useEffect(() => {
     if (!mobileLayout || !showFloatingDock) {
-      document.documentElement.removeAttribute("data-stock-params-dock");
+      if (document.documentElement.getAttribute("data-stock-params-dock") === "visible") {
+        document.documentElement.removeAttribute("data-stock-params-dock");
+      }
       return;
     }
-    document.documentElement.setAttribute("data-stock-params-dock", "visible");
-    return () => document.documentElement.removeAttribute("data-stock-params-dock");
+    if (document.documentElement.getAttribute("data-stock-params-dock") !== "visible") {
+      document.documentElement.setAttribute("data-stock-params-dock", "visible");
+    }
+    return () => {
+      if (document.documentElement.getAttribute("data-stock-params-dock") === "visible") {
+        document.documentElement.removeAttribute("data-stock-params-dock");
+      }
+    };
   }, [mobileLayout, showFloatingDock]);
 
   const actionButtonProps = {
@@ -381,9 +434,10 @@ export function MobileStockParamsSection({
         <StockParamsActionButtons ref={headActionsRef} id="mobile-stock-params-head-actions" {...actionButtonProps} />
       </div>
 
+      <div ref={dockActiveZoneRef} className={styles.dockActiveZone} aria-label="存股參數操作區">
       <MobileSmartVoiceBlock />
 
-      <div className={styles.paramsStack}>
+      <div className={styles.paramsStack} aria-label="起始資金、投資標的與配息設定">
       <div className={styles.basicCard}>
         <p className={styles.sectionLabel}>
           ① 起始資金設定
@@ -445,7 +499,7 @@ export function MobileStockParamsSection({
       </div>
 
       {/* ② 投資標的 ＋ ③ 配息：接在起始資金設定之後 */}
-      <div className={styles.etfLeadWrap} aria-label="投資標的與股利配息">
+      <div ref={block3Ref} className={styles.etfLeadWrap} aria-label="投資標的與股利配息">
         <StockParamsAdvancedBlock
           {...advancedProps}
           showAnnualInEtfRow={false}
@@ -454,6 +508,7 @@ export function MobileStockParamsSection({
           mobileGrouped
           mobileEtfLeadOnly
         />
+      </div>
       </div>
       </div>
 

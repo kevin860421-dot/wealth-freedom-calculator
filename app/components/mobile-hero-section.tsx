@@ -1,21 +1,25 @@
 "use client";
 
-import Link from "next/link";
-import type { BlogPostRegistryEntry } from "../blog/posts/registry";
+import type { ReactNode } from "react";
+import type { MobileGoalCalcMode } from "./mobile-goal-setting-section";
+import {
+  MobileFireCountdownSection,
+  type MobileFireCountdownSectionProps,
+} from "./mobile-fire-countdown-section";
 import heroGold from "./hero-gold-title.module.css";
 import styles from "./mobile-hero-section.module.css";
 
 type Props = {
   fireEtaStr: string;
+  /** 僅「金額順推」顯示底部三塊 KPI；年期反推時不渲染 */
+  calcMode: MobileGoalCalcMode;
   /** 達成時間主卡已併入目標儀表板時隱藏，避免重複佔高 */
   hideEtaCard?: boolean;
-  showHomeHeroFirstLink: boolean;
-  homeHeroFirstEntry: BlogPostRegistryEntry | undefined | null;
-  blogHref: string;
   simulationAtTargetYears: { finalBalance: number; totalDividends: number };
+  fireCountdown: MobileFireCountdownSectionProps;
+  /** 累積表精簡預覽（達成目標卡下方） */
+  accumPreview?: ReactNode;
 };
-
-const CTA_LABEL = "🔥 看節稅攻略（已幫你算好）";
 
 /** 手機首屏：僅主標題（存股參數緊接其下） */
 export function MobileHeroTitleSection({ title = "財富自由計算機" }: { title?: string }) {
@@ -34,12 +38,14 @@ export function MobileHeroTitleSection({ title = "財富自由計算機" }: { ti
  */
 export function MobileHeroSection({
   fireEtaStr,
+  calcMode,
   hideEtaCard = false,
-  showHomeHeroFirstLink,
-  homeHeroFirstEntry,
-  blogHref,
   simulationAtTargetYears,
+  fireCountdown,
+  accumPreview,
 }: Props) {
+  const isForwardMode = calcMode === "forward";
+
   return (
     <section className={styles.root} aria-label="達成進度與試算摘要">
       {!hideEtaCard ? (
@@ -52,32 +58,32 @@ export function MobileHeroSection({
         </div>
       ) : null}
 
-      <div className={styles.kpiGrid}>
-        <div className={styles.kpiCard}>
-          <div className={styles.kpiLabel}>達成年數</div>
-          <div className={`${styles.kpiValue} ${styles.kpiValueNeutral}`}>{fireEtaStr}</div>
-        </div>
-        <div className={styles.kpiCard}>
-          <div className={styles.kpiLabel}>模擬期末資產</div>
-          <div className={`${styles.kpiValue} ${styles.kpiValueGreen}`}>
-            {Math.round(simulationAtTargetYears.finalBalance).toLocaleString("zh-TW")}
-            <span className={styles.kpiUnit}>元</span>
+      {isForwardMode ? (
+        <div className={styles.kpiGrid} aria-label="達成進度摘要">
+          <div className={styles.kpiCard}>
+            <div className={styles.kpiLabel}>達成年數</div>
+            <div className={`${styles.kpiValue} ${styles.kpiValueNeutral}`}>{fireEtaStr}</div>
+          </div>
+          <div className={styles.kpiCard}>
+            <div className={styles.kpiLabel}>模擬期末資產</div>
+            <div className={`${styles.kpiValue} ${styles.kpiValueGreen}`}>
+              {Math.round(simulationAtTargetYears.finalBalance).toLocaleString("zh-TW")}
+              <span className={styles.kpiUnit}>元</span>
+            </div>
+          </div>
+          <div className={styles.kpiCard}>
+            <div className={styles.kpiLabel}>累積股利</div>
+            <div className={`${styles.kpiValue} ${styles.kpiValueGold}`}>
+              {Math.round(simulationAtTargetYears.totalDividends).toLocaleString("zh-TW")}
+              <span className={styles.kpiUnit}>元</span>
+            </div>
           </div>
         </div>
-        <div className={styles.kpiCard}>
-          <div className={styles.kpiLabel}>累積股利</div>
-          <div className={`${styles.kpiValue} ${styles.kpiValueGold}`}>
-            {Math.round(simulationAtTargetYears.totalDividends).toLocaleString("zh-TW")}
-            <span className={styles.kpiUnit}>元</span>
-          </div>
-        </div>
-      </div>
-
-      {showHomeHeroFirstLink && homeHeroFirstEntry ? (
-        <Link href={blogHref} target="_blank" rel="noopener noreferrer" className={styles.cta}>
-          {CTA_LABEL}
-        </Link>
       ) : null}
+
+      {isForwardMode ? <MobileFireCountdownSection {...fireCountdown} /> : null}
+
+      {isForwardMode ? accumPreview : null}
     </section>
   );
 }
