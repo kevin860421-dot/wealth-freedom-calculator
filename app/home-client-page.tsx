@@ -28,6 +28,7 @@ import {
   MobileGoalSettingSection,
   type MobileGoalCalcMode,
 } from "./components/mobile-goal-setting-section";
+import { HOME_OPEN_NHI_TAX_EVENT } from "./components/home-nhi-tax-nav";
 import { HomeEmployeeEtfFaqSection } from "./components/home-employee-etf-faq-section";
 import { HomeLegalDisclaimerSection } from "./components/home-legal-disclaimer-section";
 import { HomeCopyrightNoticeSection } from "./components/home-copyright-notice-section";
@@ -689,6 +690,18 @@ export default function Home() {
       mo.disconnect();
     };
   }, []);
+
+  useEffect(() => {
+    const onOpenNhiTax = () => {
+      setMobileTaxNhiSectionOpen(true);
+      window.requestAnimationFrame(() => {
+        document.getElementById("home-tax-settings-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    };
+    window.addEventListener(HOME_OPEN_NHI_TAX_EVENT, onOpenNhiTax);
+    return () => window.removeEventListener(HOME_OPEN_NHI_TAX_EVENT, onOpenNhiTax);
+  }, []);
+
   useEffect(() => {
     if (!mobileTaxLayoutActive) return;
     if (taxSettingsMode !== "auto") return;

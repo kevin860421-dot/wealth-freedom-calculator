@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ContactUsPanel } from "./contact-us-panel";
 import { useStats } from "./stats-provider";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { openHomeNhiTaxSection } from "./components/home-nhi-tax-nav";
 import { QUICK7_DISPLAY_TITLE } from "./quick-7/display-title";
 import { QUICK12_DISPLAY_TITLE } from "./quick-12/display-title";
 import styles from "./footer-stats-strip.module.css";
@@ -27,6 +28,141 @@ function quickCalculatorLabel(n: number): string {
   if (n === 11) return "第11台｜破產計算機";
   if (n === 12) return `第12台｜${QUICK12_DISPLAY_TITLE}`;
   return `第${n}台｜小計算機（建置中）`;
+}
+
+type QuickHubTileDef =
+  | { kind: "quick"; n: number; emoji: string; shortName: string }
+  | { kind: "nhi2"; emoji: string; shortName: string };
+
+/** 財務重要性與人生階段：黃金排序（僅 UI 順序；連結與 quick-n 不變） */
+const QUICK_HUB_GOLDEN_ORDER: QuickHubTileDef[] = [
+  { kind: "quick", n: 11, emoji: "🛡️", shortName: "破產提領" },
+  { kind: "quick", n: 1, emoji: "📈", shortName: "複利終值" },
+  { kind: "quick", n: 3, emoji: "🎯", shortName: "退休資產反推" },
+  { kind: "nhi2", emoji: "🏥", shortName: "二代健保" },
+  { kind: "quick", n: 8, emoji: "💸", shortName: "通膨吃水" },
+  { kind: "quick", n: 2, emoji: "🔨", shortName: "每月投入反推" },
+  { kind: "quick", n: 4, emoji: "🍹", shortName: "安全提領率" },
+  { kind: "quick", n: 9, emoji: "🚀", shortName: "加薪放大" },
+  { kind: "quick", n: 5, emoji: "🔄", shortName: "再投入對比" },
+  { kind: "quick", n: 12, emoji: "⚖️", shortName: "黃金交叉" },
+  { kind: "quick", n: 10, emoji: "🌋", shortName: "熊市壓力" },
+  { kind: "quick", n: 7, emoji: "🛒", shortName: "定額 vs 加碼" },
+  { kind: "quick", n: 6, emoji: "🏎️", shortName: "槓桿流" },
+];
+
+const QUICK_HUB_TILE_BASE =
+  "relative flex w-full aspect-[16/9] min-h-[4rem] items-center rounded-xl border border-slate-700/40 bg-slate-800/30 px-3 py-2 backdrop-blur-md transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40";
+
+const QUICK_HUB_TILE_INTERACTIVE = [
+  "hover:border-slate-600/55 hover:bg-slate-800/45",
+  "active:border-amber-500/50 active:bg-gradient-to-br active:from-amber-500/5 active:to-transparent active:ring-1 active:ring-amber-500/30",
+].join(" ");
+
+const QUICK_HUB_TILE_DISABLED =
+  "cursor-not-allowed border-slate-700/25 bg-slate-900/25 opacity-55 hover:border-slate-700/25 hover:bg-slate-900/25";
+
+function quickHubTileClassName(disabled: boolean) {
+  return `${QUICK_HUB_TILE_BASE} ${disabled ? QUICK_HUB_TILE_DISABLED : QUICK_HUB_TILE_INTERACTIVE}`;
+}
+
+function QuickHubTileInner({ emoji, shortName, badge, disabled }: { emoji: string; shortName: string; badge: string; disabled?: boolean }) {
+  const labelTone = disabled ? "text-slate-500" : "text-slate-200";
+  const badgeTone = disabled ? "text-slate-600" : "text-slate-400";
+  return (
+    <span className="flex min-w-0 flex-1 items-center gap-2.5">
+      <span className="shrink-0 text-[1.35rem] leading-none" aria-hidden>
+        {emoji}
+      </span>
+      <span className="min-w-0 flex-1 text-left">
+        <span className={`block truncate text-[10px] font-medium tracking-wide ${badgeTone}`}>{badge}</span>
+        <span className={`block truncate font-semibold text-sm tracking-wide ${labelTone}`}>{shortName}</span>
+      </span>
+    </span>
+  );
+}
+
+function QuickHubTile({
+  emoji,
+  shortName,
+  badge,
+  fullLabel,
+  disabled = false,
+  href,
+  onActivate,
+}: {
+  emoji: string;
+  shortName: string;
+  badge: string;
+  fullLabel: string;
+  disabled?: boolean;
+  href?: string;
+  onActivate?: () => void;
+}) {
+  const className = quickHubTileClassName(disabled);
+  const inner = <QuickHubTileInner emoji={emoji} shortName={shortName} badge={badge} disabled={disabled} />;
+
+  if (disabled) {
+    return (
+      <button type="button" className={className} disabled title={fullLabel}>
+        {inner}
+      </button>
+    );
+  }
+
+  if (href) {
+    return (
+      <Link href={href} target="_blank" rel="noopener noreferrer" className={className} title={fullLabel}>
+        {inner}
+      </Link>
+    );
+  }
+
+  return (
+    <button type="button" className={className} title={fullLabel} onClick={onActivate}>
+      {inner}
+    </button>
+  );
+}
+
+function QuickHubTileFromDef(def: QuickHubTileDef) {
+  if (def.kind === "nhi2") {
+    return (
+      <QuickHubTile
+        key="nhi2"
+        emoji={def.emoji}
+        shortName={def.shortName}
+        badge="本頁"
+        fullLabel="二代健保與稅金（捲動至試算區並展開）"
+        onActivate={openHomeNhiTaxSection}
+      />
+    );
+  }
+
+  const n = def.n;
+  if (!AVAILABLE_QUICK_CALCULATORS.has(n)) {
+    return (
+      <QuickHubTile
+        key={`quick-${n}`}
+        emoji={def.emoji}
+        shortName={def.shortName}
+        badge={`第 ${n} 台`}
+        fullLabel={quickCalculatorLabel(n)}
+        disabled
+      />
+    );
+  }
+
+  return (
+    <QuickHubTile
+      key={`quick-${n}`}
+      emoji={def.emoji}
+      shortName={def.shortName}
+      badge={`第 ${n} 台`}
+      fullLabel={quickCalculatorLabel(n)}
+      href={`/quick-${n}`}
+    />
+  );
 }
 
 function fmt(n: number) {
@@ -110,37 +246,12 @@ export function FooterStatsStrip() {
           <section className={`${styles.card} ${styles.quickHub}`} aria-label="小計算機捷徑">
             <div className={styles.quickHubHead}>
               <div className={styles.quickHubTitle}>小計算機 1 - 12</div>
-              <div className={styles.quickHubHint}>可用按鈕會以新分頁開啟</div>
-            </div>
-            <div className={styles.quickSection}>
-              <div className={styles.quickSectionTitle}>建置中</div>
-              <div className={styles.quickGrid}>
-                {Array.from({ length: 12 }, (_, idx) => idx + 1)
-                  .filter((n) => !AVAILABLE_QUICK_CALCULATORS.has(n))
-                  .map((n) => (
-                  <button key={n} type="button" className={`${styles.quickBtn} ${styles.quickBtnDisabled}`} disabled>
-                    {quickCalculatorLabel(n)}
-                  </button>
-                ))}
-              </div>
+              <div className={styles.quickHubHint}>小計算機新分頁開啟；二代健保捲動至本頁試算區</div>
             </div>
             <div className={styles.quickSection}>
               <div className={styles.quickSectionTitle}>可使用</div>
-              <div className={styles.quickGrid}>
-                {Array.from({ length: 12 }, (_, idx) => idx + 1)
-                  .filter((n) => AVAILABLE_QUICK_CALCULATORS.has(n))
-                  .sort((a, b) => a - b)
-                  .map((n) => (
-                    <Link
-                      key={n}
-                      href={`/quick-${n}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={styles.quickBtn}
-                    >
-                      {quickCalculatorLabel(n)}
-                    </Link>
-                  ))}
+              <div className="grid grid-cols-2 gap-3">
+                {QUICK_HUB_GOLDEN_ORDER.map((def) => QuickHubTileFromDef(def))}
               </div>
             </div>
           </section>
