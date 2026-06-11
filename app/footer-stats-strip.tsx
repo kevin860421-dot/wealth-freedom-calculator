@@ -51,39 +51,33 @@ const QUICK_HUB_GOLDEN_ORDER: QuickHubTileDef[] = [
   { kind: "quick", n: 6, emoji: "🏎️", shortName: "槓桿流" },
 ];
 
-const QUICK_HUB_TILE_BASE =
-  "relative flex w-full aspect-[16/9] min-h-[4rem] items-center rounded-xl border border-slate-700/40 bg-slate-800/30 px-3 py-2 backdrop-blur-md transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40";
-
-const QUICK_HUB_TILE_INTERACTIVE = [
-  "hover:border-slate-600/55 hover:bg-slate-800/45",
-  "active:border-amber-500/50 active:bg-gradient-to-br active:from-amber-500/5 active:to-transparent active:ring-1 active:ring-amber-500/30",
-].join(" ");
-
-const QUICK_HUB_TILE_DISABLED =
-  "cursor-not-allowed border-slate-700/25 bg-slate-900/25 opacity-55 hover:border-slate-700/25 hover:bg-slate-900/25";
-
-function quickHubTileClassName(disabled: boolean) {
-  return `${QUICK_HUB_TILE_BASE} ${disabled ? QUICK_HUB_TILE_DISABLED : QUICK_HUB_TILE_INTERACTIVE}`;
+function quickHubTileClassName(disabled: boolean, shortName: string) {
+  if (disabled) return `${styles.quickHubTile} ${styles.quickHubTileDisabled}`;
+  const tone = isRiskTileTitle(shortName) ? styles.quickHubTileRisk : styles.quickHubTileGain;
+  return `${styles.quickHubTile} ${tone}`;
 }
 
-function QuickHubTileInner({ emoji, shortName, badge, disabled }: { emoji: string; shortName: string; badge: string; disabled?: boolean }) {
-  const labelTone = disabled ? "text-slate-500" : "text-slate-200";
-  const badgeTone = disabled ? "text-slate-600" : "text-slate-400";
+function isRiskTileTitle(shortName: string): boolean {
+  return /破產|崩盤|風險/.test(shortName);
+}
+
+function QuickHubTileInner({ shortName, badge, disabled }: { shortName: string; badge: string; disabled?: boolean }) {
+  const risk = isRiskTileTitle(shortName);
+  const titleClass = disabled
+    ? styles.quickHubTileTitleDisabled
+    : risk
+      ? styles.quickHubTileTitleRisk
+      : styles.quickHubTileTitleGain;
+
   return (
-    <span className="flex min-w-0 flex-1 items-center gap-2.5">
-      <span className="shrink-0 text-[1.35rem] leading-none" aria-hidden>
-        {emoji}
-      </span>
-      <span className="min-w-0 flex-1 text-left">
-        <span className={`block truncate text-[10px] font-medium tracking-wide ${badgeTone}`}>{badge}</span>
-        <span className={`block truncate font-semibold text-sm tracking-wide ${labelTone}`}>{shortName}</span>
-      </span>
-    </span>
+    <>
+      <span className={styles.quickHubTileBadge}>{badge}</span>
+      <span className={`${styles.quickHubTileTitle} ${titleClass}`}>{shortName}</span>
+    </>
   );
 }
 
 function QuickHubTile({
-  emoji,
   shortName,
   badge,
   fullLabel,
@@ -91,7 +85,6 @@ function QuickHubTile({
   href,
   onActivate,
 }: {
-  emoji: string;
   shortName: string;
   badge: string;
   fullLabel: string;
@@ -99,8 +92,8 @@ function QuickHubTile({
   href?: string;
   onActivate?: () => void;
 }) {
-  const className = quickHubTileClassName(disabled);
-  const inner = <QuickHubTileInner emoji={emoji} shortName={shortName} badge={badge} disabled={disabled} />;
+  const className = quickHubTileClassName(disabled, shortName);
+  const inner = <QuickHubTileInner shortName={shortName} badge={badge} disabled={disabled} />;
 
   if (disabled) {
     return (
@@ -112,7 +105,13 @@ function QuickHubTile({
 
   if (href) {
     return (
-      <Link href={href} target="_blank" rel="noopener noreferrer" className={className} title={fullLabel}>
+      <Link
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={className}
+        title={fullLabel}
+      >
         {inner}
       </Link>
     );
@@ -130,7 +129,6 @@ function QuickHubTileFromDef(def: QuickHubTileDef) {
     return (
       <QuickHubTile
         key="nhi2"
-        emoji={def.emoji}
         shortName={def.shortName}
         badge="本頁"
         fullLabel="二代健保與稅金（捲動至試算區並展開）"
@@ -144,7 +142,6 @@ function QuickHubTileFromDef(def: QuickHubTileDef) {
     return (
       <QuickHubTile
         key={`quick-${n}`}
-        emoji={def.emoji}
         shortName={def.shortName}
         badge={`第 ${n} 台`}
         fullLabel={quickCalculatorLabel(n)}
@@ -156,7 +153,6 @@ function QuickHubTileFromDef(def: QuickHubTileDef) {
   return (
     <QuickHubTile
       key={`quick-${n}`}
-      emoji={def.emoji}
       shortName={def.shortName}
       badge={`第 ${n} 台`}
       fullLabel={quickCalculatorLabel(n)}
@@ -250,7 +246,7 @@ export function FooterStatsStrip() {
             </div>
             <div className={styles.quickSection}>
               <div className={styles.quickSectionTitle}>可使用</div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className={styles.quickGrid}>
                 {QUICK_HUB_GOLDEN_ORDER.map((def) => QuickHubTileFromDef(def))}
               </div>
             </div>

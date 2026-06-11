@@ -116,10 +116,16 @@
   display: block;
 }
 
-/* 手機：固定展開，標題區對齊 FAQ 預覽風格 */
+/* 手機：標題預覽 + 展開表單（對齊首頁 FAQ／法律聲明） */
 @media (max-width: 768px) {
   .shell:hover {
     transform: none;
+  }
+
+  .header {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
   }
 
   .headerDesktop {
@@ -128,9 +134,9 @@
 
   .headerMobile {
     display: block;
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.65rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
   }
 
   .mobileHeaderTitle {

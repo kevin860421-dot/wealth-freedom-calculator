@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { HomeFooterMobileExpand } from "./components/home-footer-mobile-expand";
 import styles from "./contact-us-panel.module.css";
 import { IssueRegionPicker, type IssuePickResult } from "./issue-region-picker";
 
@@ -900,6 +901,7 @@ ${mainBody}
           </div>
         </header>
 
+        <HomeFooterMobileExpand expandLabel="展開聯絡表單 ▼" collapseLabel="收合聯絡表單 ▲">
         <div className={styles.panelBody}>
           <div className={styles.mailExplainerMobileWrap}>{mailExplainer}</div>
 
@@ -1244,6 +1246,7 @@ ${mainBody}
           </div>
         </form>
         </div>
+        </HomeFooterMobileExpand>
       </div>
 
       {sendModalOpen && (
