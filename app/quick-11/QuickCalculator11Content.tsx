@@ -60,6 +60,7 @@ import {
 import { Quick11RepayTabPanels } from "./quick11-repay-tab-panels";
 import { LUMP_AMOUNT_MAX, LUMP_AMOUNT_MIN } from "./quick11-white-repay-pages";
 import { Quick11AdvancedTabPanels } from "./quick11-advanced-tab-panels";
+import { Quick11RiskSimulationPanel } from "./quick11-risk-simulation-panel";
 import { Quick11WealthFlipPanel } from "./quick11-wealth-flip-panel";
 import { rateHikeAddPct, resolveRateHikeScenarioRate, type RateHikePreset } from "./quick11-advanced-calculations";
 import {
@@ -1451,76 +1452,22 @@ export function QuickCalculator11Content({
                   ) : null}
 
                   {currentPage === 7 ? (
-                    <div className="space-y-2">
-                      <p className={isLight ? Q11_PAGE_TITLE : "text-lg font-black text-amber-100"}>風險模擬（升息壓力測試）</p>
-                      <div className={isLight ? Q11_WHITE_CARD : "rounded-lg border border-slate-700 bg-slate-900/70 p-2"}>
-                        <div className="grid gap-2" style={{ gridTemplateColumns: "minmax(0, 1.2fr) minmax(0, 1fr)" }}>
-                          <InputField
-                            compact
-                            label="升息模擬"
-                            unit="%"
-                            isLight={isLight}
-                            sliderMin={0}
-                            sliderMax={8}
-                            sliderStep={0.25}
-                            value={rateShockPctVal}
-                            text={rateShockPctText}
-                            onTextChange={(next) => {
-                              setRateShockPctText(next);
-                              setRateShockPctVal(parseAndClamp(next, rateShockPctVal, 0, 8));
-                            }}
-                            onCommit={(next) => {
-                              const normalized = parseAndClamp(next, rateShockPctVal, 0, 8);
-                              setRateShockPctVal(normalized);
-                              setRateShockPctText(String(Number(normalized.toFixed(2))));
-                            }}
-                            onBump={(delta) => {
-                              const next = Number(Math.min(8, Math.max(0, rateShockPctVal + delta)).toFixed(2));
-                              setRateShockPctVal(next);
-                              setRateShockPctText(String(next));
-                            }}
-                            onSlider={(next) => {
-                              const fixed = Number(Math.min(8, Math.max(0, next)).toFixed(2));
-                              setRateShockPctVal(fixed);
-                              setRateShockPctText(String(fixed));
-                            }}
-                            bumpStep={0.25}
-                          />
-                          <div
-                            className={`min-w-0 rounded-lg border p-2 ${
-                              isLight
-                                ? "border-sky-100 bg-sky-50/60 shadow-[0_0_20px_rgba(59,130,246,0.08)]"
-                                : "border-slate-700 bg-slate-950/40"
-                            }`}
-                          >
-                            <div>
-                              <p className={`truncate whitespace-nowrap text-[16px] font-bold tracking-[0.04em] ${isLight ? "text-slate-600" : "text-slate-300"}`}>升息後年利率</p>
-                              <p className={`mt-1 whitespace-nowrap font-mono text-[clamp(16px,4.2vw,22px)] font-black leading-none tracking-[-0.01em] tabular-nums ${isLight ? "text-sky-800" : "text-sky-200"}`}>
-                                {shockedAnnualRate.toFixed(2)}%
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <InfoCard
-                          title="利息增加"
-                          value={`NT$ ${formatMoney(shockedInterestIncrease)}`}
-                          tone={isLight ? Q11_WARN_AMBER_LIGHT : "text-amber-100 border-amber-500/35 bg-amber-500/10"}
-                          isLight={isLight}
-                        />
-                        <InfoCard
-                          title="新每月繳款"
-                          value={`NT$ ${formatMoney(shockedOutput.annuityRows[0]?.payment ?? 0)}`}
-                          tone={
-                            isLight
-                              ? "text-orange-950 border-orange-200 bg-orange-50/90 shadow-[0_1px_4px_rgba(249,115,22,0.12)]"
-                              : "text-orange-100 border-orange-500/35 bg-orange-500/10"
-                          }
-                          isLight={isLight}
-                        />
-                      </div>
-                    </div>
+                    <Quick11RiskSimulationPanel
+                      isLight={isLight}
+                      loanAmount={loanAmount}
+                      annualRate={annualRate}
+                      loanYears={loanYears}
+                      monthlyIncome={monthlyIncome}
+                      rateShockPct={rateShockPctVal}
+                      onRateShockPctChange={(v) => {
+                        const fixed = Number(Math.min(8, Math.max(0, v)).toFixed(2));
+                        setRateShockPctVal(fixed);
+                        setRateShockPctText(String(fixed));
+                      }}
+                      shockedAnnualRate={shockedAnnualRate}
+                      shockedMonthlyPayment={shockedMonthlyPayment}
+                      shockedInterestIncrease={shockedInterestIncrease}
+                    />
                   ) : null}
 
                   {currentPage === 8 ? (

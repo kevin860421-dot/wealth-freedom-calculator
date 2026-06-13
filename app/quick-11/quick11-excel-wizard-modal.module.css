@@ -371,6 +371,44 @@
   color: #64748b;
 }
 
+.pickMissingList {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.pickMissingItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #94a3b8;
+}
+
+.pickMissingItemFeatured {
+  color: #fecaca;
+}
+
+.pickCross {
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.pickCrossFeatured {
+  color: #f87171;
+}
+
+.pickCrossPlain {
+  color: #64748b;
+}
+
 .excelImgSlot {
   flex-shrink: 0;
   width: 100%;

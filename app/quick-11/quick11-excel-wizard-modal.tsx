@@ -441,6 +441,20 @@ export function Quick11ExcelWizardModal({ open, onClose, snapshotRef }: Quick11E
                         適合查看、列印或提交使用
                       </li>
                     </ul>
+                    <ul className={styles.pickMissingList} aria-label="純資料版本缺少項目">
+                      <li className={`${styles.pickMissingItem} ${plainSelected ? styles.pickMissingItemFeatured : ""}`}>
+                        <span className={`${styles.pickCross} ${plainSelected ? styles.pickCrossFeatured : styles.pickCrossPlain}`} aria-hidden>✕</span>
+                        無法修改數字與假設條件
+                      </li>
+                      <li className={`${styles.pickMissingItem} ${plainSelected ? styles.pickMissingItemFeatured : ""}`}>
+                        <span className={`${styles.pickCross} ${plainSelected ? styles.pickCrossFeatured : styles.pickCrossPlain}`} aria-hidden>✕</span>
+                        無法自動重新計算結果
+                      </li>
+                      <li className={`${styles.pickMissingItem} ${plainSelected ? styles.pickMissingItemFeatured : ""}`}>
+                        <span className={`${styles.pickCross} ${plainSelected ? styles.pickCrossFeatured : styles.pickCrossPlain}`} aria-hidden>✕</span>
+                        不含公式與計算邏輯
+                      </li>
+                    </ul>
                     <button
                       type="button"
                       onClick={(e) => {
