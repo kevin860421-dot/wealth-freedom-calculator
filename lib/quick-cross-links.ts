@@ -1,6 +1,6 @@
 import { QUICK_SEO_BLOCKS } from "./quick-seo-data";
 
-export const QUICK_CALCULATOR_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
+export const QUICK_CALCULATOR_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] as const;
 
 /** 每台固定推薦 3 台「主題相關」小計算機（非隨機） */
 export const QUICK_CROSS_LINK_RELATED: Record<number, readonly number[]> = {
@@ -16,6 +16,7 @@ export const QUICK_CROSS_LINK_RELATED: Record<number, readonly number[]> = {
   10: [5, 1, 2], // 崩盤壓力 → 雪球、複利、倒數
   11: [6, 7, 12], // 破產／信貸 → 房貸、車貸、稅務
   12: [4, 1, 11], // 稅務 → ETF 領息、複利、破產現金流
+  13: [12, 4, 1], // 二代健保 → 萬萬稅、ETF 領息、複利
 };
 
 export type QuickCrossLinkItem = {

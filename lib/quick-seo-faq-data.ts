@@ -1,5 +1,7 @@
 /** 小計算機頁面可見 FAQ（與 JSON-LD FAQPage 共用，勿只寫進 structured data） */
 
+import { QUICK_SEO_BLOCKS } from "./quick-seo-data";
+
 export type QuickFaqItem = {
   question: string;
   answer: string;
@@ -118,7 +120,7 @@ export const QUICK_FAQ_BY_ID: Record<number, QuickFaqItem[]> = {
   ],
   6: [
     {
-      question: "房產 vs 全球股市在比什麼？",
+      question: "房產 vs 台灣股市在比什麼？",
       answer:
         "比的是同一筆月現金流，先走房貸路徑（繳完再投入）與從首月就投入股市的路徑，在示意報酬下的長期資產差異。不是判斷買房一定輸贏。",
     },
@@ -274,4 +276,13 @@ export const QUICK_FAQ_BY_ID: Record<number, QuickFaqItem[]> = {
 
 export function getQuickFaqs(id: number): QuickFaqItem[] {
   return QUICK_FAQ_BY_ID[id] ?? [];
+}
+
+/** 與 QuickSeoArticle summary 同風格，供 FAQ details 收合列使用 */
+export function getQuickFaqSummaryLabel(id: number): string {
+  const seoSummary = QUICK_SEO_BLOCKS[id]?.summaryLabel;
+  if (seoSummary) {
+    return seoSummary.replace(/^延伸閱讀/, "常見問題");
+  }
+  return "常見問題（點開）";
 }

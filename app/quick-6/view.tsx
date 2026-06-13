@@ -9,6 +9,7 @@ import { QuickBottomCtaStack } from "@/app/components/quick-bottom-cta-stack";
 import { QuickDualLineChart } from "@/app/components/quick-dual-line-chart";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
+import { QUICK6_DISPLAY_TITLE } from "./display-title";
 import { quickChartYearTicks } from "@/lib/quick-chart-series";
 import { clampNum, futureValueMonthlyContribution } from "@/lib/quick-calculator-math";
 import {
@@ -220,7 +221,7 @@ export function QuickCalculator6View() {
               textOverflow: "ellipsis",
             }}
           >
-            槓桿抉擇：房產 vs 全球股市
+            {QUICK6_DISPLAY_TITLE}
           </div>
         </div>
 

@@ -20,7 +20,8 @@ type QuickRoute =
   | "/quick-9"
   | "/quick-10"
   | "/quick-11"
-  | "/quick-12";
+  | "/quick-12"
+  | "/quick-13";
 
 type QuickBlogLinksToggleProps = {
   quickRoute: QuickRoute;
@@ -541,7 +542,7 @@ const QUICK_ROUTE_LINKS: Record<QuickRoute, readonly { href: string; title: stri
   "/quick-6": [
     {
       href: "/mini-blog/quick6-leverage-choice-property-vs-global-stocks",
-      title: "槓桿抉擇：房產 vs 全球股市",
+      title: "槓桿抉擇：房產 vs 台灣股市",
       description: "先看現金流壓力，再看報酬想像。",
     },
     {
@@ -596,7 +597,7 @@ const QUICK_ROUTE_LINKS: Record<QuickRoute, readonly { href: string; title: stri
     },
     {
       href: "/mini-blog/quick6-global-etf-vs-local-property-bias",
-      title: "本地房產偏誤 vs 全球股市",
+      title: "本地房產偏誤 vs 台灣股市",
       description: "熟悉感不等於最適解。",
     },
     {
@@ -1052,6 +1053,7 @@ const QUICK_ROUTE_LINKS: Record<QuickRoute, readonly { href: string; title: stri
   "/quick-11": QUICK11_ROUTE_LINK_ITEMS,
   /** 第 1～100 篇資料源 {@link QUICK12_ROUTE_LINK_ITEMS}；5/15 起每日 1～3 檔、時刻錯開 */
   "/quick-12": QUICK12_ROUTE_LINK_ITEMS,
+  "/quick-13": QUICK12_ROUTE_LINK_ITEMS,
 };
 
 export function QuickBlogLinksToggle({ quickRoute, title = "📚 本台小計算機延伸文章（點我展開）" }: QuickBlogLinksToggleProps) {
@@ -1077,7 +1079,7 @@ export function QuickBlogLinksToggle({ quickRoute, title = "📚 本台小計算
           marginTop: 10,
           display: "grid",
           gap: 8,
-          ...(quickRoute === "/quick-11" || quickRoute === "/quick-12"
+          ...(quickRoute === "/quick-11" || quickRoute === "/quick-12" || quickRoute === "/quick-13"
             ? { maxHeight: "min(70vh, 520px)", overflowY: "auto", paddingRight: 4 }
             : {}),
         }}

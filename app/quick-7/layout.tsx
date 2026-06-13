@@ -8,7 +8,7 @@ const shareTitle = `${QUICK7_DISPLAY_TITLE}｜同樣每月一筆錢，先繳車�
 export const metadata = buildQuickPageMetadata({
   id: 7,
   shareTitle,
-  ogAlt: `${QUICK7_DISPLAY_TITLE} — 車貸路線與直接投入全球股市的情境比較`,
+  ogAlt: `${QUICK7_DISPLAY_TITLE} — 車貸路線與直接投入台灣股市的情境比較`,
   imageHeight: 672,
 });
 

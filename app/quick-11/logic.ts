@@ -2,6 +2,13 @@ import { clampNum } from "@/lib/quick-calculator-math";
 
 export type LoanMethod = "annuity" | "equalPrincipal";
 
+/** 試算年利率下限（%） */
+export const Q11_ANNUAL_RATE_MIN_PCT = 0;
+/** 法定／試算年利率上限（%）— 全站拉條與輸入一致 */
+export const Q11_ANNUAL_RATE_MAX_PCT = 15;
+/** 年利率拉條步進（%） */
+export const Q11_ANNUAL_RATE_STEP_PCT = 0.05;
+
 export type PaymentRow = {
   period: number;
   principal: number;

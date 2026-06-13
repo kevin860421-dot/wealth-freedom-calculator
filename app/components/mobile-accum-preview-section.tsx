@@ -11,12 +11,14 @@ export type MobileAccumPeriodPreview = {
 };
 
 export type MobileAccumPreviewSectionProps = {
-  /** 最近一期（預設顯示） */
+  /** 近一期（當月） */
   recent: MobileAccumPeriodPreview | null;
-  /** 近一期之前的最多 10 期 */
-  priorTen: MobileAccumPeriodPreview[];
-  showPriorTen: boolean;
-  onTogglePriorTen: () => void;
+  /** 自當月起算，往後最多 10 期（不含近一期） */
+  nextTen: MobileAccumPeriodPreview[];
+  /** 試算表列索引：當月錨點（近一期＝第 1 期） */
+  periodBaseIndex: number;
+  showNextTen: boolean;
+  onToggleNextTen: () => void;
   onOpenFullTable: () => void;
 };
 
@@ -66,17 +68,28 @@ function PeriodCard({ d, periodNum }: { d: MobileAccumPeriodPreview; periodNum: 
   );
 }
 
-/** 手機：累積金額與股數表精簡預覽（近一期 → 可展開最近10期 → 展開後才顯示查看完整明細） */
+/** 手機：累積金額與股數表精簡預覽（當月近一期 → 可展開未來10期） */
 export function MobileAccumPreviewSection({
   recent,
-  priorTen,
-  showPriorTen,
-  onTogglePriorTen,
+  nextTen,
+  periodBaseIndex,
+  showNextTen,
+  onToggleNextTen,
   onOpenFullTable,
 }: MobileAccumPreviewSectionProps) {
   if (!recent) return null;
 
-  const recentPeriodNum = recent.i + 1;
+  const toDisplayPeriod = (rowIndex: number) => rowIndex - periodBaseIndex + 1;
+  const recentPeriodNum = toDisplayPeriod(recent.i);
+  const nextCount = nextTen.length;
+  const futureHeading = nextCount >= 10 ? "未來10期" : `未來${nextCount}期`;
+  const toggleLabel = showNextTen
+    ? nextCount >= 10
+      ? "▲ 收合未來10期"
+      : `▲ 收合未來${nextCount}期`
+    : nextCount >= 10
+      ? "▼ 展開未來10期"
+      : `▼ 展開未來${nextCount}期`;
 
   const openFull = () => {
     if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("calc-engagement"));
@@ -102,16 +115,16 @@ export function MobileAccumPreviewSection({
         <PeriodFields d={recent} />
       </div>
 
-      {priorTen.length > 0 ? (
+      {nextTen.length > 0 ? (
         <div className={styles.futureBlock}>
-          <button type="button" className={styles.toggleFuture} onClick={onTogglePriorTen}>
-            {showPriorTen ? "▲ 收合最近10期" : "▼ 展開最近10期"}
+          <button type="button" className={styles.toggleFuture} onClick={onToggleNextTen}>
+            {toggleLabel}
           </button>
-          {showPriorTen ? (
+          {showNextTen ? (
             <div className={styles.futureList}>
-              <h3 className={styles.futureHeading}>最近10期</h3>
-              {priorTen.map((d) => (
-                <PeriodCard key={d.i} d={d} periodNum={d.i + 1} />
+              <h3 className={styles.futureHeading}>{futureHeading}</h3>
+              {nextTen.map((d) => (
+                <PeriodCard key={d.i} d={d} periodNum={toDisplayPeriod(d.i)} />
               ))}
               <button type="button" className={styles.primaryBtn} onClick={openFull}>
                 查看完整明細

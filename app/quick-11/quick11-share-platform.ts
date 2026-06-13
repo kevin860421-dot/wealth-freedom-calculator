@@ -22,7 +22,7 @@ export function getQuick11SharePageUrl(): string {
 }
 
 export function buildQuick11ShareText(url = getQuick11SharePageUrl()): string {
-  return `我剛完成破產計算機試算，快來看看你的 DTI 與月付壓力 👇\n${url}`;
+  return `我剛完成破產計算機試算，快來看看你的負債比與月付壓力 👇\n${url}`;
 }
 
 export function getQuick11PlatformShareUrl(platform: Quick11SharePlatform, url = getQuick11SharePageUrl()): string {

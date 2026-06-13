@@ -10,6 +10,8 @@ import {
   QUICK1_EXCLUSIVE_POSTS,
   type Quick1ExclusivePost,
 } from "../posts/quick1-exclusive";
+import { QUICK6_DISPLAY_TITLE } from "@/app/quick-6/display-title";
+import { QUICK13_DISPLAY_TITLE } from "@/app/quick-13/display-title";
 import { QUICK7_DISPLAY_TITLE } from "@/app/quick-7/display-title";
 import { QUICK12_DISPLAY_TITLE } from "@/app/quick-12/display-title";
 import styles from "../../blog/blog.module.css";
@@ -72,7 +74,7 @@ export default async function MiniBlogPostPage({ params }: PageProps) {
           : post.calculatorRoute === "/quick-5"
             ? "雪球效應：本金 vs 複利"
             : post.calculatorRoute === "/quick-6"
-              ? "槓桿抉擇：房產 vs 全球股市"
+              ? QUICK6_DISPLAY_TITLE
               : post.calculatorRoute === "/quick-7"
                 ? QUICK7_DISPLAY_TITLE
                 : post.calculatorRoute === "/quick-8"
@@ -85,6 +87,8 @@ export default async function MiniBlogPostPage({ params }: PageProps) {
                         ? "破產計算機"
                         : post.calculatorRoute === "/quick-12"
                           ? QUICK12_DISPLAY_TITLE
+                          : post.calculatorRoute === "/quick-13"
+                            ? QUICK13_DISPLAY_TITLE
         : "存股複利計算機";
 
   return (

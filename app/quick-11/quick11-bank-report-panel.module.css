@@ -1,0 +1,100 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 2px 0 4px;
+}
+
+.reportCard {
+  border-radius: 14px;
+  padding: 14px 14px 12px;
+}
+
+.reportCardLight {
+  border: 1px solid #e2e8f0;
+  background: linear-gradient(165deg, #fff 0%, #f8fafc 100%);
+  box-shadow: 0 2px 14px rgb(15 23 42 / 0.06);
+}
+
+.reportCardDark {
+  border: 1px solid rgb(71 85 105 / 0.55);
+  background: linear-gradient(165deg, rgb(15 23 42 / 0.92) 0%, rgb(30 41 59 / 0.78) 100%);
+  box-shadow: 0 4px 24px rgb(0 0 0 / 0.25);
+}
+
+.cardTitle {
+  margin: 0 0 10px;
+  font-size: clamp(13px, 3.5vw, 14px);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.cardTitleLight {
+  color: #475569;
+}
+
+.cardTitleDark {
+  color: #94a3b8;
+}
+
+.checklist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.checkItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: clamp(14px, 3.8vw, 15px);
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.checkItemLight {
+  color: #0f172a;
+}
+
+.checkItemDark {
+  color: #f1f5f9;
+}
+
+.checkMark {
+  flex-shrink: 0;
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgb(16 185 129 / 0.2);
+  color: #34d399;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.checkText {
+  min-width: 0;
+}
+
+.hook {
+  margin: 0;
+  padding: 0 2px;
+  font-size: clamp(13px, 3.5vw, 14px);
+  font-weight: 600;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.hookLight {
+  color: #475569;
+}
+
+.hookDark {
+  color: #cbd5e1;
+}

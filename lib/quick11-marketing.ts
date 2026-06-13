@@ -5,7 +5,7 @@ import { absoluteUrl } from "./site-origin";
 export const QUICK11_EXCEL_UNLOCK_CODE = "自由666";
 
 /** 對外顯示名稱（頁底、四步驟彈窗一致） */
-export const QUICK11_EXCEL_DISPLAY_NAME = "本息＋DTI 試算 Excel（公式可改）";
+export const QUICK11_EXCEL_DISPLAY_NAME = "本息＋負債比試算 Excel（公式可改）";
 
 /** 站內下載（須先分享解鎖 cookie） */
 export const QUICK11_EXCEL_DOWNLOAD_PATH = "/api/quick-11/excel";

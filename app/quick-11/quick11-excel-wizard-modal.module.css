@@ -189,8 +189,23 @@
   margin: 0;
   font-size: 1.375rem;
   font-weight: 900;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.06em;
   color: #f8fafc;
+}
+
+.pickTitleLabel {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45em;
+}
+
+.pickTitleDownload {
+  letter-spacing: 0.14em;
+}
+
+.pickTitleExcel {
+  color: #34d399;
+  letter-spacing: 0.1em;
 }
 
 .pickSubtitle {
@@ -361,7 +376,7 @@
   width: 100%;
   min-height: 4.5rem;
   border-radius: 0.5rem;
-  background: transparent;
+  overflow: hidden;
 }
 
 .excelImgSlotPlain {

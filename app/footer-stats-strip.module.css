@@ -320,19 +320,61 @@
   }
 }
 
-/* 小計算機：獨立玻璃卡，與上方「造訪概況」區塊分開（見 TSX：card + quickHub） */
+/* 小計算機：外／中／內與頁尾外層深藍底一致（見使用者參考色） */
 .quickHub {
-  border-color: rgba(167, 139, 250, 0.28);
-  background: linear-gradient(
-    155deg,
-    rgba(49, 46, 129, 0.38) 0%,
-    rgba(15, 23, 42, 0.78) 52%,
-    rgba(30, 58, 95, 0.22) 100%
-  );
+  --quick-hub-surface: #0c1326;
+  --quick-hub-line: #1a2238;
+  border-color: var(--quick-hub-line);
+  background: var(--quick-hub-surface);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.quickHubCanvas {
+  background: var(--quick-hub-surface);
+}
+
+.quickHubCoverShell {
+  background: var(--quick-hub-surface);
+}
+
+/* 13 台 hover 提示：統一字級，避免長標題溢出格線 */
+.quickHubHoverTip {
+  pointer-events: none;
+  position: absolute;
+  bottom: 0.35rem;
+  left: 50%;
+  z-index: 30;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: calc(100% - 0.35rem);
+  margin: 0;
+  padding: 0.28rem 0.5rem;
+  transform: translateX(-50%);
+  border-radius: 0.35rem;
+  border: 1px solid rgba(51, 65, 85, 0.9);
+  background: rgba(15, 23, 42, 0.96);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  line-height: 1.3;
+  text-align: center;
+  color: #f1f5f9;
+  white-space: normal;
+  word-break: keep-all;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transition: opacity 0.2s ease 75ms;
+}
+
+:global(.group):hover .quickHubHoverTip,
+:global(.group):focus-within .quickHubHoverTip {
+  opacity: 1;
 }
 
 .quickHub::before {
-  background: radial-gradient(120% 80% at 90% -15%, rgba(167, 139, 250, 0.14), transparent 55%);
+  display: none;
 }
 
 .quickHubHead {
@@ -343,11 +385,11 @@
   gap: 6px;
   margin-bottom: 0.6rem;
   padding-bottom: 0.55rem;
-  border-bottom: 1px solid rgba(167, 139, 250, 0.14);
+  border-bottom: 1px solid var(--quick-hub-line);
 }
 
 .quickHubTitle {
-  font-size: 13px;
+  font-size: 17px;
   font-weight: 800;
   color: #e2e8f0;
   letter-spacing: 0.03em;
@@ -369,15 +411,22 @@
   margin: 0.15rem 0 0.35rem;
 }
 
-/* 小計算機宮格：不透明底 + 實線邊框（避免在 quickHub 紫底上「融化」） */
+/* 小計算機宮格：與外層同色，不再做「內凹」色差 */
 .quickGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.875rem;
-  padding: 0.55rem;
-  border-radius: 14px;
-  background: rgba(2, 6, 23, 0.72);
-  border: 1px solid rgba(71, 85, 105, 0.45);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  overflow: hidden;
+}
+
+.quickGrid > a,
+.quickGrid > button {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .quickHubTile {
@@ -393,11 +442,9 @@
   overflow: hidden;
   padding: 1.25rem;
   border-radius: 12px;
-  border: 1.5px solid rgba(148, 163, 184, 0.62);
-  background: #1e293b;
-  box-shadow:
-    0 10px 28px rgba(0, 0, 0, 0.42),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--quick-hub-line);
+  background: var(--quick-hub-surface);
+  box-shadow: none;
   color: #e2e8f0;
   font: inherit;
   text-align: left;
@@ -411,18 +458,16 @@
 }
 
 .quickHubTile:hover {
-  border-color: #94a3b8;
-  background: #334155;
+  border-color: rgba(148, 163, 184, 0.45);
+  background: var(--quick-hub-surface);
   transform: translateY(-2px);
-  box-shadow:
-    0 14px 32px rgba(0, 0, 0, 0.48),
-    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
 }
 
 .quickHubTileRisk:active,
 .quickHubTileRisk:focus-visible {
   border-color: #f43f5e;
-  background: linear-gradient(145deg, rgba(244, 63, 94, 0.14) 0%, #1e293b 72%);
+  background: var(--quick-hub-surface);
   box-shadow:
     0 0 0 2px rgba(244, 63, 94, 0.22),
     0 12px 30px rgba(0, 0, 0, 0.45);
@@ -432,7 +477,7 @@
 .quickHubTileGain:active,
 .quickHubTileGain:focus-visible {
   border-color: #10b981;
-  background: linear-gradient(145deg, rgba(16, 185, 129, 0.14) 0%, #1e293b 72%);
+  background: var(--quick-hub-surface);
   box-shadow:
     0 0 0 2px rgba(16, 185, 129, 0.22),
     0 12px 30px rgba(0, 0, 0, 0.45);
@@ -442,20 +487,11 @@
 .quickHubTileDisabled,
 .quickHubTileDisabled:hover {
   border-color: rgba(100, 116, 139, 0.35);
-  background: #172033;
+  background: var(--quick-hub-surface);
   opacity: 0.52;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
-}
-
-.quickHubTileBadge {
-  margin: 0 0 0.75rem;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  color: #94a3b8;
 }
 
 .quickHubTileTitle {

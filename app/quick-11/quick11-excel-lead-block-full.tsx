@@ -73,7 +73,7 @@ export function Quick11ExcelLeadBlockFull({ isLight = false, compact = false, on
           <Link href={QUICK11_SUCCESS_BLOG_PATH} className="font-bold underline underline-offset-2">
             {QUICK11_SUCCESS_BLOG_TITLE}
           </Link>
-          」——用時間軸拆扣款，邏輯可套回 DTI 與總利息。
+          」——用時間軸拆扣款，邏輯可套回負債比與總利息。
         </p>
       ) : null}
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { QUICK11_LOAN_PRESETS } from "./loan-scenarios";
-import { formatMoney } from "./logic";
+import { formatMoney, Q11_ANNUAL_RATE_MAX_PCT, Q11_ANNUAL_RATE_MIN_PCT } from "./logic";
 import goldStat from "./quick-11-golden-stat.module.css";
 import type { Quick11ShareSnapshotData } from "./quick11-share-snapshot-data";
 
@@ -163,8 +163,8 @@ export function Quick11HomeSnapshotView({ data }: { data: Quick11ShareSnapshotDa
             unit="%"
             text={String(data.annualRate)}
             value={data.annualRate}
-            sliderMin={0}
-            sliderMax={15}
+            sliderMin={Q11_ANNUAL_RATE_MIN_PCT}
+            sliderMax={Q11_ANNUAL_RATE_MAX_PCT}
           />
           <SnapshotInputField
             compact

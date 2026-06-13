@@ -140,7 +140,7 @@ export function Quick11ExcelPreviewView({ rows, footer, missingFile }: Props) {
                           if (isHeader && isUnitCol) tdClass += "text-center ";
                           if (row.highlight === "input" && isValueCol) {
                             tdClass += "text-right font-bold text-sky-600 ";
-                          } else if (row.highlight === "result" && isValueCol && row.cells[0] === "DTI 債務收入比") {
+                          } else if (row.highlight === "result" && isValueCol && row.cells[0] === "負債比") {
                             tdClass += "text-right font-bold text-amber-600 ";
                           } else if (row.highlight === "result" && isValueCol) {
                             tdClass += "text-right font-bold text-sky-700 ";

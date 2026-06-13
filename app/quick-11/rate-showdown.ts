@@ -1,7 +1,7 @@
-import { buildLoanSchedules, formatMoney, type LoanMethod } from "./logic";
+import { buildLoanSchedules, formatMoney, Q11_ANNUAL_RATE_MAX_PCT, type LoanMethod } from "./logic";
 
 /** 大對決最高試到年利率 15%（含） */
-export const RATE_SHOWDOWN_MAX_ANNUAL_PCT = 15;
+export const RATE_SHOWDOWN_MAX_ANNUAL_PCT = Q11_ANNUAL_RATE_MAX_PCT;
 /** 每 0.5% 一檔（基準除外） */
 export const RATE_SHOWDOWN_STEP_PCT = 0.5;
 

@@ -2,10 +2,6 @@
 
 import type { ReactNode } from "react";
 import type { MobileGoalCalcMode } from "./mobile-goal-setting-section";
-import {
-  MobileFireCountdownSection,
-  type MobileFireCountdownSectionProps,
-} from "./mobile-fire-countdown-section";
 import heroGold from "./hero-gold-title.module.css";
 import styles from "./mobile-hero-section.module.css";
 
@@ -16,7 +12,6 @@ type Props = {
   /** 達成時間主卡已併入目標儀表板時隱藏，避免重複佔高 */
   hideEtaCard?: boolean;
   simulationAtTargetYears: { finalBalance: number; totalDividends: number };
-  fireCountdown: MobileFireCountdownSectionProps;
   /** 累積表精簡預覽（達成目標卡下方） */
   accumPreview?: ReactNode;
 };
@@ -34,14 +29,13 @@ export function MobileHeroTitleSection({ title = "財富自由計算機" }: { ti
 }
 
 /**
- * 僅供 #mobile-app-view。手機 KPI／達成進度區（標題已拆至 MobileHeroTitleSection）。
+ * 僅供 #mobile-app-view。手機 KPI 區（達成目標／存股比較已移至目標 Tab 外固定顯示）。
  */
 export function MobileHeroSection({
   fireEtaStr,
   calcMode,
   hideEtaCard = false,
   simulationAtTargetYears,
-  fireCountdown,
   accumPreview,
 }: Props) {
   const isForwardMode = calcMode === "forward";
@@ -80,8 +74,6 @@ export function MobileHeroSection({
           </div>
         </div>
       ) : null}
-
-      {isForwardMode ? <MobileFireCountdownSection {...fireCountdown} /> : null}
 
       {isForwardMode ? accumPreview : null}
     </section>

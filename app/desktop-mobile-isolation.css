@@ -111,7 +111,7 @@ html[data-preview-mobile="true"] #mobile-stock-params {
   flex-direction: column;
 }
 
-/** 首頁 FIRE 達成目標／存股比較：手機已併入 Hero KPI 與 CTA 之間 */
+/** 首頁 FIRE 達成目標／存股比較：手機固定於 #mobile-goal-setting 下方；桌機見 #home-fire-countdown-desktop */
 #home-fire-countdown-desktop {
   display: grid;
 }
@@ -196,6 +196,20 @@ html[data-preview-mobile="true"] #mobile-tax-settings-row {
   margin-top: 24px;
   padding-top: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 768px) {
+  .home-tax-settings-section {
+    margin-top: 8px;
+    padding-top: 0;
+    border-top: none;
+  }
+}
+
+html[data-preview-mobile="true"] .home-tax-settings-section {
+  margin-top: 8px;
+  padding-top: 0;
+  border-top: none;
 }
 
 /** sticky 橫幅：桌機顯示勾選；手機顯示「自動」文案（與手機稅務區一致） */

@@ -4,15 +4,29 @@ import Link from "next/link";
 import { ContactUsPanel } from "./contact-us-panel";
 import { useStats } from "./stats-provider";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { openHomeNhiTaxSection } from "./components/home-nhi-tax-nav";
+import { QUICK6_DISPLAY_TITLE } from "./quick-6/display-title";
 import { QUICK7_DISPLAY_TITLE } from "./quick-7/display-title";
+import { QUICK13_DISPLAY_TITLE } from "./quick-13/display-title";
 import { QUICK12_DISPLAY_TITLE } from "./quick-12/display-title";
 import styles from "./footer-stats-strip.module.css";
+import quick01TileCoverImg from "../public/images/quick-hub/quick-01-tile-01.png";
+import quick02TileCoverImg from "../public/images/quick-hub/quick-02-tile-01.png";
+import quick03TileCoverImg from "../public/images/quick-hub/quick-03-tile-01.png";
+import quick04TileCoverImg from "../public/images/quick-hub/quick-04-tile-02.png";
+import quick05TileCoverImg from "../public/images/quick-hub/quick-05-tile-01.png";
+import quick06TileCoverImg from "../public/images/quick-hub/quick-06-tile-01.png";
+import quick07TileCoverImg from "../public/images/quick-hub/quick-07-tile-01.png";
+import quick08TileCoverImg from "../public/images/quick-hub/quick-08-tile-01.png";
+import quick09TileCoverImg from "../public/images/quick-hub/quick-09-tile-01.png";
+import quick10TileCoverImg from "../public/images/quick-hub/quick-10-tile-01.png";
+import quick11TileCoverImg from "../public/images/quick-hub/quick-11-tile-05.png";
+import quick12TileCoverImg from "../public/images/quick-hub/quick-12-tile-01.png";
+import quick13TileCoverImg from "../public/images/quick-hub/quick-13-tile-01.png";
 
 const SHARE_TITLE = "財富自由計算機";
 const SHARE_DESC = "財富自由計算機：台股 ETF、定期定額、股利與稅負試算（僅供參考）";
 const PROD_URL = "https://wealth-freedom-calculator.vercel.app/";
-const AVAILABLE_QUICK_CALCULATORS = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+const AVAILABLE_QUICK_CALCULATORS = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
 
 function quickCalculatorLabel(n: number): string {
   if (n === 1) return "第1台｜存股複利計算機";
@@ -20,35 +34,66 @@ function quickCalculatorLabel(n: number): string {
   if (n === 3) return "第3台｜夢想月領試算器";
   if (n === 4) return "第4台｜ETF 領息夢想模擬器";
   if (n === 5) return "第5台｜雪球效應：本金 vs 複利";
-  if (n === 6) return "第6台｜槓桿抉擇：房產 vs 全球股市";
+  if (n === 6) return `第6台｜${QUICK6_DISPLAY_TITLE}`;
   if (n === 7) return `第7台｜${QUICK7_DISPLAY_TITLE}`;
   if (n === 8) return "第8台｜延遲享樂計算機";
   if (n === 9) return "第9台｜延遲享樂計算機 2";
   if (n === 10) return "第10台｜破產計算機 股票版";
   if (n === 11) return "第11台｜破產計算機";
   if (n === 12) return `第12台｜${QUICK12_DISPLAY_TITLE}`;
+  if (n === 13) return `第13台｜${QUICK13_DISPLAY_TITLE}`;
   return `第${n}台｜小計算機（建置中）`;
 }
 
-type QuickHubTileDef =
-  | { kind: "quick"; n: number; emoji: string; shortName: string }
-  | { kind: "nhi2"; emoji: string; shortName: string };
+type QuickHubTileDef = { kind: "quick"; n: number; emoji: string; shortName: string; coverSrc?: string };
+
+/** 靜態 import，build 時一併打包，避免 public 路徑 404 */
+const QUICK_01_TILE_COVER = quick01TileCoverImg.src;
+const QUICK_02_TILE_COVER = quick02TileCoverImg.src;
+const QUICK_03_TILE_COVER = quick03TileCoverImg.src;
+const QUICK_04_TILE_COVER = quick04TileCoverImg.src;
+const QUICK_05_TILE_COVER = quick05TileCoverImg.src;
+const QUICK_06_TILE_COVER = quick06TileCoverImg.src;
+const QUICK_07_TILE_COVER = quick07TileCoverImg.src;
+const QUICK_08_TILE_COVER = quick08TileCoverImg.src;
+const QUICK_09_TILE_COVER = quick09TileCoverImg.src;
+const QUICK_10_TILE_COVER = quick10TileCoverImg.src;
+const QUICK_11_TILE_COVER = quick11TileCoverImg.src;
+const QUICK_12_TILE_COVER = quick12TileCoverImg.src;
+const QUICK_13_TILE_COVER = quick13TileCoverImg.src;
+
+function quickHubHoverTip(n: number): string {
+  if (n === 1) return "第1台 存股複利計算機";
+  if (n === 2) return "第2台 財富自由倒數計時器";
+  if (n === 3) return "第3台 夢想月領試算器";
+  if (n === 4) return "第4台 ETF 領息夢想模擬器";
+  if (n === 5) return "第5台 雪球效應：本金 vs 複利";
+  if (n === 7) return "第7台 改買車還是存股？車貸 vs 台灣股市";
+  if (n === 6) return `第6台 ${QUICK6_DISPLAY_TITLE}`;
+  if (n === 8) return "第8台 延遲享樂計算機";
+  if (n === 9) return "第9台 延遲享樂計算機 2";
+  if (n === 10) return "第10台 股市崩盤計算機";
+  if (n === 11) return "第11台 破產計算機";
+  if (n === 12) return "第12台 台灣萬萬稅";
+  if (n === 13) return `第13台 ${QUICK13_DISPLAY_TITLE}`;
+  return quickCalculatorLabel(n).replace("｜", " ");
+}
 
 /** 財務重要性與人生階段：黃金排序（僅 UI 順序；連結與 quick-n 不變） */
 const QUICK_HUB_GOLDEN_ORDER: QuickHubTileDef[] = [
-  { kind: "quick", n: 11, emoji: "🛡️", shortName: "破產提領" },
-  { kind: "quick", n: 1, emoji: "📈", shortName: "複利終值" },
-  { kind: "quick", n: 3, emoji: "🎯", shortName: "退休資產反推" },
-  { kind: "nhi2", emoji: "🏥", shortName: "二代健保" },
-  { kind: "quick", n: 8, emoji: "💸", shortName: "通膨吃水" },
-  { kind: "quick", n: 2, emoji: "🔨", shortName: "每月投入反推" },
-  { kind: "quick", n: 4, emoji: "🍹", shortName: "安全提領率" },
-  { kind: "quick", n: 9, emoji: "🚀", shortName: "加薪放大" },
-  { kind: "quick", n: 5, emoji: "🔄", shortName: "再投入對比" },
-  { kind: "quick", n: 12, emoji: "⚖️", shortName: "黃金交叉" },
-  { kind: "quick", n: 10, emoji: "🌋", shortName: "熊市壓力" },
-  { kind: "quick", n: 7, emoji: "🛒", shortName: "定額 vs 加碼" },
-  { kind: "quick", n: 6, emoji: "🏎️", shortName: "槓桿流" },
+  { kind: "quick", n: 11, emoji: "🛡️", shortName: "破產提領", coverSrc: QUICK_11_TILE_COVER },
+  { kind: "quick", n: 1, emoji: "📈", shortName: "複利終值", coverSrc: QUICK_01_TILE_COVER },
+  { kind: "quick", n: 3, emoji: "🎯", shortName: "退休資產反推", coverSrc: QUICK_03_TILE_COVER },
+  { kind: "quick", n: 13, emoji: "🏥", shortName: "健保與稅金", coverSrc: QUICK_13_TILE_COVER },
+  { kind: "quick", n: 8, emoji: "⏳", shortName: "延遲享樂", coverSrc: QUICK_08_TILE_COVER },
+  { kind: "quick", n: 2, emoji: "⏱️", shortName: "財富自由倒數", coverSrc: QUICK_02_TILE_COVER },
+  { kind: "quick", n: 4, emoji: "💰", shortName: "ETF 領息", coverSrc: QUICK_04_TILE_COVER },
+  { kind: "quick", n: 9, emoji: "⏳", shortName: "延遲享樂2", coverSrc: QUICK_09_TILE_COVER },
+  { kind: "quick", n: 5, emoji: "❄️", shortName: "雪球效應", coverSrc: QUICK_05_TILE_COVER },
+  { kind: "quick", n: 12, emoji: "⚖️", shortName: "黃金交叉", coverSrc: QUICK_12_TILE_COVER },
+  { kind: "quick", n: 10, emoji: "🌋", shortName: "熊市壓力", coverSrc: QUICK_10_TILE_COVER },
+  { kind: "quick", n: 7, emoji: "🚗", shortName: "車貸 vs 台灣股市", coverSrc: QUICK_07_TILE_COVER },
+  { kind: "quick", n: 6, emoji: "🏠", shortName: "房產 vs 台灣股市", coverSrc: QUICK_06_TILE_COVER },
 ];
 
 function quickHubTileClassName(disabled: boolean, shortName: string) {
@@ -58,10 +103,69 @@ function quickHubTileClassName(disabled: boolean, shortName: string) {
 }
 
 function isRiskTileTitle(shortName: string): boolean {
-  return /破產|崩盤|風險/.test(shortName);
+  return /破產|崩盤|風險|熊市/.test(shortName);
 }
 
-function QuickHubTileInner({ shortName, badge, disabled }: { shortName: string; badge: string; disabled?: boolean }) {
+function QuickHubHoverTip({ text }: { text: string }) {
+  return (
+    <span role="tooltip" className={styles.quickHubHoverTip}>
+      {text}
+    </span>
+  );
+}
+
+/** 封面格：單一外層可點卡片 + 整格主視覺 */
+function QuickHubCoverTile({
+  hoverTip,
+  href,
+  coverSrc,
+}: {
+  hoverTip: string;
+  href: string;
+  coverSrc: string;
+  shortName?: string;
+}) {
+  return (
+    <Link
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={hoverTip}
+      aria-label={hoverTip}
+      className={[
+        "group relative isolate box-border min-w-0 max-w-full w-full aspect-[14/9] min-h-0 rounded-xl overflow-hidden cursor-pointer no-underline",
+        "border border-slate-800/80 shadow-md transition-all duration-300",
+        "hover:border-slate-600 hover:scale-[1.02] hover:shadow-[0_0_15px_rgba(255,255,255,0.03)]",
+        "active:scale-[0.98]",
+        styles.quickHubCoverShell,
+        styles.quickHubCanvas,
+      ].join(" ")}
+    >
+      <QuickHubHoverTip text={hoverTip} />
+
+      <div
+        className={`absolute inset-0 z-[1] overflow-hidden rounded-[inherit] pointer-events-none ${styles.quickHubCanvas}`}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={coverSrc}
+          alt=""
+          aria-hidden
+          className={`block h-full w-full max-h-full max-w-full object-contain object-center transition-all duration-300 ${styles.quickHubCanvas}`}
+          draggable={false}
+        />
+      </div>
+    </Link>
+  );
+}
+
+function QuickHubTileInner({
+  shortName,
+  disabled,
+}: {
+  shortName: string;
+  disabled?: boolean;
+}) {
   const risk = isRiskTileTitle(shortName);
   const titleClass = disabled
     ? styles.quickHubTileTitleDisabled
@@ -70,34 +174,30 @@ function QuickHubTileInner({ shortName, badge, disabled }: { shortName: string; 
       : styles.quickHubTileTitleGain;
 
   return (
-    <>
-      <span className={styles.quickHubTileBadge}>{badge}</span>
-      <span className={`${styles.quickHubTileTitle} ${titleClass}`}>{shortName}</span>
-    </>
+    <span className={`${styles.quickHubTileTitle} ${titleClass}`}>{shortName}</span>
   );
 }
 
 function QuickHubTile({
   shortName,
-  badge,
-  fullLabel,
+  hoverTip,
   disabled = false,
   href,
   onActivate,
 }: {
   shortName: string;
-  badge: string;
-  fullLabel: string;
+  hoverTip: string;
   disabled?: boolean;
   href?: string;
   onActivate?: () => void;
 }) {
-  const className = quickHubTileClassName(disabled, shortName);
-  const inner = <QuickHubTileInner shortName={shortName} badge={badge} disabled={disabled} />;
+  const className = `${quickHubTileClassName(disabled, shortName)} group relative`;
+  const inner = <QuickHubTileInner shortName={shortName} disabled={disabled} />;
 
   if (disabled) {
     return (
-      <button type="button" className={className} disabled title={fullLabel}>
+      <button type="button" className={className} disabled title={hoverTip}>
+        <QuickHubHoverTip text={hoverTip} />
         {inner}
       </button>
     );
@@ -110,42 +210,44 @@ function QuickHubTile({
         target="_blank"
         rel="noopener noreferrer"
         className={className}
-        title={fullLabel}
+        title={hoverTip}
       >
+        <QuickHubHoverTip text={hoverTip} />
         {inner}
       </Link>
     );
   }
 
   return (
-    <button type="button" className={className} title={fullLabel} onClick={onActivate}>
+    <button type="button" className={className} title={hoverTip} onClick={onActivate}>
+      <QuickHubHoverTip text={hoverTip} />
       {inner}
     </button>
   );
 }
 
 function QuickHubTileFromDef(def: QuickHubTileDef) {
-  if (def.kind === "nhi2") {
-    return (
-      <QuickHubTile
-        key="nhi2"
-        shortName={def.shortName}
-        badge="本頁"
-        fullLabel="二代健保與稅金（捲動至試算區並展開）"
-        onActivate={openHomeNhiTaxSection}
-      />
-    );
-  }
-
   const n = def.n;
+  const hoverTip = quickHubHoverTip(n);
   if (!AVAILABLE_QUICK_CALCULATORS.has(n)) {
     return (
       <QuickHubTile
         key={`quick-${n}`}
         shortName={def.shortName}
-        badge={`第 ${n} 台`}
-        fullLabel={quickCalculatorLabel(n)}
+        hoverTip={hoverTip}
         disabled
+      />
+    );
+  }
+
+  if (def.coverSrc) {
+    return (
+      <QuickHubCoverTile
+        key={`quick-${n}`}
+        shortName={def.shortName}
+        hoverTip={hoverTip}
+        href={`/quick-${n}`}
+        coverSrc={def.coverSrc}
       />
     );
   }
@@ -154,8 +256,7 @@ function QuickHubTileFromDef(def: QuickHubTileDef) {
     <QuickHubTile
       key={`quick-${n}`}
       shortName={def.shortName}
-      badge={`第 ${n} 台`}
-      fullLabel={quickCalculatorLabel(n)}
+      hoverTip={hoverTip}
       href={`/quick-${n}`}
     />
   );
@@ -239,10 +340,9 @@ export function FooterStatsStrip() {
             <div className={styles.cardSlot} aria-hidden />
           </aside>
 
-          <section className={`${styles.card} ${styles.quickHub}`} aria-label="小計算機捷徑">
+          <section className={`${styles.card} ${styles.quickHub}`} aria-label="其他小計算機捷徑">
             <div className={styles.quickHubHead}>
-              <div className={styles.quickHubTitle}>小計算機 1 - 12</div>
-              <div className={styles.quickHubHint}>小計算機新分頁開啟；二代健保捲動至本頁試算區</div>
+              <div className={styles.quickHubTitle}>其他小計算機</div>
             </div>
             <div className={styles.quickSection}>
               <div className={styles.quickSectionTitle}>可使用</div>

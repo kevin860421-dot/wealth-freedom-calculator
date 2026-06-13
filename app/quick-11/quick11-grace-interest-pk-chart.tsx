@@ -9,59 +9,15 @@ import {
   Tooltip,
   Legend,
   type ChartOptions,
-  type Plugin,
   type ScriptableContext,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 import { formatMoney } from "./logic";
+import { registerQuick11BarTopLabelsPlugin } from "./quick11-bar-top-labels-plugin";
 import styles from "./quick11-grace-interest-pk-chart.module.css";
 
-type GraceBarTopLabelsOptions = {
-  isLight?: boolean;
-  compact?: boolean;
-};
-
-const graceBarTopLabelsPlugin: Plugin<"bar"> = {
-  id: "graceBarTopLabels",
-  afterDatasetsDraw(chart) {
-    const pluginOpts = (chart.options.plugins as { graceBarTopLabels?: GraceBarTopLabelsOptions } | undefined)
-      ?.graceBarTopLabels;
-    const isLight = pluginOpts?.isLight ?? false;
-    const compact = pluginOpts?.compact ?? false;
-    const dataset = chart.data.datasets[0];
-    const meta = chart.getDatasetMeta(0);
-    if (!dataset?.data?.length || !meta?.data?.length) return;
-
-    const { ctx, chartArea } = chart;
-    if (!chartArea) return;
-
-    meta.data.forEach((element, index) => {
-      const raw = dataset.data[index];
-      const value = Number(raw);
-      if (!Number.isFinite(value)) return;
-
-      const { x, y } = element.getProps(["x", "y"], true);
-      const isWarn = index === 1;
-      const label = formatMoney(value);
-      const fontSize = isWarn ? (compact ? 12 : 13) : compact ? 11 : 12;
-
-      ctx.save();
-      ctx.font = `900 ${fontSize}px "Microsoft JhengHei", "微軟正黑體", "PingFang TC", sans-serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "bottom";
-      ctx.fillStyle = isWarn ? "#EF4444" : isLight ? "#64748b" : "#9CA3AF";
-      if (isWarn && !isLight) {
-        ctx.shadowColor = "rgba(239, 68, 68, 0.55)";
-        ctx.shadowBlur = 8;
-      }
-      const labelY = Math.max(chartArea.top + fontSize, y - 5);
-      ctx.fillText(label, x, labelY);
-      ctx.restore();
-    });
-  },
-};
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend, graceBarTopLabelsPlugin);
+registerQuick11BarTopLabelsPlugin();
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
 const COLOR_BASE_BOTTOM = "rgba(51, 65, 85, 0.75)";
 const COLOR_BASE_TOP = "rgba(148, 163, 184, 0.95)";
@@ -197,7 +153,7 @@ export function Quick11GraceInterestPkChart({
         },
       },
       plugins: {
-        graceBarTopLabels: { isLight, compact },
+        graceBarTopLabels: { enabled: true, isLight, compact },
         legend: { display: false },
         tooltip: {
           enabled: true,

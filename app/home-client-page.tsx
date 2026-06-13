@@ -34,6 +34,7 @@ import { HomeLegalDisclaimerSection } from "./components/home-legal-disclaimer-s
 import { HomeCopyrightNoticeSection } from "./components/home-copyright-notice-section";
 import heroGold from "./components/hero-gold-title.module.css";
 import { MobileAccumPreviewSection } from "./components/mobile-accum-preview-section";
+import { MobileFireCountdownSection } from "./components/mobile-fire-countdown-section";
 import { MobileHeroSection, MobileHeroTitleSection } from "./components/mobile-hero-section";
 import { MobileStockParamsSection } from "./components/mobile-stock-params-section";
 import type { StockParamsAdvancedBlockProps } from "./components/stock-params-advanced-block";
@@ -1963,10 +1964,21 @@ export default function Home() {
 
   const getCellVal = useCallback((rowIdx: number, colKey: string, calc: number) => safeNumber(manualOverrides[`${rowIdx}_${colKey}`] ?? calc), [manualOverrides]);
 
-  /** 累積金額與股數表：桌機 tbody 與手機卡片共用之衍生欄位（僅建目前已顯示列數，捲動再擴充） */
+  /** 手機累積表錨點：試算表中 ≤ 當月（系統年月）最近的一列；近一期＋未來10期皆由此起算 */
+  const accumMobileAnchorIndex = useMemo(() => {
+    if (periodSnapshots.length === 0) return 0;
+    const now = currentSimYearMonth();
+    return findAccumRowIndexForCalendar(periodSnapshots, now.year, now.month);
+  }, [periodSnapshots]);
+
+  /** 累積金額與股數表：桌機 tbody 與手機卡片共用之衍生欄位（捲動增量；手機預覽至少建到近一期＋未來10期） */
   const accumulatedPeriodRowModels = useMemo(() => {
     let cumulativeDividend = 0;
-    const rowLimit = Math.min(accumTableRenderRowCount, periodSnapshots.length);
+    const mobilePreviewRowLimit = Math.min(periodSnapshots.length, accumMobileAnchorIndex + 11);
+    const rowLimit = Math.min(
+      periodSnapshots.length,
+      Math.max(accumTableRenderRowCount, mobilePreviewRowLimit),
+    );
     const models = [] as Array<{
       row: (typeof periodSnapshots)[number];
       i: number;
@@ -2117,6 +2129,7 @@ export default function Home() {
   }, [
     periodSnapshots,
     accumTableRenderRowCount,
+    accumMobileAnchorIndex,
     getCellVal,
     payoutFrequency,
     selectedEtfInfo?.dividendMonths,
@@ -2132,34 +2145,38 @@ export default function Home() {
     monthlyExtraNum,
   ]);
 
-  /** 手機累積表錨點：試算表中 ≤ 今天最近的一列（近一期＝實際最新，非存股參數 nthPeriod） */
-  const accumMobileAnchorIndex = useMemo(() => {
-    const now = currentSimYearMonth();
-    return findAccumRowIndexForCalendar(periodSnapshots, now.year, now.month);
-  }, [periodSnapshots]);
-
-  /** 手機版「近一期」：錨點列（資料列未載入完前不顯示錯誤期別） */
+  /** 手機版「近一期」：當月（系統年月）對應列 */
   const accumulatedPeriodRecentMobile = useMemo(() => {
     if (accumulatedPeriodRowModels.length === 0) return null;
-    if (accumMobileAnchorIndex >= accumulatedPeriodRowModels.length) return null;
-    return accumulatedPeriodRowModels[accumMobileAnchorIndex] ?? null;
+    const recentIndex = accumMobileAnchorIndex;
+    if (recentIndex >= accumulatedPeriodRowModels.length) return null;
+    return accumulatedPeriodRowModels[recentIndex] ?? null;
   }, [accumulatedPeriodRowModels, accumMobileAnchorIndex]);
 
-  /** 手機「最近10期」：近一期之前的最多 10 期（時間正序，不含近一期本身） */
-  const accumulatedPeriodPriorTenMobile = useMemo(() => {
-    const m = accumulatedPeriodRowModels;
-    const anchor = Math.min(accumMobileAnchorIndex, m.length - 1);
-    if (anchor <= 0) return [];
-    const start = Math.max(0, anchor - 10);
-    return m.slice(start, anchor);
+  /** 手機「未來10期」：自當月起算，不含近一期本身，往後最多 10 期 */
+  const accumulatedPeriodNextTenMobile = useMemo(() => {
+    const start = accumMobileAnchorIndex + 1;
+    if (start >= accumulatedPeriodRowModels.length) return [];
+    return accumulatedPeriodRowModels.slice(start, start + 10);
   }, [accumulatedPeriodRowModels, accumMobileAnchorIndex]);
 
-  /** 手機近一期需載入至錨點列；展開最近10期時維持同範圍 */
+  const handleMobileToggleNextTen = useCallback(() => {
+    setMobileAccumShowNextTen((v) => {
+      const next = !v;
+      if (next) {
+        const need = Math.min(periodSnapshots.length, accumMobileAnchorIndex + 11);
+        setAccumTableVisibleRows((n) => (n >= need ? n : need));
+      }
+      return next;
+    });
+  }, [periodSnapshots.length, accumMobileAnchorIndex]);
+
+  /** 手機當月＋未來10期需載入至錨點後第 10 列 */
   useEffect(() => {
-    const need = Math.min(periodSnapshots.length, accumMobileAnchorIndex + 1);
+    const need = Math.min(periodSnapshots.length, accumMobileAnchorIndex + 11);
     if (need <= 0) return;
     setAccumTableVisibleRows((n) => (n >= need ? n : need));
-  }, [accumMobileAnchorIndex, periodSnapshots.length, heavySimPayloadKey]);
+  }, [accumMobileAnchorIndex, periodSnapshots.length, heavySimPayloadKey, mobileAccumShowNextTen]);
 
   /** 本期總投入欄寬：依數字長度（含手動覆蓋） */
   const totalInflowColWidthDyn = useMemo(() => {
@@ -2647,7 +2664,7 @@ export default function Home() {
                 </tr>
               </thead>
               <tbody>
-                {accumulatedPeriodRowModels.map((d) => {
+                {accumulatedPeriodRowModels.slice(0, accumTableRenderRowCount).map((d) => {
                   const {
                     row,
                     i,
@@ -4469,6 +4486,24 @@ export default function Home() {
               calcMode={mobileGoalCalcMode}
               onCalcModeChange={setMobileGoalCalcMode}
             />
+            <MobileFireCountdownSection
+              fireEtaStr={fireEtaStr}
+              fireEtaTargetDateStr={fireEtaTargetDateStr}
+              freedomAchieved={freedomAchieved}
+              showMonthlySuggestion={
+                !targetYearsToAchieveEmpty &&
+                targetYearsToAchieveNum > 0 &&
+                requiredMonthlyToAchieveInYears != null &&
+                fireEtaYears != null &&
+                fireEtaYears >= 20
+              }
+              targetYearsToAchieveNum={targetYearsToAchieveNum}
+              requiredMonthlyToAchieveInYears={requiredMonthlyToAchieveInYears}
+              compareYears={20}
+              noInvestBalance={noInvestBalance20y}
+              investBalance={investBalance20y}
+              diffVsNoInvest={diffVsNoInvest}
+            />
             {mobileGoalCalcMode === "forward" ? (
               <MobileHeroSection
                 calcMode={mobileGoalCalcMode}
@@ -4478,29 +4513,13 @@ export default function Home() {
                   finalBalance: simulationAtTargetYears.finalBalance,
                   totalDividends: simulationAtTargetYears.totalDividends,
                 }}
-                fireCountdown={{
-                  fireEtaStr,
-                  fireEtaTargetDateStr,
-                  freedomAchieved,
-                  showMonthlySuggestion:
-                    !targetYearsToAchieveEmpty &&
-                    targetYearsToAchieveNum > 0 &&
-                    requiredMonthlyToAchieveInYears != null &&
-                    fireEtaYears != null &&
-                    fireEtaYears >= 20,
-                  targetYearsToAchieveNum,
-                  requiredMonthlyToAchieveInYears,
-                  compareYears: 20,
-                  noInvestBalance: noInvestBalance20y,
-                  investBalance: investBalance20y,
-                  diffVsNoInvest,
-                }}
                 accumPreview={
                   <MobileAccumPreviewSection
                     recent={accumulatedPeriodRecentMobile}
-                    priorTen={accumulatedPeriodPriorTenMobile}
-                    showPriorTen={mobileAccumShowNextTen}
-                    onTogglePriorTen={() => setMobileAccumShowNextTen((v) => !v)}
+                    nextTen={accumulatedPeriodNextTenMobile}
+                    periodBaseIndex={accumMobileAnchorIndex}
+                    showNextTen={mobileAccumShowNextTen}
+                    onToggleNextTen={handleMobileToggleNextTen}
                     onOpenFullTable={() => setMobileAccumFullTableModalOpen(true)}
                   />
                 }
@@ -4508,9 +4527,10 @@ export default function Home() {
             ) : (
               <MobileAccumPreviewSection
                 recent={accumulatedPeriodRecentMobile}
-                priorTen={accumulatedPeriodPriorTenMobile}
-                showPriorTen={mobileAccumShowNextTen}
-                onTogglePriorTen={() => setMobileAccumShowNextTen((v) => !v)}
+                nextTen={accumulatedPeriodNextTenMobile}
+                periodBaseIndex={accumMobileAnchorIndex}
+                showNextTen={mobileAccumShowNextTen}
+                onToggleNextTen={handleMobileToggleNextTen}
                 onOpenFullTable={() => setMobileAccumFullTableModalOpen(true)}
               />
             )}
@@ -4522,7 +4542,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* 6️⃣ FIRE COUNTDOWN（手機版已併入 MobileHeroSection KPI 與 CTA 之間） */}
+        {/* 6️⃣ FIRE COUNTDOWN（手機版固定於目標 Tab 下方；桌機見 #home-fire-countdown-desktop） */}
         <div
           id="home-fire-countdown-desktop"
           style={{ ...cardStyle, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}
@@ -4572,12 +4592,12 @@ export default function Home() {
             </h2>
             <button
               type="button"
-              className="md:hidden mb-2 flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-left"
+              className="md:hidden -mt-1 mb-1 ml-auto flex w-auto items-center justify-end px-1 py-0.5 text-left"
               onClick={() => setMobileTaxNhiSectionOpen((o) => !o)}
               aria-expanded={mobileTaxNhiSectionOpen}
+              aria-label={mobileTaxNhiSectionOpen ? "收合二代健保與稅金" : "展開二代健保與稅金"}
             >
-              <span style={{ fontSize: 20, fontWeight: 600, color: "#e5e7eb" }}>二代健保與稅金</span>
-              <span className="text-slate-500">{mobileTaxNhiSectionOpen ? "▲" : "▼"}</span>
+              <span className="text-base text-slate-500">{mobileTaxNhiSectionOpen ? "▲" : "▼"}</span>
             </button>
             <div className={mobileTaxNhiSectionOpen ? "block" : "hidden md:block"}>
             {/* 桌機：重構前經典稅金版面（與 sticky 勾選一致，不受稅務模式自動同步影響） */}

@@ -15,7 +15,7 @@ export type MobileFireCountdownSectionProps = {
   diffVsNoInvest: number;
 };
 
-/** 手機：達成目標＋存股比較（置於 KPI 三卡與節稅 CTA 之間） */
+/** 手機：達成目標＋存股比較（固定於目標 Tab 下方，切換模式不隱藏） */
 export function MobileFireCountdownSection({
   fireEtaStr,
   fireEtaTargetDateStr,

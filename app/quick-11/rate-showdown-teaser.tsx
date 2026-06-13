@@ -14,6 +14,9 @@ export function RateShowdownTeaser({ rows, isLight = false, onOpen }: RateShowdo
   const nextTier = rows[1];
   const totalTiers = rows.length;
   const extraVsBaseline = nextTier?.extraVsBaseline ?? 0;
+  const rateBadgeClass = isLight
+    ? "border-amber-600/70 bg-gradient-to-b from-amber-300 to-amber-400 text-amber-950 shadow-[0_1px_5px_rgba(180,83,9,0.28)]"
+    : "border-amber-200/55 bg-gradient-to-b from-amber-300 to-amber-500 text-amber-950 shadow-[0_0_12px_rgba(251,191,36,0.45)]";
 
   return (
     <div
@@ -41,9 +44,7 @@ export function RateShowdownTeaser({ rows, isLight = false, onOpen }: RateShowdo
               }`}
             >
               <span
-                className={`shrink-0 rounded-md border px-2 py-0.5 text-[13px] font-black tabular-nums ${
-                  isLight ? "border-sky-400/60 bg-sky-50 text-sky-900" : "border-sky-400/45 bg-sky-500/15 text-sky-100"
-                }`}
+                className={`shrink-0 rounded-md border px-2 py-0.5 text-[13px] font-black tabular-nums ${rateBadgeClass}`}
               >
                 {baseline.annualRatePct}%
               </span>
@@ -69,9 +70,7 @@ export function RateShowdownTeaser({ rows, isLight = false, onOpen }: RateShowdo
                 }`}
               >
                 <span
-                  className={`shrink-0 rounded-md border px-2 py-0.5 text-[13px] font-black tabular-nums ${
-                    isLight ? "border-sky-400/60 bg-sky-50 text-sky-900" : "border-sky-400/45 bg-sky-500/15 text-sky-100"
-                  }`}
+                  className={`shrink-0 rounded-md border px-2 py-0.5 text-[13px] font-black tabular-nums ${rateBadgeClass}`}
                 >
                   {nextTier.annualRatePct}%
                 </span>

@@ -30,6 +30,7 @@ const Quick5 = lazy(() => import("../quick-5/page"));
 const Quick6 = lazy(() => import("../quick-6/page"));
 const Quick7 = lazy(() => import("../quick-7/page"));
 const Quick12 = lazy(() => import("../quick-12/QuickCalculator12Content"));
+const Quick13 = lazy(() => import("../quick-13/QuickCalculator13Content"));
 
 function resolveCalculator(route: string) {
   if (route === "/quick-1") return Quick1;
@@ -44,6 +45,7 @@ function resolveCalculator(route: string) {
   if (route === "/quick-10") return Quick10;
   if (route === "/quick-11") return Quick11;
   if (route === "/quick-12") return Quick12;
+  if (route === "/quick-13") return Quick13;
   return null;
 }
 
@@ -104,6 +106,10 @@ export function BlogMiniCalculatorEmbed({ route, title, note, miniBlogSlug }: Pr
                       initialPkScenarioIdx={quick12Embed?.pkScenarioIdx}
                     />
                   </div>
+                ) : route === "/quick-13" ? (
+                  <div className="not-prose isolate w-full min-w-0">
+                    <Calculator embeddedInMiniBlog />
+                  </div>
                 ) : (
                   <Calculator />
                 )}
@@ -112,7 +118,7 @@ export function BlogMiniCalculatorEmbed({ route, title, note, miniBlogSlug }: Pr
           )}
         </div>
       ) : (
-        <div className={styles.miniEmbedUnsupported}>目前僅支援 quick-1 ~ quick-12 文內試算。</div>
+        <div className={styles.miniEmbedUnsupported}>目前僅支援 quick-1 ~ quick-13 文內試算。</div>
       )}
     </section>
   );

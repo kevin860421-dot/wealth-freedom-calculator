@@ -12,6 +12,7 @@ import {
 } from "@/lib/quick11-marketing";
 import { copyQuick11UnlockCode } from "./quick11-excel-actions";
 import { Quick11Excel24hCountdown } from "./quick11-excel-24h-countdown";
+import { Quick11ExcelPickThumbnail } from "./quick11-excel-pick-thumbnail";
 import styles from "./quick11-excel-wizard-modal.module.css";
 import { readQuick11WizardSnapshot, saveQuick11WizardSnapshot } from "./quick11-share-snapshot";
 import { Quick11ShareDesktopPanel } from "./quick11-share-desktop-panel";
@@ -399,7 +400,10 @@ export function Quick11ExcelWizardModal({ open, onClose, snapshotRef }: Quick11E
 
                 <header className={styles.pickHeader}>
                   <h2 id="quick11-wizard-title" className={styles.pickTitle}>
-                    下載<span className="text-emerald-400">Excel</span>
+                    <span className={styles.pickTitleLabel}>
+                      <span className={styles.pickTitleDownload}>下載</span>
+                      <span className={styles.pickTitleExcel}>Excel</span>
+                    </span>
                   </h2>
                   <p className={styles.pickSubtitle}>選擇適合你的版本</p>
                 </header>
@@ -419,7 +423,9 @@ export function Quick11ExcelWizardModal({ open, onClose, snapshotRef }: Quick11E
                     className={`${styles.pickCard} ${plainSelected ? styles.pickCardFeatured : styles.pickCardPlain}`}
                   >
                     <div className={styles.pickCardHeadPlain}>
-                      <div className={`${styles.excelImgSlot} ${styles.excelImgSlotPlain}`} aria-hidden title="Excel 圖片預留" />
+                      <div className={`${styles.excelImgSlot} ${styles.excelImgSlotPlain}`}>
+                        <Quick11ExcelPickThumbnail variant="plain" compact />
+                      </div>
                       <div className="min-w-0">
                         <p className={styles.pickCardName}>純資料 Excel</p>
                         <p className={styles.pickCardTagline}>僅包含計算結果，無公式</p>
@@ -467,7 +473,9 @@ export function Quick11ExcelWizardModal({ open, onClose, snapshotRef }: Quick11E
                         <p className={styles.pickCardName}>完整有公式 Excel</p>
                         <p className={styles.pickCardTagline}>可修改數字，自動計算結果</p>
                       </div>
-                      <div className={styles.excelImgSlot} aria-hidden title="Excel 圖片預留" />
+                      <div className={styles.excelImgSlot}>
+                        <Quick11ExcelPickThumbnail variant="formula" />
+                      </div>
                     </div>
                     <ul className={styles.pickFeatureList}>
                       <li className={`${styles.pickFeatureItem} ${formulaSelected ? styles.pickFeatureItemFeatured : ""}`}>

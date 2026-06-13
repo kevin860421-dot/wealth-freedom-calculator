@@ -13,9 +13,7 @@ import { Quick11InterestPkChart } from "./quick11-interest-pk-chart";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -24,14 +22,25 @@ import {
   type CSSProperties,
   type RefObject,
 } from "react";
-import { buildLoanSchedules, evaluateCalcInput, formatMoney, type LoanMethod, type PaymentRow } from "./logic";
+import {
+  buildLoanSchedules,
+  evaluateCalcInput,
+  formatMoney,
+  Q11_ANNUAL_RATE_MAX_PCT,
+  Q11_ANNUAL_RATE_MIN_PCT,
+  Q11_ANNUAL_RATE_STEP_PCT,
+  type LoanMethod,
+  type PaymentRow,
+} from "./logic";
 import { QUICK11_LOAN_PRESETS } from "./loan-scenarios";
 import type { Quick11EmbedPreset } from "./embed-preset";
 import goldStat from "./quick-11-golden-stat.module.css";
 import { buildRateShowdownRows } from "./rate-showdown";
 import { RateShowdownModal } from "./rate-showdown-modal";
 import { RateShowdownTeaser } from "./rate-showdown-teaser";
+import { Quick11MethodToggle } from "./quick11-method-toggle";
 import { Quick11BottomToolsCard } from "./quick11-bottom-tools-card";
+import { Quick11PageTabStrip } from "./quick11-page-tab-strip";
 import { Quick11ExcelDownloadButton } from "./quick11-excel-download-button";
 import { Quick11ExcelWizardModal } from "./quick11-excel-wizard-modal";
 import { hasQuick11ExitIntentSeen, Quick11ExitIntentModal } from "./quick11-exit-intent-modal";
@@ -51,7 +60,8 @@ import {
 import { Quick11RepayTabPanels } from "./quick11-repay-tab-panels";
 import { LUMP_AMOUNT_MAX, LUMP_AMOUNT_MIN } from "./quick11-white-repay-pages";
 import { Quick11AdvancedTabPanels } from "./quick11-advanced-tab-panels";
-import { rateHikeAddPct, type RateHikePreset } from "./quick11-advanced-calculations";
+import { Quick11WealthFlipPanel } from "./quick11-wealth-flip-panel";
+import { rateHikeAddPct, resolveRateHikeScenarioRate, type RateHikePreset } from "./quick11-advanced-calculations";
 import {
   Q11_INFO_ACCENT_LIGHT,
   Q11_INFO_TONE_LIGHT,
@@ -64,12 +74,12 @@ import {
   Q11_WHITE_PANEL,
 } from "./quick11-white-theme";
 
-type Quick11InputStore = {
-  loanAmount: number;
-  annualRate: number;
-  loanYears: number;
-  monthlyIncome: number;
-};
+import {
+  Quick11InputContext,
+  QUICK11_DEFAULT_MONTHLY_LIVING_EXPENSE,
+  useQuick11Input,
+  type Quick11InputStore,
+} from "./quick11-input-context";
 
 type LoanPresetAction = {
   key: string;
@@ -80,14 +90,6 @@ type LoanPresetAction = {
   years: number;
   monthlyIncome: number;
 };
-
-const Quick11InputContext = createContext<Quick11InputStore | null>(null);
-
-function useQuick11Input() {
-  const ctx = useContext(Quick11InputContext);
-  if (!ctx) throw new Error("Quick11InputContext not found");
-  return ctx;
-}
 
 function sanitizeCalcInputLite(s: string) {
   return s.replace(/[^\d+\-*/().,%\s]/g, "");
@@ -242,6 +244,8 @@ export function QuickCalculator11Content({
   const [opportunityReturnPctText, setOpportunityReturnPctText] = useState("7");
   const [emergencySavings, setEmergencySavings] = useState(600_000);
   const [emergencySavingsText, setEmergencySavingsText] = useState(formatMoney(600_000));
+  const [monthlyLivingExpense, setMonthlyLivingExpense] = useState(QUICK11_DEFAULT_MONTHLY_LIVING_EXPENSE);
+  const [incomeRetentionPct, setIncomeRetentionPct] = useState(0);
   const [rateHikePreset, setRateHikePreset] = useState<RateHikePreset>("flat");
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [rateShowdownOpen, setRateShowdownOpen] = useState(false);
@@ -358,7 +362,17 @@ export function QuickCalculator11Content({
     setGraceYearsText(String(graceYM.y));
     setGraceMonthsPartText(String(graceYM.m));
   }, [graceYM.y, graceYM.m]);
-  const prepaySavedInterest = Math.max(0, output.annuityTotalInterest - prepayResultAnnuity.totalInterest);
+  const prepaySavedInterest = useMemo(() => {
+    const base = method === "annuity" ? output.annuityTotalInterest : output.equalPrincipalTotalInterest;
+    const prepay = method === "annuity" ? prepayResultAnnuity.totalInterest : prepayResultEqual.totalInterest;
+    return Math.max(0, base - prepay);
+  }, [
+    method,
+    output.annuityTotalInterest,
+    output.equalPrincipalTotalInterest,
+    prepayResultAnnuity.totalInterest,
+    prepayResultEqual.totalInterest,
+  ]);
   const prepaySavedMonths = Math.max(0, baselineMonths - prepayResultAnnuity.months);
   const earlyBaseInterest = earlyRepayMethod === "annuity" ? output.annuityTotalInterest : output.equalPrincipalTotalInterest;
   const earlySavedInterest = Math.max(0, earlyBaseInterest - prepayResult.totalInterest);
@@ -370,14 +384,17 @@ export function QuickCalculator11Content({
   const shockedMonthlyPayment = shockedOutput.annuityRows[0]?.payment ?? 0;
   const shockedDtiPct = monthlyIncome <= 0 ? 100 : (shockedMonthlyPayment / monthlyIncome) * 100;
 
-  const hikeAnnualRate = annualRate + rateHikeAddPct(rateHikePreset);
+  const hikeAnnualRate = useMemo(
+    () => resolveRateHikeScenarioRate(annualRate, rateHikePreset),
+    [annualRate, rateHikePreset],
+  );
   const hikeOutput = useMemo(
     () => buildLoanSchedules(loanAmount, hikeAnnualRate, loanYears),
     [loanAmount, hikeAnnualRate, loanYears],
   );
   const hikeMonthlyPayment = hikeOutput.annuityRows[0]?.payment ?? 0;
   const hikeDtiPct = monthlyIncome <= 0 ? 100 : (hikeMonthlyPayment / monthlyIncome) * 100;
-  const hikeInterestIncrease = Math.max(0, hikeOutput.annuityTotalInterest - output.annuityTotalInterest);
+  const hikeInterestDelta = hikeOutput.annuityTotalInterest - output.annuityTotalInterest;
   const methodLabel = method === "annuity" ? "本息均攤" : "本金平均";
   const freedomProjected = useMemo(() => prepaySavedInterest * Math.pow(1 + 0.07, 20), [prepaySavedInterest]);
   const earlyFreedomProjected = useMemo(() => earlySavedInterest * Math.pow(1 + 0.07, 20), [earlySavedInterest]);
@@ -489,18 +506,6 @@ export function QuickCalculator11Content({
     const m = parseAndClamp(graceMonthsPartText, graceYM.m, 0, graceMaxMonths, true);
     const rawTotal = Math.min(graceMaxMonths, Math.max(0, y * 12 + m));
     setGraceYM(graceTotalToYM(rawTotal, graceMaxMonths));
-  };
-
-  const commitInflationPct = () => {
-    const normalized = parseAndClamp(inflationPctText, inflationPctVal, 0, 15);
-    setInflationPctVal(normalized);
-    setInflationPctText(String(Number(normalized.toFixed(2))));
-  };
-
-  const commitOpportunityReturnPct = () => {
-    const normalized = parseAndClamp(opportunityReturnPctText, opportunityReturnPctVal, 0, 50);
-    setOpportunityReturnPctVal(normalized);
-    setOpportunityReturnPctText(String(Number(normalized.toFixed(2))));
   };
 
   const commitEmergencySavings = () => {
@@ -661,12 +666,7 @@ export function QuickCalculator11Content({
   }, [rows]);
 
   const pageTabs = QUICK11_PAGE_TABS;
-  /** 首頁左側固定；其餘 1～13 分頁全 render，橫向捲動區需外層 overflow-hidden 才能滑。 */
   const scrollablePageTabs = QUICK11_SCROLLABLE_PAGE_TABS;
-
-  const tabScrollOuterClass = "min-w-0 flex-1 overflow-hidden";
-  const tabScrollViewportClass =
-    "w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden";
 
   const syncTabStripScroll = useCallback(
     (viewport: HTMLDivElement | null, pageId: number) => {
@@ -679,6 +679,8 @@ export function QuickCalculator11Content({
       if (!btn) return;
 
       const maxScroll = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+      if (maxScroll <= 0) return;
+
       const edgeTabs = 3;
 
       if (idx < edgeTabs) {
@@ -713,9 +715,6 @@ export function QuickCalculator11Content({
     setCurrentPage(bounded);
     if (bounded === 1) setMethod("annuity");
     if (bounded === 2) setMethod("equalPrincipal");
-    window.requestAnimationFrame(() => {
-      pageContentRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    });
   };
 
   const applyLoanPreset = (preset: LoanPresetAction) => {
@@ -838,7 +837,7 @@ export function QuickCalculator11Content({
       case 13:
         return {
           show: true,
-          title: "升息 4 碼不是紙上數字，是 DTI 直接爆表。",
+          title: "升息 4 碼不是紙上數字，是負債比直接爆表。",
           body: "帶著情境表去跟銀行談條件。",
           button: "前往存股複利計算機",
         };
@@ -853,8 +852,16 @@ export function QuickCalculator11Content({
   }, [currentPage, syncTabStripScroll]);
 
   const inputContextValue = useMemo<Quick11InputStore>(
-    () => ({ loanAmount, annualRate, loanYears, monthlyIncome }),
-    [loanAmount, annualRate, loanYears, monthlyIncome],
+    () => ({
+      loanAmount,
+      annualRate,
+      loanYears,
+      monthlyIncome,
+      method,
+      methodLabel,
+      baselineMonthlyPayment: firstPayment,
+    }),
+    [loanAmount, annualRate, loanYears, monthlyIncome, method, methodLabel, firstPayment],
   );
 
   return (
@@ -989,77 +996,19 @@ export function QuickCalculator11Content({
                   : "border-slate-700 bg-[#0f172a]/95"
               }`}
             >
-              <div className={`relative flex min-w-0 items-stretch border-b pb-1 ${isLight ? "border-[#E2E8F0]" : "border-slate-700"}`}>
-                <div
-                  className={`relative flex shrink-0 items-center border-r pl-0.5 pr-2 ${
-                    isLight ? "border-[#E2E8F0] bg-[#FFFFFF]" : "border-slate-700 bg-[#0f172a]/95"
-                  }`}
-                >
-                  {(() => {
-                    const tab = pageTabs[0];
-                    return (
-                      <button
-                        key={tab.id}
-                        type="button"
-                        ref={(el) => {
-                          tabButtonRefs.current[tab.id] = el;
-                        }}
-                        onClick={() => switchPage(tab.id)}
-                        className={`relative min-w-[2.75rem] appearance-none border-0 bg-transparent px-1.5 py-1.5 text-[14px] tracking-[0.02em] shadow-none transition whitespace-nowrap ${
-                          currentPage === tab.id
-                            ? isLight
-                              ? "font-bold text-[#2563EB]"
-                              : "font-black text-white"
-                            : isLight
-                              ? "font-medium text-[#4A5568] hover:text-slate-900"
-                              : "font-bold text-slate-400 hover:text-slate-200"
-                        }`}
-                      >
-                        {tab.title}
-                        {currentPage === tab.id ? (
-                          <span className={`absolute inset-x-1 -bottom-1 h-[2.5px] rounded-full ${isLight ? "bg-[#2563EB]" : "bg-sky-500"}`} />
-                        ) : null}
-                      </button>
-                    );
-                  })()}
-                </div>
-                <div className={tabScrollOuterClass}>
-                  <div
-                    ref={topTabScrollRef}
-                    className={tabScrollViewportClass}
-                    style={{ WebkitOverflowScrolling: "touch" }}
-                  >
-                    <div className="inline-flex items-center gap-0.5 whitespace-nowrap pl-2 pr-3">
-                      {scrollablePageTabs.map((tab) => (
-                        <button
-                          key={tab.id}
-                          type="button"
-                          data-q11-tab={tab.id}
-                          ref={(el) => {
-                            tabButtonRefs.current[tab.id] = el;
-                          }}
-                          onClick={() => switchPage(tab.id)}
-                          className={`relative shrink-0 appearance-none border-0 bg-transparent px-1.5 py-1.5 text-[14px] tracking-[0.02em] shadow-none transition whitespace-nowrap ${
-                          currentPage === tab.id
-                            ? isLight
-                              ? "font-bold text-[#2563EB]"
-                              : "font-black text-white"
-                            : isLight
-                              ? "font-medium text-[#4A5568] hover:text-slate-900"
-                              : "font-bold text-slate-400 hover:text-slate-200"
-                        } ${tab.id === 2 ? "rounded-md ring-1 ring-sky-500/55 shadow-[0_0_10px_rgba(14,165,233,0.22)]" : ""}`}
-                      >
-                        {tab.title}
-                        {tab.id === 2 ? <span className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-sky-600 shadow-[0_0_8px_rgba(14,165,233,0.55)]" /> : null}
-                        {currentPage === tab.id ? <span className={`absolute inset-x-1 -bottom-1 h-[2.5px] rounded-full ${isLight ? "bg-[#2563EB]" : "bg-sky-500"}`} /> : null}
-                      </button>
-                    ))}
-                    </div>
-                  </div>
-                </div>
+              <div className={`relative min-w-0 border-b pb-0.5 ${isLight ? "border-[#E2E8F0]" : "border-slate-700"}`}>
+                <Quick11PageTabStrip
+                  pinnedTab={pageTabs[0]}
+                  tabs={scrollablePageTabs}
+                  currentPage={currentPage}
+                  onSwitch={switchPage}
+                  scrollRef={topTabScrollRef}
+                  tabButtonRefs={tabButtonRefs}
+                  isLight={isLight}
+                />
               </div>
 
-              <div className="mt-2 flex min-h-[8px] justify-center overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <div className="mt-2 flex min-h-[8px] justify-center overflow-x-auto overscroll-x-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                 <div className="flex min-w-max justify-center gap-1.5 px-1">
                   {pageTabs.map((tab) => (
                     <button
@@ -1079,7 +1028,9 @@ export function QuickCalculator11Content({
                 </div>
               </div>
 
-              <AnimatePresence>{currentPage > 0 ? <MiniSettingsHeader key="quick11-mini-settings" isLight={isLight} /> : null}</AnimatePresence>
+              <AnimatePresence>
+                {currentPage > 0 ? <MiniSettingsHeader key="quick11-mini-settings" isLight={isLight} /> : null}
+              </AnimatePresence>
             </div>
 
             {currentPage === 0 ? (
@@ -1165,22 +1116,24 @@ export function QuickCalculator11Content({
                     label="年利率"
                     unit="%"
                     isLight={isLight}
-                    sliderMin={0}
-                    sliderMax={15}
-                    sliderStep={0.05}
+                    sliderMin={Q11_ANNUAL_RATE_MIN_PCT}
+                    sliderMax={Q11_ANNUAL_RATE_MAX_PCT}
+                    sliderStep={Q11_ANNUAL_RATE_STEP_PCT}
                     value={annualRate}
                     text={annualRateText}
                     onTextChange={(next) => {
                       setAnnualRateText(next);
-                      setAnnualRate(parseAndClamp(next, annualRate, 0, 15));
+                      setAnnualRate(parseAndClamp(next, annualRate, Q11_ANNUAL_RATE_MIN_PCT, Q11_ANNUAL_RATE_MAX_PCT));
                     }}
                     onCommit={(next) => {
-                      const normalized = parseAndClamp(next, annualRate, 0, 15);
+                      const normalized = parseAndClamp(next, annualRate, Q11_ANNUAL_RATE_MIN_PCT, Q11_ANNUAL_RATE_MAX_PCT);
                       setAnnualRate(normalized);
                       setAnnualRateText(String(normalized));
                     }}
                     onBump={(delta) => {
-                      const next = Number(Math.min(15, Math.max(0, annualRate + delta)).toFixed(2));
+                      const next = Number(
+                        Math.min(Q11_ANNUAL_RATE_MAX_PCT, Math.max(Q11_ANNUAL_RATE_MIN_PCT, annualRate + delta)).toFixed(2),
+                      );
                       setAnnualRate(next);
                       setAnnualRateText(String(next));
                     }}
@@ -1260,44 +1213,8 @@ export function QuickCalculator11Content({
                     <div className="space-y-2">
                       <div className="flex items-center justify-between gap-2">
                         <p className={isLight ? Q11_PAGE_TITLE : "text-lg font-black text-sky-100"}>首頁總覽</p>
-                        <div
-                          className={`mr-5 inline-flex items-center gap-1.5 rounded-md border px-1.5 py-1 ${
-                            isLight
-                              ? "border-[#E2E8F0] bg-white shadow-[0_1px_3px_rgba(15,23,42,0.06)]"
-                              : "border-slate-600 bg-transparent"
-                          }`}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => setMethod("annuity")}
-                            className={`rounded border bg-transparent px-3 py-1 text-[14px] font-bold transition ${
-                              method === "annuity"
-                                ? isLight
-                                  ? "border-sky-400 text-sky-700"
-                                  : "border-sky-400/70 text-sky-200"
-                                : isLight
-                                  ? "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800"
-                                  : "border-transparent text-slate-300 hover:border-slate-500 hover:text-slate-100"
-                            }`}
-                          >
-                            本息均攤
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setMethod("equalPrincipal")}
-                            className={`rounded border bg-transparent px-3 py-1 text-[14px] font-bold transition ${
-                              method === "equalPrincipal"
-                                ? isLight
-                                  ? "border-amber-400 text-amber-800 shadow-[0_0_10px_rgba(251,191,36,0.15)]"
-                                  : "border-amber-300 text-amber-200 shadow-[0_0_10px_rgba(251,191,36,0.2)]"
-                                : isLight
-                                  ? "border-amber-200 text-slate-600 hover:text-amber-800"
-                                  : "border-amber-400/70 text-slate-200 hover:text-amber-100"
-                            }`}
-                          >
-                            本金平均
-                          </button>
-                          <span className={`whitespace-nowrap text-[12px] font-bold tracking-[0.02em] ${isLight ? "text-amber-700" : "text-amber-200"}`}>推薦使用</span>
+                        <div className="mr-5">
+                          <Quick11MethodToggle method={method} onChange={setMethod} isLight={isLight} />
                         </div>
                       </div>
                       <div className="grid grid-cols-3 gap-2">
@@ -1607,36 +1524,19 @@ export function QuickCalculator11Content({
                   ) : null}
 
                   {currentPage === 8 ? (
-                    <div className="space-y-3">
-                      <p className={isLight ? Q11_PAGE_TITLE : "text-lg font-black text-indigo-100"}>財富翻轉（把省下利息變資產）</p>
-                      <div className={isLight ? Q11_WHITE_GLOW : "rounded-lg border border-sky-500/35 bg-sky-500/10 p-3"}>
-                        <p className={`text-[16px] font-black tracking-[0.03em] ${isLight ? "text-sky-900" : "text-sky-100"}`}>把「少付的利息」當成你的投資本金</p>
-                        <p className={`mt-2 text-[13px] font-semibold leading-relaxed ${isLight ? "text-slate-600" : "text-slate-200"}`}>
-                          這頁會把你在「提前還款」省下的利息，假設改成投入市場，用固定年化去估計多年後可能長到多少（情境試算）。
-                        </p>
-                        <div
-                          className={`mt-3 rounded-md border p-2.5 ${
-                            isLight ? "border-[#E2E8F0] bg-[#F8FAFC]" : "border-sky-500/25 bg-slate-950/30"
-                          }`}
-                        >
-                          <p className={`text-[13px] font-bold tracking-[0.03em] ${isLight ? "text-slate-700" : "text-slate-200"}`}>
-                            省下利息：<span className={`font-black ${isLight ? "text-sky-800" : "text-sky-100"}`}>NT$ {formatMoney(prepaySavedInterest)}</span>
-                          </p>
-                          <p className={`mt-1 text-[13px] font-bold tracking-[0.03em] ${isLight ? "text-slate-700" : "text-slate-200"}`}>
-                            以 7% 複利 20 年：<span className={`font-black ${isLight ? "text-sky-800" : "text-sky-100"}`}>NT$ {formatMoney(freedomProjected)}</span>
-                          </p>
-                        </div>
-                      </div>
-                      <Link
-                        href="/quick-1"
-                        className={`inline-flex w-full items-center justify-center gap-1 rounded-md px-4 py-3 text-[16px] font-black text-white transition ${
-                          isLight ? "bg-[#2563EB] hover:bg-blue-600" : "bg-sky-500 hover:bg-sky-400"
-                        }`}
-                      >
-                        <span aria-hidden>🤖</span>
-                        <span>前往存股複利計算機</span>
-                      </Link>
-                    </div>
+                    <Quick11WealthFlipPanel
+                      isLight={isLight}
+                      method={method}
+                      onMethodChange={setMethod}
+                      extraMonthlyPrepay={extraMonthlyPayment}
+                      onExtraMonthlyPrepayChange={(v) => {
+                        setExtraMonthlyPayment(v);
+                        setExtraMonthlyText(formatMoney(v));
+                      }}
+                      prepaySavedInterest={prepaySavedInterest}
+                      freedomProjected={freedomProjected}
+                      onOpenExcelWizard={() => setWizardOpen(true)}
+                    />
                   ) : null}
 
                   {(currentPage === 9 || currentPage === 10 || currentPage === 11 || currentPage === 12 || currentPage === 13) ? (
@@ -1661,31 +1561,62 @@ export function QuickCalculator11Content({
                       shockedMonthlyPayment={shockedMonthlyPayment}
                       shockedDtiPct={shockedDtiPct}
                       inflationPct={inflationPctVal}
-                      inflationText={inflationPctText}
-                      onInflationText={setInflationPctText}
-                      onInflationCommit={commitInflationPct}
+                      onInflationPctChange={(v) => {
+                        const fixed = Number(Math.min(15, Math.max(0, v)).toFixed(1));
+                        setInflationPctVal(fixed);
+                        setInflationPctText(String(fixed));
+                      }}
                       opportunityReturnPct={opportunityReturnPctVal}
-                      opportunityText={opportunityReturnPctText}
-                      onOpportunityText={setOpportunityReturnPctText}
-                      onOpportunityCommit={commitOpportunityReturnPct}
+                      onOpportunityReturnPctChange={(v) => {
+                        const fixed = Number(Math.min(50, Math.max(0, v)).toFixed(1));
+                        setOpportunityReturnPctVal(fixed);
+                        setOpportunityReturnPctText(String(fixed));
+                      }}
                       emergencySavings={emergencySavings}
                       emergencyText={emergencySavingsText}
                       onEmergencyText={setEmergencySavingsText}
                       onEmergencyCommit={commitEmergencySavings}
+                      monthlyLivingExpense={monthlyLivingExpense}
+                      onMonthlyLivingExpenseChange={setMonthlyLivingExpense}
+                      incomeRetentionPct={incomeRetentionPct}
+                      onIncomeRetentionPctChange={setIncomeRetentionPct}
                       rateHikePreset={rateHikePreset}
                       onRateHikePreset={setRateHikePreset}
                       hikeMonthlyPayment={hikeMonthlyPayment}
                       hikeDtiPct={hikeDtiPct}
                       hikeTotalInterest={hikeOutput.annuityTotalInterest}
-                      hikeInterestIncrease={hikeInterestIncrease}
+                      hikeInterestDelta={hikeInterestDelta}
                       onOpenExcelWizard={() => setWizardOpen(true)}
+                      method={method}
+                      onMethodChange={setMethod}
+                      extraMonthlyPayment={extraMonthlyPayment}
+                      onExtraMonthlyPaymentChange={(v) => {
+                        setExtraMonthlyPayment(v);
+                        setExtraMonthlyText(formatMoney(v));
+                      }}
+                      onLoanAmountChange={(v) => {
+                        setLoanAmount(v);
+                        setLoanAmountText(formatMoney(v));
+                      }}
+                      onAnnualRateChange={(v) => {
+                        const fixed = Number(
+                          Math.min(Q11_ANNUAL_RATE_MAX_PCT, Math.max(Q11_ANNUAL_RATE_MIN_PCT, v)).toFixed(2),
+                        );
+                        setAnnualRate(fixed);
+                        setAnnualRateText(String(fixed));
+                      }}
+                      onLoanYearsChange={(v) => {
+                        const y = Math.round(v);
+                        setLoanYears(y);
+                        setLoanYearsText(String(y));
+                      }}
                     />
                   ) : null}
                 </motion.section>
               </AnimatePresence>
             </div>
 
-            {!embeddedInMiniBlog ? (
+            {!embeddedInMiniBlog && currentPage !== 8 ? (
               <div id="quick11-excel-lead" className="mt-1.5">
                 <Quick11ExcelDownloadButton isLight={isLight} onOpenWizard={() => setWizardOpen(true)} />
               </div>
@@ -1698,68 +1629,16 @@ export function QuickCalculator11Content({
                   : "border-slate-700 bg-[#0f172a]/95"
               }`}
             >
-              <div className={`relative flex min-w-0 items-stretch border-b pb-1 ${isLight ? "border-slate-200" : "border-slate-700"}`}>
-                <div
-                  className={`relative flex shrink-0 items-center border-r pl-0.5 pr-2 ${
-                    isLight ? "border-slate-200 bg-white" : "border-slate-700 bg-[#0f172a]/95"
-                  }`}
-                >
-                  {(() => {
-                    const tab = pageTabs[0];
-                    return (
-                      <button
-                        key={`sticky-bottom-nav-${tab.id}`}
-                        type="button"
-                        onClick={() => switchPage(tab.id)}
-                        className={`relative min-w-[2.75rem] appearance-none border-0 bg-transparent px-1.5 py-1.5 text-[14px] tracking-[0.02em] shadow-none transition whitespace-nowrap ${
-                          currentPage === tab.id
-                            ? isLight
-                              ? "font-bold text-[#2563EB]"
-                              : "font-black text-white"
-                            : isLight
-                              ? "font-medium text-[#4A5568] hover:text-slate-900"
-                              : "font-bold text-slate-400 hover:text-slate-200"
-                        }`}
-                      >
-                        {tab.title}
-                        {currentPage === tab.id ? (
-                          <span className={`absolute inset-x-1 -bottom-1 h-[2.5px] rounded-full ${isLight ? "bg-[#2563EB]" : "bg-sky-500"}`} />
-                        ) : null}
-                      </button>
-                    );
-                  })()}
-                </div>
-                <div className={tabScrollOuterClass}>
-                  <div
-                    ref={bottomTabScrollRef}
-                    className={tabScrollViewportClass}
-                    style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "none", msOverflowStyle: "none" }}
-                  >
-                    <div className="inline-flex items-center gap-0.5 whitespace-nowrap pl-2 pr-3">
-                      {scrollablePageTabs.map((tab) => (
-                        <button
-                          key={`sticky-bottom-nav-${tab.id}`}
-                          type="button"
-                          data-q11-tab={tab.id}
-                          onClick={() => switchPage(tab.id)}
-                          className={`relative shrink-0 appearance-none border-0 bg-transparent px-1.5 py-1.5 whitespace-nowrap text-[14px] tracking-[0.02em] shadow-none transition ${
-                          currentPage === tab.id
-                            ? isLight
-                              ? "font-bold text-[#2563EB]"
-                              : "font-black text-white"
-                            : isLight
-                              ? "font-medium text-[#4A5568] hover:text-slate-900"
-                              : "font-bold text-slate-400 hover:text-slate-200"
-                        } ${tab.id === 2 ? "rounded-md ring-1 ring-sky-500/55 shadow-[0_0_10px_rgba(14,165,233,0.22)]" : ""}`}
-                        >
-                          {tab.title}
-                          {tab.id === 2 ? <span className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-sky-600 shadow-[0_0_8px_rgba(14,165,233,0.55)]" /> : null}
-                          {currentPage === tab.id ? <span className={`absolute inset-x-1 -bottom-1 h-[2.5px] rounded-full ${isLight ? "bg-[#2563EB]" : "bg-sky-500"}`} /> : null}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+              <div className={`relative min-w-0 border-b pb-0.5 ${isLight ? "border-slate-200" : "border-slate-700"}`}>
+                <Quick11PageTabStrip
+                  pinnedTab={pageTabs[0]}
+                  tabs={scrollablePageTabs}
+                  currentPage={currentPage}
+                  onSwitch={switchPage}
+                  scrollRef={bottomTabScrollRef}
+                  isLight={isLight}
+                  idPrefix="sticky-bottom-nav-"
+                />
               </div>
             </div>
 
@@ -2120,10 +1999,10 @@ function ResultPage(props: {
           <p className="text-sm font-black">預警</p>
           {dtiRatio > 0.5 ? (
             <motion.p className="text-sm font-black" animate={{ scale: [1, 1.08, 1], opacity: [1, 0.75, 1] }} transition={{ duration: 1.35, repeat: Infinity, ease: "easeInOut" }}>
-              DTI {dtiPct.toFixed(1)}%
+              負債比 {dtiPct.toFixed(1)}%
             </motion.p>
           ) : (
-            <p className="text-sm font-black">DTI {dtiPct.toFixed(1)}%</p>
+            <p className="text-sm font-black">負債比 {dtiPct.toFixed(1)}%</p>
           )}
         </div>
         <div className={`mt-1.5 h-1.5 w-full overflow-hidden rounded-full ${isLight ? "bg-slate-200" : "bg-slate-800/80"}`}>
@@ -2429,8 +2308,28 @@ function StepperCircleButton(props: {
   onClick: () => void;
   compact: boolean;
   isLight: boolean;
+  /** 窄欄位右側上下堆疊時用方角小鈕 */
+  stacked?: boolean;
 }) {
-  const { sign, onClick, compact, isLight } = props;
+  const { sign, onClick, compact, isLight, stacked = false } = props;
+  if (stacked) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={sign === "+" ? "增加數值" : "減少數值"}
+        className={`flex w-full items-center justify-center rounded-sm border font-bold leading-none transition active:scale-95 ${
+          compact ? "h-[17px] text-[12px]" : "h-[21px] text-[13px]"
+        } ${
+          isLight
+            ? "border-slate-300 bg-slate-50 text-sky-600 hover:border-sky-400 hover:bg-white"
+            : "border-slate-600 bg-slate-900/80 text-slate-100 hover:border-sky-500 hover:bg-slate-800"
+        }`}
+      >
+        {sign}
+      </button>
+    );
+  }
   const size = compact ? "h-9 w-9 text-[18px]" : "h-10 w-10 text-[20px]";
   return (
     <button
@@ -2539,32 +2438,65 @@ function InputField(props: InputFieldProps) {
           {unit}
         </span>
       </div>
-      <div className="flex min-w-0 items-center gap-2">
-        <StepperCircleButton sign="+" compact={compact} isLight={isLight} onClick={() => onBump(bumpStep)} />
-        <input
-          ref={setInputRefs}
-          value={text}
-          onChange={(e) => onTextChange(sanitizeCalcInputLite(e.target.value))}
-          onBlur={(e) => onCommit(e.currentTarget.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              onCommit((e.currentTarget as HTMLInputElement).value);
-              if (onEnterNext) onEnterNext();
-              else (e.currentTarget as HTMLInputElement).blur();
-            }
-          }}
-          className={`min-w-0 w-full rounded-md border font-black outline-none ${compact ? "h-9 px-1.5 tracking-[-0.015em]" : "h-10 px-3 tracking-[-0.01em]"} ${
-            isLight
-              ? "border-slate-200 bg-white text-slate-900 placeholder:text-slate-500/80 focus:border-sky-500"
-              : "border-slate-600 bg-[#0b1220] text-slate-100 placeholder:text-slate-500 focus:border-sky-400"
-          }`}
-          style={{ fontSize: inputMaxPx }}
-          inputMode="decimal"
-          placeholder="支援 +-*/"
-        />
-        <StepperCircleButton sign="-" compact={compact} isLight={isLight} onClick={() => onBump(-bumpStep)} />
-      </div>
+      {compact ? (
+        <div className="flex min-w-0 items-stretch gap-1.5">
+          <input
+            ref={setInputRefs}
+            value={text}
+            onChange={(e) => onTextChange(sanitizeCalcInputLite(e.target.value))}
+            onBlur={(e) => onCommit(e.currentTarget.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                onCommit((e.currentTarget as HTMLInputElement).value);
+                if (onEnterNext) onEnterNext();
+                else (e.currentTarget as HTMLInputElement).blur();
+              }
+            }}
+            className={`min-w-0 flex-1 basis-0 rounded-md border px-1.5 text-center font-black tracking-[-0.015em] outline-none ${
+              compact ? "h-9" : "h-10"
+            } ${
+              isLight
+                ? "border-slate-200 bg-white text-slate-900 placeholder:text-slate-500/80 focus:border-sky-500"
+                : "border-slate-600 bg-[#0b1220] text-slate-100 placeholder:text-slate-500 focus:border-sky-400"
+            }`}
+            style={{ fontSize: inputMaxPx }}
+            inputMode="decimal"
+            placeholder="支援 +-*/"
+          />
+          <div className={`grid shrink-0 grid-rows-2 gap-1 ${compact ? "w-8" : "w-9"}`}>
+            <StepperCircleButton sign="+" compact={compact} isLight={isLight} stacked onClick={() => onBump(bumpStep)} />
+            <StepperCircleButton sign="-" compact={compact} isLight={isLight} stacked onClick={() => onBump(-bumpStep)} />
+          </div>
+        </div>
+      ) : (
+        <div className="flex min-w-0 items-center gap-2">
+          <StepperCircleButton sign="+" compact={compact} isLight={isLight} onClick={() => onBump(bumpStep)} />
+          <input
+            ref={setInputRefs}
+            value={text}
+            onChange={(e) => onTextChange(sanitizeCalcInputLite(e.target.value))}
+            onBlur={(e) => onCommit(e.currentTarget.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                onCommit((e.currentTarget as HTMLInputElement).value);
+                if (onEnterNext) onEnterNext();
+                else (e.currentTarget as HTMLInputElement).blur();
+              }
+            }}
+            className={`min-w-0 flex-1 basis-0 rounded-md border font-black outline-none ${compact ? "h-9 px-1.5 tracking-[-0.015em]" : "h-10 px-3 tracking-[-0.01em]"} ${
+              isLight
+                ? "border-slate-200 bg-white text-slate-900 placeholder:text-slate-500/80 focus:border-sky-500"
+                : "border-slate-600 bg-[#0b1220] text-slate-100 placeholder:text-slate-500 focus:border-sky-400"
+            }`}
+            style={{ fontSize: inputMaxPx }}
+            inputMode="decimal"
+            placeholder="支援 +-*/"
+          />
+          <StepperCircleButton sign="-" compact={compact} isLight={isLight} onClick={() => onBump(-bumpStep)} />
+        </div>
+      )}
       <input
         type="range"
         min={sliderMin}

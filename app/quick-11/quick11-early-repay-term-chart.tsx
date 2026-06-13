@@ -13,10 +13,12 @@ import {
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 import { formatMoney } from "./logic";
+import { registerQuick11BarTopLabelsPlugin } from "./quick11-bar-top-labels-plugin";
 import { splitYearsMonths } from "./repay-simulations";
 import styles from "./quick11-early-repay-term-chart.module.css";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
+registerQuick11BarTopLabelsPlugin();
 
 const COLOR_ORIGIN = "rgba(239, 68, 68, 0.85)";
 const COLOR_ORIGIN_TOP = "rgba(248, 113, 113, 0.95)";
@@ -115,6 +117,8 @@ export function Quick11EarlyRepayTermChart({
   const yMax = Math.max(originalYears, prepayYears, 1);
   const savedSpan = formatSavedSpan(savedMonths);
   const compareLabel = `🔵 ${compareBarLabel}`;
+  /** 頂端數字留白：柱高略壓低，避免標籤被裁切 */
+  const yScaleMax = Math.ceil(yMax * 1.15);
 
   const data = useMemo(
     () => ({
@@ -151,8 +155,9 @@ export function Quick11EarlyRepayTermChart({
       responsive: true,
       maintainAspectRatio: false,
       animation: false,
-      layout: { padding: { top: 18, right: 8, bottom: 4, left: 4 } },
+      layout: { padding: { top: 32, right: 8, bottom: 4, left: 4 } },
       plugins: {
+        graceBarTopLabels: { enabled: true, isLight, rawValue: true, valueSuffix: " 年", variant: "term" },
         legend: { display: false },
         tooltip: {
           enabled: true,
@@ -177,19 +182,15 @@ export function Quick11EarlyRepayTermChart({
         },
         y: {
           min: 0,
-          max: yMax,
+          max: yScaleMax,
+          display: false,
           grid: { display: false, drawTicks: false },
           border: { display: false },
-          ticks: {
-            color: isLight ? "#94a3b8" : "#9ca3af",
-            font: { size: 10 },
-            maxTicksLimit: 6,
-            callback: (v) => `${v}年`,
-          },
+          ticks: { display: false },
         },
       },
     }),
-    [yMax, isLight],
+    [yScaleMax, isLight],
   );
 
   const savedYears = Math.max(0, originalYears - prepayYears);

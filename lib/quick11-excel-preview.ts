@@ -88,7 +88,7 @@ function buildPreviewRows(inputs: Quick11ExcelPreviewInputs, results: Quick11Exc
     { kind: "data", highlight: "input", cells: ["貸款本金", fmtMoney(inputs.principal), "NT$", "例：1200 萬"] },
     { kind: "data", highlight: "input", cells: ["年利率", inputs.annualRate.toFixed(2), "%", "例：2.2 純數字"] },
     { kind: "data", highlight: "input", cells: ["貸款年期", String(inputs.years), "年", "例：30 純數字"] },
-    { kind: "data", highlight: "input", cells: ["月收入（預警）", fmtMoney(inputs.monthlyIncome), "NT$", "算 DTI 用"] },
+    { kind: "data", highlight: "input", cells: ["月收入（預警）", fmtMoney(inputs.monthlyIncome), "NT$", "算負債比用"] },
     { kind: "spacer", cells: ["", "", "", ""] },
     { kind: "section", cells: ["【試算結果】", "", "", ""] },
     { kind: "header", cells: ["項目", "結果", "單位", "公式說明"] },
@@ -105,7 +105,7 @@ function buildPreviewRows(inputs: Quick11ExcelPreviewInputs, results: Quick11Exc
     {
       kind: "data",
       highlight: "result",
-      cells: ["DTI 債務收入比", `${results.dtiPct.toFixed(1)}%`, "%", "月付÷月收入；<35% 安全；≥50% 預警"],
+      cells: ["負債比", `${results.dtiPct.toFixed(1)}%`, "%", "月付÷月收入；<35% 安全；≥50% 預警"],
     },
     {
       kind: "data",

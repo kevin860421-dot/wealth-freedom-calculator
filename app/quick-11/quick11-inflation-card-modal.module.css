@@ -1,0 +1,153 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgb(0 0 0 / 0.6);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+
+.panel {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 360px);
+  max-height: min(86vh, 520px);
+  overflow-y: auto;
+  border-radius: 12px;
+  padding: 18px 16px 16px;
+  box-sizing: border-box;
+  box-shadow: 0 24px 64px rgb(0 0 0 / 0.45);
+}
+
+.panelDark {
+  border: 1px solid rgb(71 85 105 / 0.75);
+  background: linear-gradient(165deg, rgb(15 23 42 / 0.98) 0%, rgb(11 18 32 / 0.99) 100%);
+}
+
+.panelLight {
+  border: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.closeBtnDark {
+  background: rgb(51 65 85 / 0.55);
+  color: #e2e8f0;
+}
+
+.closeBtnDark:hover {
+  background: rgb(71 85 105 / 0.75);
+}
+
+.closeBtnLight {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.closeBtnLight:hover {
+  background: #e2e8f0;
+}
+
+.title {
+  margin: 0 36px 0 0;
+  font-size: 17px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.titleDark {
+  color: #f8fafc;
+}
+
+.titleLight {
+  color: #0f172a;
+}
+
+.body {
+  margin: 12px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.65;
+}
+
+.bodyDark {
+  color: #cbd5e1;
+}
+
+.bodyLight {
+  color: #475569;
+}
+
+.formula {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.formulaDark {
+  border: 1px solid rgb(56 189 248 / 0.25);
+  background: rgb(30 41 59 / 0.65);
+  color: #7dd3fc;
+}
+
+.formulaLight {
+  border: 1px solid #bae6fd;
+  background: #f0f9ff;
+  color: #0369a1;
+}
+
+.highlight {
+  font-weight: 900;
+}
+
+.highlightDark {
+  color: #f8fafc;
+}
+
+.highlightLight {
+  color: #0f172a;
+}
+
+.footerNote {
+  margin: 12px 0 0;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.footerNoteDark {
+  color: rgb(148 163 184 / 0.88);
+}
+
+.footerNoteLight {
+  color: #94a3b8;
+}

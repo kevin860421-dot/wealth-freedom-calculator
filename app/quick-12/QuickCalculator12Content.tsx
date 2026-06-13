@@ -438,12 +438,22 @@ export function QuickCalculator12Content({
   embeddedInMiniBlog = false,
   initialPage,
   initialPkScenarioIdx = 0,
+  machineId = 12,
+  displayTitle,
+  seoId = 12,
+  quickRoute = "/quick-12",
+  tagline,
 }: {
   embeddedInMiniBlog?: boolean;
   /** mini-blog 文內試算：0 月薪、1 股票、2 PK */
   initialPage?: 0 | 1 | 2;
   /** 僅在 initialPage 為 PK 時使用；對應 QUICK12_PK_SCENARIOS 索引 */
   initialPkScenarioIdx?: number;
+  machineId?: number;
+  displayTitle?: string;
+  seoId?: number;
+  quickRoute?: "/quick-12" | "/quick-13";
+  tagline?: string;
 } = {}) {
   const [isLight, setIsLight] = useState(false);
   const embedPage = initialPage ?? 0;
@@ -685,9 +695,15 @@ export function QuickCalculator12Content({
     setStockRows((rows) => rows.map((r) => (r.id === rowId ? { ...r, ratioText, presetId: "none" } : r)));
   }, []);
 
-  const q12Dash = QUICK12_DISPLAY_TITLE.indexOf("-");
-  const q12TitleFirst = q12Dash === -1 ? QUICK12_DISPLAY_TITLE : QUICK12_DISPLAY_TITLE.slice(0, q12Dash + 1);
-  const q12TitleSecond = q12Dash === -1 ? "" : QUICK12_DISPLAY_TITLE.slice(q12Dash + 1);
+  const titleText = displayTitle ?? QUICK12_DISPLAY_TITLE;
+  const q12Dash = titleText.indexOf("-");
+  const q12TitleFirst = q12Dash === -1 ? titleText : titleText.slice(0, q12Dash + 1);
+  const q12TitleSecond = q12Dash === -1 ? "" : titleText.slice(q12Dash + 1);
+  const headerTagline =
+    tagline ??
+    (machineId === 13
+      ? "股利配息、54C 與二代健保補充保費，先對齊門檻與扣款再談領多少。"
+      : "月薪、年終、股利，先丟同一鍋試算；數字對齊了，心裡才不會亂。");
 
   const pageTabs = [
     { id: 0, title: "月薪" },
@@ -711,7 +727,7 @@ export function QuickCalculator12Content({
         >
           <div className="flex items-start justify-between gap-2">
             <p className={`text-[15px] font-black tracking-wide ${isLight ? "text-sky-800" : "text-sky-300"}`}>
-              財富自由計算機 · 第 12 台
+              財富自由計算機 · 第 {machineId} 台
             </p>
             <button
               type="button"
@@ -733,7 +749,7 @@ export function QuickCalculator12Content({
             ) : null}
           </h1>
           <p className={`mt-2 text-[12px] font-semibold leading-relaxed ${isLight ? "text-slate-600" : "text-slate-400"}`}>
-            月薪、年終、股利，先丟同一鍋試算；數字對齊了，心裡才不會亂。
+            {headerTagline}
           </p>
         </header>
 
@@ -1209,14 +1225,14 @@ export function QuickCalculator12Content({
 
         {!embeddedInMiniBlog ? (
           <>
-            <QuickBlogLinksToggle quickRoute="/quick-12" />
-            <QuickSeoExtras id={12} />
-            <QuickSeoArticle id={12} />
+            <QuickBlogLinksToggle quickRoute={quickRoute} />
+            <QuickSeoExtras id={seoId} />
+            <QuickSeoArticle id={seoId} />
           </>
         ) : null}
 
         {!embeddedInMiniBlog ? (
-          <QuickBottomCtaStack quickId={12} className={styles.cta} label="進入財富自由計算機" />
+          <QuickBottomCtaStack quickId={seoId} className={styles.cta} label="進入財富自由計算機" />
         ) : null}
 
         <p className={styles.disclaimer}>* 試算僅供教育討論；費率與扣除以法令與個案為準。</p>
