@@ -35,6 +35,18 @@ export type MobileStockParamsSectionProps = {
 
 type FeedbackField = "principal" | "monthly" | "extra";
 
+const MONEY_QUICK_DELTAS = [50_000, 100_000, 200_000, 500_000, 1_000_000] as const;
+
+const ACTIVE_FIELD_LABEL: Record<FeedbackField, string> = {
+  principal: "當前本金",
+  monthly: "每月固定投入",
+  extra: "每月額外加碼",
+};
+
+function formatQuickWanLabel(delta: number, sign: "+" | "−"): string {
+  return `${sign}${delta / 10_000}萬`;
+}
+
 function formatDeltaYuan(delta: number): string {
   const n = Math.round(Math.abs(delta));
   const s = n.toLocaleString("zh-TW");
@@ -171,6 +183,7 @@ export function MobileStockParamsSection({
   const rafPrincipal = useRef<number | null>(null);
 
   const [feedback, setFeedback] = useState<{ field: FeedbackField; text: string } | null>(null);
+  const [activeMoneyField, setActiveMoneyField] = useState<FeedbackField>("principal");
   const feedbackHideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const skipFeedbackSnap = useRef(true);
   const prevSnap = useRef({ p: targetPrincipal, m: 0, e: 0 });
@@ -184,6 +197,16 @@ export function MobileStockParamsSection({
     parse: (raw) => Math.max(0, parseFormula(raw) || 0),
     format: (n) => Math.floor(Math.max(0, n)).toLocaleString("zh-TW"),
   });
+
+  const applyActiveFieldDelta = (delta: number) => {
+    const bump = (raw: string, set: (s: string) => void) => {
+      const n = Math.max(0, parseFormula(raw) || 0);
+      set(Math.floor(Math.max(0, n + delta)).toLocaleString("zh-TW"));
+    };
+    if (activeMoneyField === "principal") bump(currentPrincipalStr, setCurrentPrincipalStr);
+    else if (activeMoneyField === "monthly") bump(monthlyContribution, setMonthlyContribution);
+    else bump(monthlyExtra, setMonthlyExtra);
+  };
 
   /** 下方標的＋基本欄位齊全時，「加入標的」才亮起 */
   const saveTargetReady = useMemo(() => {
@@ -450,6 +473,7 @@ export function MobileStockParamsSection({
             placeholder="例如：200000"
             principal
             feedback={feedback?.field === "principal" ? feedback.text : null}
+            onFocusField={() => setActiveMoneyField("principal")}
             onChange={setCurrentPrincipalStr}
             onBlur={() => setCurrentPrincipalStr(commitFormulaWithCommas(currentPrincipalStr))}
             onEnter={() => setCurrentPrincipalStr(commitFormulaWithCommas(currentPrincipalStr))}
@@ -467,6 +491,7 @@ export function MobileStockParamsSection({
             value={monthlyContribution}
             placeholder="例如：12000"
             feedback={feedback?.field === "monthly" ? feedback.text : null}
+            onFocusField={() => setActiveMoneyField("monthly")}
             onBlur={() => setMonthlyContribution(commitFormulaWithCommas(monthlyContribution))}
             onChange={setMonthlyContribution}
             onEnter={() => setMonthlyContribution(commitFormulaWithCommas(monthlyContribution))}
@@ -484,6 +509,7 @@ export function MobileStockParamsSection({
             value={monthlyExtra}
             placeholder="例如：6000"
             feedback={feedback?.field === "extra" ? feedback.text : null}
+            onFocusField={() => setActiveMoneyField("extra")}
             onChange={setMonthlyExtra}
             onBlur={() => setMonthlyExtra(commitFormulaWithCommas(monthlyExtra))}
             onEnter={() => setMonthlyExtra(commitFormulaWithCommas(monthlyExtra))}
@@ -495,6 +521,37 @@ export function MobileStockParamsSection({
             }}
             slider={moneySlider(40_000, 1_000)}
           />
+        </div>
+
+        <div className={styles.quickActionsBlock} aria-label="金額快捷加減">
+          <p className={styles.quickActionsHint}>
+            目前調整：
+            <span className={styles.quickActionsHintActive}>{ACTIVE_FIELD_LABEL[activeMoneyField]}</span>
+          </p>
+          <div className={styles.quickActionsRow}>
+            {MONEY_QUICK_DELTAS.map((delta) => (
+              <button
+                key={`plus-${delta}`}
+                type="button"
+                className={styles.quickActionBtnPlus}
+                onClick={() => applyActiveFieldDelta(delta)}
+              >
+                {formatQuickWanLabel(delta, "+")}
+              </button>
+            ))}
+          </div>
+          <div className={styles.quickActionsRow}>
+            {MONEY_QUICK_DELTAS.map((delta) => (
+              <button
+                key={`minus-${delta}`}
+                type="button"
+                className={styles.quickActionBtnMinus}
+                onClick={() => applyActiveFieldDelta(-delta)}
+              >
+                {formatQuickWanLabel(delta, "−")}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

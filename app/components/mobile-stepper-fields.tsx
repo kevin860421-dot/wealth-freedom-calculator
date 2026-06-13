@@ -28,6 +28,7 @@ type StepperTextFieldProps = {
   onBlur?: () => void;
   onEnter?: () => void;
   onStep: (delta: number) => void;
+  onFocusField?: () => void;
   hint?: string;
   slider?: MoneySliderConfig;
 };
@@ -43,6 +44,7 @@ export function StepperTextField({
   onBlur,
   onEnter,
   onStep,
+  onFocusField,
   hint,
   slider,
 }: StepperTextFieldProps) {
@@ -67,7 +69,15 @@ export function StepperTextField({
           </span>
         ) : null}
         <div className={styles.stepperRow}>
-          <button type="button" className={circleCls} aria-label="增加" onClick={() => onStep(1)}>
+          <button
+            type="button"
+            className={circleCls}
+            aria-label="增加"
+            onClick={() => {
+              onFocusField?.();
+              onStep(1);
+            }}
+          >
             +
           </button>
           <div className={rowCls}>
@@ -85,13 +95,24 @@ export function StepperTextField({
                   }
                 }}
                 onBlur={onBlur}
-                onFocus={(e) => e.target.select()}
+                onFocus={(e) => {
+                  onFocusField?.();
+                  e.target.select();
+                }}
                 className={fieldCls}
                 placeholder={placeholder}
               />
             </div>
           </div>
-          <button type="button" className={circleCls} aria-label="減少" onClick={() => onStep(-1)}>
+          <button
+            type="button"
+            className={circleCls}
+            aria-label="減少"
+            onClick={() => {
+              onFocusField?.();
+              onStep(-1);
+            }}
+          >
             −
           </button>
         </div>
@@ -107,6 +128,7 @@ export function StepperTextField({
                 value={sliderDisplayValue}
                 aria-label={`${label} 滑桿`}
                 onChange={(e) => {
+                  onFocusField?.();
                   const raw = Number(e.target.value);
                   if (!Number.isFinite(raw)) return;
                   const nextAmount = sliderMax - raw + slider.min;

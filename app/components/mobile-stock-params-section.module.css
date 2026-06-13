@@ -273,6 +273,86 @@
   box-sizing: border-box;
 }
 
+.quickActionsBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  box-sizing: border-box;
+}
+
+.quickActionsHint {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.quickActionsHintActive {
+  margin-left: 4px;
+  font-weight: 700;
+  color: #4ade80;
+}
+
+.quickActionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+.quickActionBtnPlus,
+.quickActionBtnMinus {
+  flex: 1 1 calc(20% - 6px);
+  min-width: 52px;
+  padding: 7px 4px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.quickActionBtnPlus {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.08);
+  border: 1px solid rgba(74, 222, 128, 0.45);
+}
+
+.quickActionBtnPlus:hover {
+  background: rgba(74, 222, 128, 0.16);
+  border-color: rgba(74, 222, 128, 0.7);
+}
+
+.quickActionBtnPlus:active {
+  background: rgba(74, 222, 128, 0.24);
+}
+
+.quickActionBtnMinus {
+  color: #fb923c;
+  background: rgba(251, 146, 60, 0.08);
+  border: 1px solid rgba(251, 146, 60, 0.45);
+}
+
+.quickActionBtnMinus:hover {
+  background: rgba(251, 146, 60, 0.16);
+  border-color: rgba(251, 146, 60, 0.7);
+}
+
+.quickActionBtnMinus:active {
+  background: rgba(251, 146, 60, 0.24);
+}
+
 .ratePairGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
