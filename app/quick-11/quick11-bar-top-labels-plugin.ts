@@ -56,7 +56,6 @@ export const quick11BarTopLabelsPlugin: Plugin<"bar"> = {
     enabled: false,
   },
   afterDatasetsDraw(chart) {
-    if (chart.config.type !== "bar") return;
     const pluginOpts = (chart.options.plugins as { graceBarTopLabels?: Quick11BarTopLabelsOptions } | undefined)
       ?.graceBarTopLabels;
     if (pluginOpts?.enabled !== true) return;

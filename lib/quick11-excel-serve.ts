@@ -5,7 +5,7 @@ import path from "path";
 export const QUICK11_EXCEL_FILENAME = "quick11-loan-dti-template.xlsx";
 
 /** 瀏覽器下載時顯示的檔名（ASCII，相容舊版 UA） */
-export const QUICK11_EXCEL_DOWNLOAD_AS = "quick11-home-dual-v2.xlsx";
+export const QUICK11_EXCEL_DOWNLOAD_AS = "quick11-home-v5-dual-sheets.xlsx";
 
 /** 靜態直連（public/downloads，本機／部署皆可預覽下載） */
 export const QUICK11_EXCEL_STATIC_PATH = "/downloads/quick11-loan-dti-template.xlsx";

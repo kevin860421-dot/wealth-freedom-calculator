@@ -17,7 +17,7 @@ function SideCell({ row }: { row: Quick11ExcelPreviewRow }) {
   if (!row.side) return <td className="w-[28%] bg-[#F8F9FA]" />;
   const { label, value, highlight } = row.side;
   const isPanel = row.kind === "panel";
-  const isHeader = row.side.label === "摘要" || row.side.label === "本息均攤";
+  const isHeader = row.side.label === "摘要";
 
   if (isPanel) {
     return (
@@ -160,14 +160,14 @@ export function Quick11ExcelPreviewView({ rows, footer, missingFile }: Props) {
           <p className="font-black">🛠 Excel 範本預覽（瀏覽器版）</p>
           <p className="mt-1 text-amber-900/90">
             <strong>Cursor 裡的 .xlsx 無法預覽版面</strong>，請用下方按鈕在瀏覽器開啟，或用 Excel 開啟下載檔。
-            新版特徵：分頁名 <code className="rounded bg-white/80 px-1">首頁</code>、標題列深藍色、右側 F 欄「參數總覽」。
+            新版：首頁藍／綠按鈕開啟「本息均攤／本金平均」明細分頁，可【新建視窗】拖至右側。
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
             <a
               href={QUICK11_EXCEL_STATIC_PATH}
               className="rounded-lg bg-emerald-600 px-3 py-1.5 text-[12px] font-bold text-white hover:bg-emerald-700"
             >
-              下載新版 v2（靜態直連）
+              下載新版 v5（靜態直連）
             </a>
             <a
               href={QUICK11_EXCEL_PUBLIC_DOWNLOAD_PATH}
@@ -201,15 +201,15 @@ export function Quick11ExcelPreviewView({ rows, footer, missingFile }: Props) {
         ) : (
           <>
             <div className="overflow-x-auto rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
-              <table className="w-full min-w-[980px] border-collapse text-[14px] table-fixed">
+              <table className="w-full min-w-[1100px] border-collapse text-[14px] table-fixed">
                 <colgroup>
-                  <col className="w-[22%]" />
+                  <col className="w-[26%]" />
                   <col className="w-[14%]" />
-                  <col className="w-[7%]" />
-                  <col className="w-[29%]" />
+                  <col className="w-[8%]" />
+                  <col className="w-[32%]" />
                   <col className="w-[1%]" />
-                  <col className="w-[15%]" />
                   <col className="w-[12%]" />
+                  <col className="w-[7%]" />
                 </colgroup>
                 <tbody>
                   {rows.map((row, i) => {

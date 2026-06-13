@@ -16,7 +16,7 @@ type Quick11PageTabStripProps = {
   /** 左側固定、不隨橫向捲動（如首頁） */
   pinnedTab?: Quick11PageTabItem;
   scrollRef?: RefObject<HTMLDivElement | null>;
-  tabButtonRefs?: MutableRefObject<(HTMLButtonElement | null)[]>;
+  tabButtonRefs?: MutableRefObject<Record<number, HTMLButtonElement | null>>;
   isLight?: boolean;
   idPrefix?: string;
 };
@@ -79,7 +79,7 @@ function TabButton(props: {
   active: boolean;
   isLight: boolean;
   idPrefix: string;
-  tabButtonRefs?: MutableRefObject<(HTMLButtonElement | null)[]>;
+  tabButtonRefs?: MutableRefObject<Record<number, HTMLButtonElement | null>>;
   onSwitch: (pageId: number) => void;
   extraClassName?: string;
 }) {

@@ -10,13 +10,8 @@ export type Quick11ExcelPreviewInputs = {
 
 export type Quick11ExcelPreviewResults = {
   monthlyAnnuity: number;
-  annuityFirstInterest: number;
   totalInterest: number;
   annuityTotalRepayment: number;
-  epFirstPayment: number;
-  epFirstInterest: number;
-  epTotalInterest: number;
-  epTotalRepayment: number;
   dtiRatio: number;
   dtiPct: number;
   interestToPrincipalPct: number;
@@ -48,14 +43,7 @@ export function computeQuick11ExcelResults(input: Quick11ExcelPreviewInputs): Qu
   const monthlyAnnuity =
     r <= 0 ? principal / n : (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
   const totalInterest = monthlyAnnuity * n - principal;
-  const annuityFirstInterest = principal * r;
   const annuityTotalRepayment = principal + totalInterest;
-
-  const epFirstInterest = principal * r;
-  const epFirstPayment = principal / n + epFirstInterest;
-  const epTotalInterest = principal * r * (n + 1) / 2;
-  const epTotalRepayment = principal + epTotalInterest;
-
   const dtiRatio = monthlyIncome <= 0 ? 0 : monthlyAnnuity / monthlyIncome;
   const dtiPct = dtiRatio * 100;
   const interestToPrincipalPct = principal <= 0 ? 0 : (totalInterest / principal) * 100;
@@ -68,13 +56,8 @@ export function computeQuick11ExcelResults(input: Quick11ExcelPreviewInputs): Qu
 
   return {
     monthlyAnnuity: Math.round(monthlyAnnuity),
-    annuityFirstInterest: Math.round(annuityFirstInterest),
     totalInterest: Math.round(totalInterest),
     annuityTotalRepayment: Math.round(annuityTotalRepayment),
-    epFirstPayment: Math.round(epFirstPayment),
-    epFirstInterest: Math.round(epFirstInterest),
-    epTotalInterest: Math.round(epTotalInterest),
-    epTotalRepayment: Math.round(epTotalRepayment),
     dtiRatio,
     dtiPct,
     interestToPrincipalPct,
@@ -114,144 +97,61 @@ function buildPreviewRows(inputs: Quick11ExcelPreviewInputs, results: Quick11Exc
   const warnHighlight =
     results.dtiPct >= 50 ? "warn" : results.dtiPct >= 35 ? "warnMid" : "result";
 
-  const paramSide = (row: number) => {
-    if (row === 0) return side("摘要", "數值", true);
-    if (row === 1) return side("貸款本金", `NT$ ${fmtMoney(inputs.principal)}`);
-    if (row === 2) return side("年利率", `${inputs.annualRate.toFixed(2)}%`);
-    if (row === 3) return side("貸款年期", `${inputs.years} 年`);
-    return side("月收入", `NT$ ${fmtMoney(inputs.monthlyIncome)}`);
-  };
-
-  const fundSide = (row: number) => {
-    const rows: Quick11ExcelPreviewSideRow[] = [
-      side("本息均攤", "數值", true),
-      side("本息 · 每月繳款", `NT$ ${fmtMoney(results.monthlyAnnuity)}`),
-      side("本息 · 首期利息", `NT$ ${fmtMoney(results.annuityFirstInterest)}`),
-      side("本息 · 總繳利息", `NT$ ${fmtMoney(results.totalInterest)}`),
-      side("本息 · 總繳金額", `NT$ ${fmtMoney(results.annuityTotalRepayment)}`, true),
-      side("本金平均 · 首月繳款", `NT$ ${fmtMoney(results.epFirstPayment)}`),
-      side("本金平均 · 首期利息", `NT$ ${fmtMoney(results.epFirstInterest)}`),
-      side("本金平均 · 總繳利息", `NT$ ${fmtMoney(results.epTotalInterest)}`),
-      side("本金平均 · 總繳金額", `NT$ ${fmtMoney(results.epTotalRepayment)}`, true),
-      side("負債比（DTI）", `${results.dtiPct.toFixed(1)}%`),
-      side("利息佔本金比例", `${results.interestToPrincipalPct.toFixed(2)}%`, true),
-      side("多出多少（本息）", `NT$ ${fmtMoney(results.totalInterest)}`, true),
-    ];
-    return rows[row] ?? side("", "");
-  };
-
   return [
-    { kind: "title", cells: ["破產計算機・貸款利息試算表（公式可改）", "", "", ""] },
+    { kind: "title", cells: ["破產計算機 · 貸款利息試算表（公式可改）", "", "", ""] },
     { kind: "subtitle", cells: ["【 輸入區 】改 B 欄數字即可自動計算", "", "", ""] },
+    { kind: "panel", cells: ["輸入參數", "", "", ""], side: side("參數總覽", "") },
+    { kind: "header", cells: ["項目", "數值", "單位", "說明"], side: side("摘要", "數值", true) },
     {
-      kind: "panel",
-      cells: ["✏️  輸入參數", "", "", ""],
-      side: side("📋  參數總覽", ""),
-    },
-    {
-      kind: "header",
-      cells: ["項目", "數值", "單位", "說明"],
-      side: paramSide(0),
+      kind: "data",
+      highlight: "input",
+      cells: ["貸款本金", fmtMoney(inputs.principal), "NT$", "例：1200 萬"],
+      side: side("貸款本金", `NT$ ${fmtMoney(inputs.principal)}`),
     },
     {
       kind: "data",
       highlight: "input",
-      cells: ["🏠  貸款本金", fmtMoney(inputs.principal), "NT$", "例：1200 萬"],
-      side: paramSide(1),
+      cells: ["年利率", inputs.annualRate.toFixed(2), "%", "例：2.2 純數字"],
+      side: side("年利率", `${inputs.annualRate.toFixed(2)}%`),
     },
     {
       kind: "data",
       highlight: "input",
-      cells: ["📊  年利率", inputs.annualRate.toFixed(2), "%", "例：2.2 純數字"],
-      side: paramSide(2),
+      cells: ["貸款年期", String(inputs.years), "年", "例：30 純數字"],
+      side: side("貸款年期", `${inputs.years} 年`),
     },
     {
       kind: "data",
       highlight: "input",
-      cells: ["📅  貸款年期", String(inputs.years), "年", "例：30 純數字"],
-      side: paramSide(3),
-    },
-    {
-      kind: "data",
-      highlight: "input",
-      cells: ["👤  月收入（預警）", fmtMoney(inputs.monthlyIncome), "NT$", "算 DTI 用"],
-      side: paramSide(4),
+      cells: ["月收入（預警）", fmtMoney(inputs.monthlyIncome), "NT$", "算 DTI 用"],
+      side: side("月收入（預警）", `NT$ ${fmtMoney(inputs.monthlyIncome)}`),
     },
     { kind: "spacer", cells: ["", "", "", ""] },
-    {
-      kind: "panel",
-      cells: ["🧮  試算結果", "", "", ""],
-      side: side("💰  資金總覽", ""),
-    },
-    {
-      kind: "header",
-      cells: ["項目", "結果", "單位", "公式說明"],
-      side: fundSide(0),
-    },
+    { kind: "panel", cells: ["試算結果", "", "", ""], side: side("資金總覽", "") },
+    { kind: "header", cells: ["項目", "結果", "單位", "公式說明"], side: side("摘要", "數值", true) },
     {
       kind: "data",
       highlight: "result",
       cells: ["本息均攤 · 每月繳款", fmtMoney(results.monthlyAnnuity), "NT$", "PMT：月利率＝年利率÷12÷100"],
-      side: fundSide(1),
-    },
-    {
-      kind: "data",
-      highlight: "result",
-      cells: ["本息均攤 · 首期利息", fmtMoney(results.annuityFirstInterest), "NT$", "第一個月利息"],
-      side: fundSide(2),
+      side: side("總繳金額", `NT$ ${fmtMoney(results.annuityTotalRepayment)}`),
     },
     {
       kind: "data",
       highlight: "result",
       cells: ["本息均攤 · 總繳利息", fmtMoney(results.totalInterest), "NT$", "總付款－本金"],
-      side: fundSide(3),
+      side: side("本金", `NT$ ${fmtMoney(inputs.principal)}`),
     },
     {
       kind: "data",
       highlight: "result",
-      cells: ["本息均攤 · 總繳金額", fmtMoney(results.annuityTotalRepayment), "NT$", "本金＋總利息"],
-      side: fundSide(4),
+      cells: ["DTI 債務收入比", `${results.dtiPct.toFixed(1)}%`, "%", "月付÷月收入；<35% 安全；≥50% 預警"],
+      side: side("總利息", `NT$ ${fmtMoney(results.totalInterest)}`),
     },
     {
       kind: "data",
       highlight: "result",
-      cells: ["本金平均 · 首月繳款", fmtMoney(results.epFirstPayment), "NT$", "固定本金＋當月利息"],
-      side: fundSide(5),
-    },
-    {
-      kind: "data",
-      highlight: "result",
-      cells: ["本金平均 · 首期利息", fmtMoney(results.epFirstInterest), "NT$", "第一個月利息"],
-      side: fundSide(6),
-    },
-    {
-      kind: "data",
-      highlight: "result",
-      cells: ["本金平均 · 總繳利息", fmtMoney(results.epTotalInterest), "NT$", "遞減利息加總"],
-      side: fundSide(7),
-    },
-    {
-      kind: "data",
-      highlight: "result",
-      cells: ["本金平均 · 總繳金額", fmtMoney(results.epTotalRepayment), "NT$", "本金＋總利息"],
-      side: fundSide(8),
-    },
-    {
-      kind: "data",
-      highlight: "result",
-      cells: ["DTI 債務收入比", `${results.dtiPct.toFixed(1)}%`, "%", "本息月付÷月收入；<35% 安全"],
-      side: fundSide(9),
-    },
-    {
-      kind: "data",
-      highlight: warnHighlight,
-      cells: ["財務健康狀態", results.healthLabel, "", ""],
-      side: fundSide(10),
-    },
-    {
-      kind: "spacer",
       cells: ["", "", "", ""],
-      side: fundSide(11),
+      side: side("利息佔本金比例", `${results.interestToPrincipalPct.toFixed(2)}%`, true),
     },
     {
       kind: "warnBanner",
@@ -269,12 +169,7 @@ function buildPreviewRows(inputs: Quick11ExcelPreviewInputs, results: Quick11Exc
     },
     {
       kind: "disclaimer",
-      cells: [
-        "（試算結果僅供參考，實際以銀行／法令為準；負債比建議＜35%，≥50% 為破產預警。）",
-        "",
-        "",
-        "",
-      ],
+      cells: ["（試算結果僅供參考，實際以銀行／法令為準；負債比建議＜35%，≥50% 為破產預警。）", "", "", ""],
     },
   ];
 }

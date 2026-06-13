@@ -2,6 +2,7 @@
 
 import { QUICK11_LOAN_PRESETS } from "./loan-scenarios";
 import { formatMoney, Q11_ANNUAL_RATE_MAX_PCT, Q11_ANNUAL_RATE_MIN_PCT } from "./logic";
+import { formatPaymentMoney, monthlyPaymentTitleForMethod } from "./quick11-payment-display";
 import goldStat from "./quick-11-golden-stat.module.css";
 import type { Quick11ShareSnapshotData } from "./quick11-share-snapshot-data";
 
@@ -205,8 +206,8 @@ export function Quick11HomeSnapshotView({ data }: { data: Quick11ShareSnapshotDa
 
           <div className="grid grid-cols-3 gap-2">
             <SnapshotInfoCard
-              title="每月繳款"
-              value={`NT$ ${formatMoney(data.monthlyPayment)}`}
+              title={monthlyPaymentTitleForMethod(data.method)}
+              value={formatPaymentMoney(data.monthlyPayment)}
               tone="text-slate-100 border-slate-600 bg-slate-800/80"
             />
             <SnapshotInfoCard

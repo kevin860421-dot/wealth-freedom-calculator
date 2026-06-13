@@ -166,7 +166,7 @@ export function Quick11AdvancedTabPanels(props: Quick11AdvancedTabPanelsProps) {
             />
           </>
         ) : (
-          <div className={`${theme.card} text-sm ${descMuted}`}>請先在首頁輸入貸款條件。</div>
+          <div className={`${theme.card} text-sm ${theme.muted}`}>請先在首頁輸入貸款條件。</div>
         )}
       </div>
     );

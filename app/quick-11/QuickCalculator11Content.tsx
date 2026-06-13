@@ -32,7 +32,7 @@ import {
   type LoanMethod,
   type PaymentRow,
 } from "./logic";
-import { QUICK11_LOAN_PRESETS } from "./loan-scenarios";
+import { QUICK11_LOAN_PRESETS, type Quick11LoanPresetKey } from "./loan-scenarios";
 import type { Quick11EmbedPreset } from "./embed-preset";
 import goldStat from "./quick-11-golden-stat.module.css";
 import { buildRateShowdownRows } from "./rate-showdown";
@@ -81,9 +81,24 @@ import {
   useQuick11Input,
   type Quick11InputStore,
 } from "./quick11-input-context";
+import { Quick11VehicleFeePanel, Quick11VehicleFeePitfall } from "./quick11-vehicle-fee-panel";
+import {
+  buildVehicleFinanceInsight,
+  isVehicleFinancePreset,
+  QUICK11_DEFAULT_VEHICLE_FEES,
+} from "./quick11-vehicle-finance";
+import {
+  Quick11ExpandablePaymentCard,
+} from "./quick11-expandable-payment-card";
+import { ShrinkFitCardAmount, ShrinkFitText, useShrinkFitElement } from "./quick11-shrink-fit";
+import {
+  firstPeriodPayment,
+  monthlyPaymentHeadline,
+  pickScheduleRows,
+} from "./quick11-payment-display";
 
 type LoanPresetAction = {
-  key: string;
+  key: Quick11LoanPresetKey;
   icon: string;
   label: string;
   amount: number;
@@ -214,6 +229,36 @@ export function QuickCalculator11Content({
   const [monthlyIncome, setMonthlyIncome] = useState(() => anchor?.monthlyIncome ?? 80_000);
   const [monthlyIncomeText, setMonthlyIncomeText] = useState(() => formatMoney(anchor?.monthlyIncome ?? 80_000));
 
+  const anchorVehicleFees = (() => {
+    if (!anchor) return { originationFee: 0, collateralSettingFee: 0 };
+    const hit = QUICK11_LOAN_PRESETS.find(
+      (p) =>
+        p.amount === anchor.loanAmount &&
+        p.annualRate === anchor.annualRate &&
+        p.years === anchor.loanYears &&
+        p.monthlyIncome === anchor.monthlyIncome,
+    );
+    if (hit && isVehicleFinancePreset(hit.key)) return QUICK11_DEFAULT_VEHICLE_FEES[hit.key];
+    return { originationFee: 0, collateralSettingFee: 0 };
+  })();
+
+  const [activeLoanPreset, setActiveLoanPreset] = useState<Quick11LoanPresetKey | null>(() => {
+    if (!anchor) return null;
+    const hit = QUICK11_LOAN_PRESETS.find(
+      (p) =>
+        p.amount === anchor.loanAmount &&
+        p.annualRate === anchor.annualRate &&
+        p.years === anchor.loanYears &&
+        p.monthlyIncome === anchor.monthlyIncome,
+    );
+    return hit?.key ?? null;
+  });
+  const [originationFee, setOriginationFee] = useState(anchorVehicleFees.originationFee);
+  const [originationFeeText, setOriginationFeeText] = useState(formatMoney(anchorVehicleFees.originationFee));
+  const [collateralFee, setCollateralFee] = useState(anchorVehicleFees.collateralSettingFee);
+  const [collateralFeeText, setCollateralFeeText] = useState(formatMoney(anchorVehicleFees.collateralSettingFee));
+  const [vehicleFeesSkipped, setVehicleFeesSkipped] = useState(false);
+
   const [method, setMethod] = useState<LoanMethod>("annuity");
   const [currentPage, setCurrentPage] = useState(() => {
     const tab = anchor?.initialPage;
@@ -284,6 +329,18 @@ export function QuickCalculator11Content({
     stockVsInvestPctVal,
   ]);
 
+  useEffect(() => {
+    const cap = Math.max(0, loanAmount);
+    if (originationFee > cap) {
+      setOriginationFee(cap);
+      setOriginationFeeText(formatMoney(cap));
+    }
+    if (collateralFee > cap) {
+      setCollateralFee(cap);
+      setCollateralFeeText(formatMoney(cap));
+    }
+  }, [loanAmount, originationFee, collateralFee]);
+
   const output = useMemo(() => buildLoanSchedules(loanAmount, annualRate, loanYears), [loanAmount, annualRate, loanYears]);
   const baselineMonths = Math.max(1, Math.round(loanYears * 12));
   const lumpAmountMin = Math.min(LUMP_AMOUNT_MIN, loanAmount);
@@ -324,9 +381,13 @@ export function QuickCalculator11Content({
     [loanAmount, loanYears, annualRate, method],
   );
   const rateShowdownMethodLabel = method === "annuity" ? "本息均攤" : "本金平均";
-  const rows = method === "annuity" ? output.annuityRows : output.equalPrincipalRows;
-  const firstPayment = rows[0]?.payment ?? 0;
+  const rows = useMemo(() => pickScheduleRows(output, method), [output, method]);
+  const paymentHeadline = useMemo(() => monthlyPaymentHeadline(output, method), [output, method]);
+  const annuityPaymentHeadline = useMemo(() => monthlyPaymentHeadline(output, "annuity"), [output]);
+  const equalPaymentHeadline = useMemo(() => monthlyPaymentHeadline(output, "equalPrincipal"), [output]);
+  const firstPayment = useMemo(() => firstPeriodPayment(output, method), [output, method]);
   const dtiRatio = monthlyIncome <= 0 ? 1 : firstPayment / monthlyIncome;
+
   const dtiPct = Math.max(0, dtiRatio * 100);
 
   const prepayResultAnnuity = useMemo(
@@ -382,7 +443,7 @@ export function QuickCalculator11Content({
   const shockedAnnualRate = annualRate + rateShockPctVal;
   const shockedOutput = useMemo(() => buildLoanSchedules(loanAmount, shockedAnnualRate, loanYears), [loanAmount, shockedAnnualRate, loanYears]);
   const shockedInterestIncrease = Math.max(0, shockedOutput.annuityTotalInterest - output.annuityTotalInterest);
-  const shockedMonthlyPayment = shockedOutput.annuityRows[0]?.payment ?? 0;
+  const shockedMonthlyPayment = shockedOutput.annuityMonthlyPayment;
   const shockedDtiPct = monthlyIncome <= 0 ? 100 : (shockedMonthlyPayment / monthlyIncome) * 100;
 
   const hikeAnnualRate = useMemo(
@@ -393,7 +454,7 @@ export function QuickCalculator11Content({
     () => buildLoanSchedules(loanAmount, hikeAnnualRate, loanYears),
     [loanAmount, hikeAnnualRate, loanYears],
   );
-  const hikeMonthlyPayment = hikeOutput.annuityRows[0]?.payment ?? 0;
+  const hikeMonthlyPayment = hikeOutput.annuityMonthlyPayment;
   const hikeDtiPct = monthlyIncome <= 0 ? 100 : (hikeMonthlyPayment / monthlyIncome) * 100;
   const hikeInterestDelta = hikeOutput.annuityTotalInterest - output.annuityTotalInterest;
   const methodLabel = method === "annuity" ? "本息均攤" : "本金平均";
@@ -626,8 +687,7 @@ export function QuickCalculator11Content({
       loanYears,
       monthlyIncome,
       method,
-      monthlyPayment:
-        method === "annuity" ? (output.annuityRows[0]?.payment ?? 0) : (output.equalPrincipalRows[0]?.payment ?? 0),
+      monthlyPayment: paymentHeadline.amount,
       monthlyInterest: rows[0]?.interest ?? 0,
       totalInterest: method === "annuity" ? output.annuityTotalInterest : output.equalPrincipalTotalInterest,
       totalRepayment:
@@ -644,8 +704,7 @@ export function QuickCalculator11Content({
       loanYears,
       monthlyIncome,
       method,
-      output.annuityRows,
-      output.equalPrincipalRows,
+      paymentHeadline.amount,
       output.annuityTotalInterest,
       output.equalPrincipalTotalInterest,
       rows,
@@ -719,6 +778,7 @@ export function QuickCalculator11Content({
   };
 
   const applyLoanPreset = (preset: LoanPresetAction) => {
+    setActiveLoanPreset(preset.key);
     setLoanAmount(preset.amount);
     setLoanAmountText(formatMoney(preset.amount));
     setAnnualRate(preset.annualRate);
@@ -727,7 +787,57 @@ export function QuickCalculator11Content({
     setLoanYearsText(String(preset.years));
     setMonthlyIncome(preset.monthlyIncome);
     setMonthlyIncomeText(formatMoney(preset.monthlyIncome));
+    if (isVehicleFinancePreset(preset.key)) {
+      const fees = QUICK11_DEFAULT_VEHICLE_FEES[preset.key];
+      setOriginationFee(fees.originationFee);
+      setOriginationFeeText(formatMoney(fees.originationFee));
+      setCollateralFee(fees.collateralSettingFee);
+      setCollateralFeeText(formatMoney(fees.collateralSettingFee));
+      setVehicleFeesSkipped(false);
+    } else {
+      setOriginationFee(0);
+      setOriginationFeeText(formatMoney(0));
+      setCollateralFee(0);
+      setCollateralFeeText(formatMoney(0));
+      setVehicleFeesSkipped(false);
+    }
   };
+
+  const clampVehicleFee = useCallback(
+    (raw: string, fallback: number) => {
+      const max = Math.max(0, loanAmount);
+      const parsed = evaluateCalcInput(raw);
+      if (parsed === null) return fallback;
+      return Math.min(max, Math.max(0, Math.round(parsed)));
+    },
+    [loanAmount],
+  );
+
+  const showVehicleFeeFields = isVehicleFinancePreset(activeLoanPreset);
+
+  const vehicleFinanceInsight = useMemo(() => {
+    if (!showVehicleFeeFields) return null;
+    const monthlyPayment = output.annuityMonthlyPayment;
+    const feesForCalc = vehicleFeesSkipped
+      ? { originationFee: 0, collateralSettingFee: 0 }
+      : { originationFee, collateralSettingFee: collateralFee };
+    return buildVehicleFinanceInsight({
+      nominalPrincipal: loanAmount,
+      nominalRatePct: annualRate,
+      monthlyPayment,
+      periods: baselineMonths,
+      fees: feesForCalc,
+    });
+  }, [
+    showVehicleFeeFields,
+    loanAmount,
+    annualRate,
+    output.annuityMonthlyPayment,
+    baselineMonths,
+    originationFee,
+    collateralFee,
+    vehicleFeesSkipped,
+  ]);
 
   const bottomCta = useMemo((): {
     show: boolean;
@@ -1042,6 +1152,7 @@ export function QuickCalculator11Content({
                   unit="NT$"
                   isLight={isLight}
                   presetActions={loanPresetActions}
+                  activePresetKey={activeLoanPreset}
                   onApplyPreset={applyLoanPreset}
                   sliderMin={LOAN_PRINCIPAL_MIN}
                   sliderMax={LOAN_PRINCIPAL_MAX}
@@ -1179,6 +1290,43 @@ export function QuickCalculator11Content({
                     bumpStep={1}
                   />
                 </div>
+
+                <Quick11VehicleFeePanel
+                  open={showVehicleFeeFields}
+                  isLight={isLight}
+                  feesSkipped={vehicleFeesSkipped}
+                  onFeesSkippedChange={setVehicleFeesSkipped}
+                  originationFee={originationFee}
+                  originationFeeText={originationFeeText}
+                  collateralFee={collateralFee}
+                  collateralFeeText={collateralFeeText}
+                  maxFee={loanAmount}
+                  netProceeds={vehicleFinanceInsight?.netProceeds ?? loanAmount}
+                  aprIncreasePct={vehicleFinanceInsight?.aprIncreasePct ?? 0}
+                  equivalentExtraInterest={vehicleFinanceInsight?.equivalentExtraInterest ?? 0}
+                  onOriginationTextChange={setOriginationFeeText}
+                  onOriginationCommit={(raw) => {
+                    const next = clampVehicleFee(raw, originationFee);
+                    setOriginationFee(next);
+                    setOriginationFeeText(formatMoney(next));
+                  }}
+                  onCollateralTextChange={setCollateralFeeText}
+                  onCollateralCommit={(raw) => {
+                    const next = clampVehicleFee(raw, collateralFee);
+                    setCollateralFee(next);
+                    setCollateralFeeText(formatMoney(next));
+                  }}
+                  onOriginationBump={(delta) => {
+                    const next = clampVehicleFee(String(originationFee + delta), originationFee);
+                    setOriginationFee(next);
+                    setOriginationFeeText(formatMoney(next));
+                  }}
+                  onCollateralBump={(delta) => {
+                    const next = clampVehicleFee(String(collateralFee + delta), collateralFee);
+                    setCollateralFee(next);
+                    setCollateralFeeText(formatMoney(next));
+                  }}
+                />
               </div>
             ) : null}
 
@@ -1219,11 +1367,14 @@ export function QuickCalculator11Content({
                         </div>
                       </div>
                       <div className="grid grid-cols-3 gap-2">
-                        <InfoCard
-                          title="每月繳款"
-                          value={method === "annuity" ? `NT$ ${formatMoney(output.annuityRows[0]?.payment ?? 0)}` : `NT$ ${formatMoney(output.equalPrincipalRows[0]?.payment ?? 0)}`}
+                        <Quick11ExpandablePaymentCard
+                          title={paymentHeadline.title}
+                          amount={paymentHeadline.amount}
+                          hint={paymentHeadline.hint}
+                          annuityRows={output.annuityRows}
+                          equalPrincipalRows={output.equalPrincipalRows}
+                          method={method}
                           tone={isLight ? Q11_INFO_TONE_LIGHT : "text-slate-100 border-slate-600 bg-slate-800/80"}
-                          shrinkValue
                           isLight={isLight}
                         />
                         <InfoCard
@@ -1241,6 +1392,17 @@ export function QuickCalculator11Content({
                           isLight={isLight}
                         />
                       </div>
+                      <Quick11VehicleFeePitfall
+                        show={Boolean(
+                          !vehicleFeesSkipped &&
+                            (vehicleFinanceInsight?.showPitfall || (vehicleFinanceInsight?.totalDeducted ?? 0) > 0),
+                        )}
+                        totalDeducted={vehicleFinanceInsight?.totalDeducted ?? 0}
+                        nominalRatePct={annualRate}
+                        effectiveAprPct={vehicleFinanceInsight?.effectiveAprPct ?? null}
+                        netProceeds={vehicleFinanceInsight?.netProceeds ?? 0}
+                        isLight={isLight}
+                      />
                       <div className="grid grid-cols-2 gap-3">
                         <TotalRepaymentCard
                           principal={loanAmount}
@@ -1279,8 +1441,11 @@ export function QuickCalculator11Content({
                   {currentPage === 1 ? (
                     <ResultPage
                       label="本息均攤（穩定但利息高）"
-                      payment={`NT$ ${formatMoney(output.annuityRows[0]?.payment ?? 0)}`}
-                      paymentDiffVsCompare={(output.annuityRows[0]?.payment ?? 0) - (output.equalPrincipalRows[0]?.payment ?? 0)}
+                      paymentTitle={annuityPaymentHeadline.title}
+                      paymentAmount={annuityPaymentHeadline.amount}
+                      paymentHint={annuityPaymentHeadline.hint}
+                      paymentMethod="annuity"
+                      paymentDiffVsCompare={annuityPaymentHeadline.amount - equalPaymentHeadline.amount}
                       compareLabel="本金平均"
                       totalInterest={output.annuityTotalInterest}
                       totalRepayment={loanAmount + output.annuityTotalInterest}
@@ -1297,8 +1462,11 @@ export function QuickCalculator11Content({
                   {currentPage === 2 ? (
                     <ResultPage
                       label="本金平均（內行人首選，利息最省）"
-                      payment={`NT$ ${formatMoney(output.equalPrincipalRows[0]?.payment ?? 0)} → ${formatMoney(output.equalPrincipalRows.at(-1)?.payment ?? 0)}`}
-                      paymentDiffVsCompare={(output.equalPrincipalRows[0]?.payment ?? 0) - (output.annuityRows[0]?.payment ?? 0)}
+                      paymentTitle={equalPaymentHeadline.title}
+                      paymentAmount={equalPaymentHeadline.amount}
+                      paymentHint={equalPaymentHeadline.hint}
+                      paymentMethod="equalPrincipal"
+                      paymentDiffVsCompare={equalPaymentHeadline.amount - annuityPaymentHeadline.amount}
                       compareLabel="本息均攤"
                       totalInterest={output.equalPrincipalTotalInterest}
                       totalRepayment={loanAmount + output.equalPrincipalTotalInterest}
@@ -1371,7 +1539,12 @@ export function QuickCalculator11Content({
                       <p className={isLight ? Q11_PAGE_TITLE : "text-lg font-black text-sky-100"}>各種貸款 vs 存股</p>
                       <div className={isLight ? `${Q11_WHITE_CARD} !p-2` : "rounded-lg border border-slate-700 bg-slate-900/60 p-2"}>
                         <div className="overflow-x-auto pb-0.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                          <LoanPresetChipRow presets={loanPresetActions} onApply={applyLoanPreset} isLight={isLight} />
+                          <LoanPresetChipRow
+                            presets={loanPresetActions}
+                            activeKey={activeLoanPreset}
+                            onApply={applyLoanPreset}
+                            isLight={isLight}
+                          />
                         </div>
                       </div>
                       <div className="grid min-w-0 grid-cols-2 items-stretch gap-2">
@@ -1768,7 +1941,10 @@ function MiniSettingsHeader(props: { isLight: boolean }) {
 
 function ResultPage(props: {
   label: string;
-  payment: string;
+  paymentTitle: string;
+  paymentAmount: number;
+  paymentHint?: string;
+  paymentMethod: LoanMethod;
   paymentDiffVsCompare?: number;
   compareLabel?: string;
   totalInterest: number;
@@ -1782,7 +1958,25 @@ function ResultPage(props: {
   showPkSection?: boolean;
   isLight?: boolean;
 }) {
-  const { label, payment, paymentDiffVsCompare, compareLabel = "另一方案", totalInterest, totalRepayment, dtiPct, dtiRatio, warning, recommend = false, rows, compareRows, showPkSection = false, isLight = false } = props;
+  const {
+    label,
+    paymentTitle,
+    paymentAmount,
+    paymentHint,
+    paymentMethod,
+    paymentDiffVsCompare,
+    compareLabel = "另一方案",
+    totalInterest,
+    totalRepayment,
+    dtiPct,
+    dtiRatio,
+    warning,
+    recommend = false,
+    rows,
+    compareRows,
+    showPkSection = false,
+    isLight = false,
+  } = props;
   const diffValue = paymentDiffVsCompare ?? 0;
   const diffPrefix = diffValue >= 0 ? "+" : "-";
   const pkSeries = useMemo(() => {
@@ -1793,23 +1987,16 @@ function ResultPage(props: {
     <div className="space-y-2">
       <p className={`text-lg font-black ${isLight ? "tracking-tight text-slate-800" : recommend ? "text-sky-200" : "text-slate-200"}`}>{label}</p>
       <div className={`grid gap-2 ${paymentDiffVsCompare != null ? "grid-cols-2" : "grid-cols-1"}`}>
-        <div className={isLight ? `${Q11_WHITE_CARD} !p-2.5` : "rounded-lg border border-slate-700 bg-slate-900/70 p-2.5"}>
-          <div>
-            <p className={`truncate whitespace-nowrap text-[16px] font-bold tracking-[0.04em] ${isLight ? "text-slate-600" : "text-slate-300"}`}>每月繳款（首月）</p>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`payment-${payment}`}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.2 }}
-                className={`mt-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[clamp(17px,4.4vw,24px)] font-black leading-none tracking-[-0.01em] ${isLight ? "text-slate-900" : "text-sky-200"}`}
-              >
-                {payment}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </div>
+        <Quick11ExpandablePaymentCard
+          title={paymentTitle}
+          amount={paymentAmount}
+          hint={paymentHint}
+          annuityRows={paymentMethod === "annuity" ? rows : (compareRows ?? rows)}
+          equalPrincipalRows={paymentMethod === "equalPrincipal" ? rows : (compareRows ?? rows)}
+          method={paymentMethod}
+          tone={isLight ? Q11_WHITE_CARD : "border-slate-700 bg-slate-900/70 text-slate-100"}
+          isLight={isLight}
+        />
         {paymentDiffVsCompare != null ? (
           <motion.div
             className={`rounded-lg border p-2.5 ${isLight ? "border-amber-300 bg-amber-50 shadow-[0_1px_4px_rgba(0,0,0,0.05)]" : "border-amber-400/50 bg-amber-500/10"}`}
@@ -1960,107 +2147,6 @@ function ResultPage(props: {
   );
 }
 
-function fitTextToContainerWidth(line: HTMLElement, containerWidth: number, minPx: number, maxPx: number) {
-  if (containerWidth <= 0) return;
-  line.style.fontSize = `${maxPx}px`;
-  if (line.scrollWidth <= containerWidth) return;
-  let lo = minPx;
-  let hi = maxPx;
-  for (let i = 0; i < 24; i += 1) {
-    const mid = (lo + hi) / 2;
-    line.style.fontSize = `${mid}px`;
-    if (line.scrollWidth <= containerWidth) lo = mid;
-    else hi = mid;
-  }
-  line.style.fontSize = `${lo}px`;
-}
-
-/** 依容器寬度縮放字級（標題、欄位名等），避免手機上變成 … */
-function ShrinkFitText(props: { children: string; className?: string; minPx?: number; maxPx?: number }) {
-  const { children, className = "", minPx = 9, maxPx = 16 } = props;
-  const containerRef = useRef<HTMLDivElement>(null);
-  const lineRef = useRef<HTMLSpanElement>(null);
-
-  const fit = useCallback(() => {
-    const container = containerRef.current;
-    const line = lineRef.current;
-    if (!container || !line) return;
-    fitTextToContainerWidth(line, container.clientWidth, minPx, maxPx);
-  }, [minPx, maxPx]);
-
-  useLayoutEffect(() => {
-    fit();
-    const id = requestAnimationFrame(() => fit());
-    return () => cancelAnimationFrame(id);
-  }, [children, fit]);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el || typeof ResizeObserver === "undefined") return;
-    const ro = new ResizeObserver(() => fit());
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [fit]);
-
-  return (
-    <div ref={containerRef} className="min-w-0 w-full flex-1 overflow-hidden">
-      <span ref={lineRef} className={`block whitespace-nowrap leading-tight ${className}`} style={{ fontSize: maxPx }}>
-        {children}
-      </span>
-    </div>
-  );
-}
-
-/** 依容器寬度縮放字級，避免大數字被 ellipsis 截斷（首頁總繳利息等）。 */
-function ShrinkFitCardAmount(props: { animKey: string; children: string; minPx?: number; maxPx?: number }) {
-  const { animKey, children, minPx = 9, maxPx = 21 } = props;
-  const containerRef = useRef<HTMLDivElement>(null);
-  const lineRef = useRef<HTMLParagraphElement>(null);
-
-  const fit = useCallback(() => {
-    const container = containerRef.current;
-    const line = lineRef.current;
-    if (!container || !line) return;
-    fitTextToContainerWidth(line, container.clientWidth, minPx, maxPx);
-  }, [minPx, maxPx]);
-
-  useLayoutEffect(() => {
-    fit();
-    const id = requestAnimationFrame(() => fit());
-    return () => cancelAnimationFrame(id);
-  }, [children, fit]);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el || typeof ResizeObserver === "undefined") return;
-    const ro = new ResizeObserver(() => fit());
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [fit]);
-
-  return (
-    <div ref={containerRef} className="mt-1 min-w-0 w-full overflow-hidden">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={animKey}
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -14 }}
-          transition={{ duration: 0.24, ease: "easeOut" }}
-        >
-          <p
-            ref={lineRef}
-            className="whitespace-nowrap font-mono font-black leading-none tracking-[-0.015em] tabular-nums text-inherit"
-            style={{ fontSize: maxPx }}
-          >
-            {children}
-          </p>
-        </motion.div>
-      </AnimatePresence>
-    </div>
-  );
-}
-
 function InfoCard(props: {
   title: string;
   value: string;
@@ -2201,27 +2287,40 @@ function TotalRepaymentCard(props: {
 }
 
 /** 首頁貸款總額與「各種貸款 vs 存股」共用：六種情境捷徑（樣式與首頁 InputField 內一致）。 */
-function LoanPresetChipRow(props: { presets: LoanPresetAction[]; onApply: (preset: LoanPresetAction) => void; isLight?: boolean }) {
-  const { presets, onApply, isLight = false } = props;
+function LoanPresetChipRow(props: {
+  presets: LoanPresetAction[];
+  activeKey?: Quick11LoanPresetKey | null;
+  onApply: (preset: LoanPresetAction) => void;
+  isLight?: boolean;
+}) {
+  const { presets, activeKey = null, onApply, isLight = false } = props;
   if (!presets.length) return null;
   return (
     <div className="flex flex-wrap items-center gap-1">
-      {presets.map((preset) => (
+      {presets.map((preset) => {
+        const active = activeKey === preset.key;
+        return (
         <button
           key={preset.key}
           type="button"
           onClick={() => onApply(preset)}
           className={`inline-flex shrink-0 items-center gap-1 rounded-md border px-1.5 py-1 text-[11px] font-semibold transition ${
-            isLight
-              ? "border-[#E2E8F0] bg-white text-slate-700 hover:border-sky-400 hover:text-sky-700"
-              : "border-slate-600 bg-slate-800 text-slate-100 hover:border-sky-400 hover:text-sky-200"
+            active
+              ? isLight
+                ? "border-sky-500 bg-sky-50 text-sky-800 ring-1 ring-sky-400/40"
+                : "border-sky-400 bg-sky-950/60 text-sky-100 ring-1 ring-sky-400/35"
+              : isLight
+                ? "border-[#E2E8F0] bg-white text-slate-700 hover:border-sky-400 hover:text-sky-700"
+                : "border-slate-600 bg-slate-800 text-slate-100 hover:border-sky-400 hover:text-sky-200"
           }`}
           title={`${preset.label}：NT$ ${formatMoney(preset.amount)} / ${preset.annualRate}% / ${preset.years}年 / 月收 NT$ ${formatMoney(preset.monthlyIncome)}`}
+          aria-pressed={active}
         >
           <span aria-hidden>{preset.icon}</span>
           <span>{preset.label}</span>
         </button>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -2239,6 +2338,7 @@ type InputFieldProps = {
   bumpStep: number;
   quickActions?: Array<{ label: string; delta: number }>;
   presetActions?: LoanPresetAction[];
+  activePresetKey?: Quick11LoanPresetKey | null;
   onApplyPreset?: (preset: LoanPresetAction) => void;
   onTextChange: (raw: string) => void;
   onCommit: (raw: string) => void;
@@ -2308,6 +2408,7 @@ function InputField(props: InputFieldProps) {
     bumpStep,
     quickActions,
     presetActions,
+    activePresetKey,
     onApplyPreset,
     onTextChange,
     onCommit,
@@ -2326,25 +2427,7 @@ function InputField(props: InputFieldProps) {
   const inputMaxPx = compact ? 15 : 22;
   const inputMinPx = compact ? 10 : 14;
 
-  const fitInputFont = useCallback(() => {
-    const input = localInputRef.current;
-    if (!input) return;
-    fitTextToContainerWidth(input, input.clientWidth, inputMinPx, inputMaxPx);
-  }, [inputMinPx, inputMaxPx]);
-
-  useLayoutEffect(() => {
-    fitInputFont();
-    const id = requestAnimationFrame(() => fitInputFont());
-    return () => cancelAnimationFrame(id);
-  }, [text, fitInputFont]);
-
-  useEffect(() => {
-    const input = localInputRef.current;
-    if (!input || typeof ResizeObserver === "undefined") return;
-    const ro = new ResizeObserver(() => fitInputFont());
-    ro.observe(input);
-    return () => ro.disconnect();
-  }, [fitInputFont]);
+  useShrinkFitElement(localInputRef, [text], inputMinPx, inputMaxPx);
 
   const setInputRefs = useCallback(
     (el: HTMLInputElement | null) => {
@@ -2366,7 +2449,7 @@ function InputField(props: InputFieldProps) {
     >
       {presetActions?.length ? (
         <div className="mb-1.5">
-          <LoanPresetChipRow presets={presetActions} onApply={(p) => onApplyPreset?.(p)} isLight={isLight} />
+          <LoanPresetChipRow presets={presetActions} activeKey={activePresetKey} onApply={(p) => onApplyPreset?.(p)} isLight={isLight} />
         </div>
       ) : null}
       <div className={`mb-1.5 flex items-center justify-between gap-1.5 ${compact ? "min-h-[20px]" : "min-h-[22px]"}`}>

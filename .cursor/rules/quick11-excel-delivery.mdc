@@ -1,0 +1,24 @@
+# Quick-11 Excel 產出交付
+
+當本專案 **產生或更新任何 Excel（.xlsx）範本**（含 `scripts/generate-quick11-loan-excel.mjs` 或未來新增分頁腳本）時：
+
+## 必做
+
+1. **執行生成腳本**（例：`npm run generate:quick11-excel`）。
+2. **交付到使用者下載資料夾**：腳本結尾須呼叫 `deliverExcelToUserDownloads`（`scripts/deliver-excel-to-user-downloads.mjs`）。
+   - 預設路徑：**`D:\下載`**
+   - 可覆寫環境變數：`EXCEL_USER_DOWNLOADS_DIR`
+3. 告知使用者下載資料夾內的**完整檔名**（例：`quick11-home-v5-dual-sheets.xlsx`；若原檔被 Excel 開啟鎖住，會自動改存 `…-v2.xlsx`、`…-v3.xlsx` 等）。
+
+## 產物路徑（三份一致）
+
+| 用途 | 路徑 |
+|------|------|
+| 站內 API 讀取 | `assets/downloads/quick11-loan-dti-template.xlsx` |
+| 靜態直連 | `public/downloads/quick11-loan-dti-template.xlsx` |
+| **使用者本機預覽** | **`D:\下載\`（或 EXCEL_USER_DOWNLOADS_DIR）** |
+
+## 禁止
+
+- 僅改 `assets/` 而不跑生成、不複製到 `D:\下載` 就當完成。
+- 要使用者從 Cursor 直接開 `assets/*.xlsx` 預覽（無法看版面）。
