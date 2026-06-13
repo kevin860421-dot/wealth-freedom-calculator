@@ -1564,7 +1564,7 @@ export function QuickCalculator11Content({
             </div>
 
             {!embeddedInMiniBlog && currentPage !== 8 ? (
-              <div id="quick11-excel-lead" className="mt-1.5">
+              <div id="quick11-excel-lead" className="mt-1.5 mb-10">
                 <Quick11ExcelDownloadButton isLight={isLight} onOpenWizard={() => setWizardOpen(true)} />
               </div>
             ) : null}
