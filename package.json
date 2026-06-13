@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run generate:quick11-excel && next build",
     "start": "next start",
     "lint": "eslint",
     "validate": "node scripts/validate-table.mjs",
     "validate-etf": "node scripts/validate-etf-data.mjs",
+    "generate:quick11-excel": "node scripts/generate-quick11-loan-excel.mjs",
     "check:mini-blog-publish": "npx tsx --tsconfig tsconfig.json scripts/check-mini-blog-publish-overlap.ts"
   },
   "dependencies": {
