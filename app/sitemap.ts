@@ -1,8 +1,9 @@
 import type { MetadataRoute } from "next";
 import { getSiteOrigin } from "@/lib/site-origin";
 import { blogPostPath, getPublishedBlogPosts } from "./blog/posts/registry";
+import { getPublishedQuick1ExclusivePosts } from "./mini-blog/posts/quick1-exclusive";
 
-/** 動態 sitemap（App Router：app/sitemap.ts）。僅收錄乾淨路由，不含大量 query 組合。 */
+/** 動態 sitemap（App Router：app/sitemap.ts）。僅收錄乾淨路由，不含 query 組合（如 /quick-4?code=）。 */
 export const dynamic = "force-dynamic";
 
 const QUICK_CALCULATOR_ROUTES = [
@@ -38,6 +39,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.85,
   }));
 
+  const miniBlogUrls: MetadataRoute.Sitemap = getPublishedQuick1ExclusivePosts(now).map((post) => {
+    const publishedAt = new Date(post.publishAtIso);
+    return {
+      url: `${baseUrl}/mini-blog/${post.slug}`,
+      lastModified: Number.isNaN(publishedAt.getTime()) ? now : publishedAt,
+      changeFrequency: "monthly" as const,
+      priority: 0.85,
+    };
+  });
+
   return [
     {
       url: baseUrl,
@@ -51,7 +62,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.8,
     },
+    {
+      url: `${baseUrl}/mini-blog`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
     ...calculatorUrls,
     ...blogUrls,
+    ...miniBlogUrls,
   ];
 }
