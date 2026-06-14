@@ -71,20 +71,21 @@
   min-width: 0;
   border: none;
   background: transparent;
-  padding: 0 12px;
-  font-size: 20px;
+  padding: 0 8px;
+  font-size: 18px;
   font-weight: 900;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   color: #e8eefc;
   outline: none;
   font-variant-numeric: tabular-nums;
   box-sizing: border-box;
+  text-align: center;
 }
 
 .inputFieldTall {
   height: 48px;
   min-height: 48px;
-  font-size: 22px;
+  font-size: 20px;
 }
 
 .inputFieldWithSuffix {
@@ -102,10 +103,12 @@
   width: 100%;
   height: 24px;
   margin: 0;
+  padding: 0 2px;
   background: transparent;
   -webkit-appearance: none;
   appearance: none;
   cursor: pointer;
+  box-sizing: border-box;
 }
 
 .range:focus {
@@ -118,9 +121,8 @@
   background: linear-gradient(
     90deg,
     #15803d 0%,
-    #22c55e 42%,
-    #4ade80 var(--fill-pct, 25%),
-    rgba(255, 255, 255, 0.1) var(--fill-pct, 25%),
+    #4ade80 var(--fill-pct, 0%),
+    rgba(255, 255, 255, 0.1) var(--fill-pct, 0%),
     rgba(255, 255, 255, 0.1) 100%
   );
 }
@@ -129,11 +131,41 @@
   background: linear-gradient(
     90deg,
     #0e7490 0%,
-    #22d3ee 42%,
-    #67e8f9 var(--fill-pct, 25%),
-    rgba(255, 255, 255, 0.1) var(--fill-pct, 25%),
+    #67e8f9 var(--fill-pct, 0%),
+    rgba(255, 255, 255, 0.1) var(--fill-pct, 0%),
     rgba(255, 255, 255, 0.1) 100%
   );
+}
+
+.range::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.range::-moz-range-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #15803d, #4ade80);
+}
+
+.rangeCyan::-moz-range-progress {
+  background: linear-gradient(90deg, #0e7490, #67e8f9);
+}
+
+.range::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #fef08a, #eab308, #ca8a04);
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 12px rgba(234, 179, 8, 0.5);
+  cursor: grab;
+}
+
+.rangeCyan::-moz-range-thumb {
+  background: linear-gradient(145deg, #a5f3fc, #22d3ee, #0891b2);
+  box-shadow: 0 2px 12px rgba(34, 211, 238, 0.45);
 }
 
 .range::-webkit-slider-thumb {

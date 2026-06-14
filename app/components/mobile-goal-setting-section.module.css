@@ -250,9 +250,8 @@
   background: linear-gradient(
     90deg,
     #15803d 0%,
-    #22c55e 42%,
-    #4ade80 var(--fill-pct, 25%),
-    rgba(255, 255, 255, 0.1) var(--fill-pct, 25%),
+    #4ade80 var(--fill-pct, 0%),
+    rgba(255, 255, 255, 0.1) var(--fill-pct, 0%),
     rgba(255, 255, 255, 0.1) 100%
   );
 }
@@ -273,9 +272,8 @@
   background: linear-gradient(
     90deg,
     #0e7490 0%,
-    #22d3ee 42%,
-    #67e8f9 var(--fill-pct, 25%),
-    rgba(255, 255, 255, 0.1) var(--fill-pct, 25%),
+    #67e8f9 var(--fill-pct, 0%),
+    rgba(255, 255, 255, 0.1) var(--fill-pct, 0%),
     rgba(255, 255, 255, 0.1) 100%
   );
 }

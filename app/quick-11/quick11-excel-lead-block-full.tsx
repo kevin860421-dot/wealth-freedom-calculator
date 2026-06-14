@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import {
+  isQuick11ExcelDownloadEnabled,
+  QUICK11_EXCEL_DOWNLOAD_DISABLED_HINT,
   QUICK11_SUCCESS_BLOG_PATH,
   QUICK11_SUCCESS_BLOG_TITLE,
 } from "@/lib/quick11-marketing";
@@ -23,6 +25,7 @@ type Quick11ExcelLeadBlockFullProps = {
 
 /** 完整版行銷卡（保留供文章／預覽頁使用，正式站底部已改為單一按鈕） */
 export function Quick11ExcelLeadBlockFull({ isLight = false, compact = false, onOpenWizard }: Quick11ExcelLeadBlockFullProps) {
+  const enabled = isQuick11ExcelDownloadEnabled();
   const { progress } = useQuick11WizardProgress();
   const started = progress.screenshotDone || progress.shareDone || progress.copyDone || progress.fbOpened;
   const finished = progress.activeStep >= 5;
@@ -56,7 +59,13 @@ export function Quick11ExcelLeadBlockFull({ isLight = false, compact = false, on
         ))}
       </div>
 
-      <button type="button" onClick={onOpenWizard} className={`${styles.cta} ${isLight ? styles.ctaLight : ""}`}>
+      <button
+        type="button"
+        onClick={enabled ? onOpenWizard : undefined}
+        disabled={!enabled}
+        title={enabled ? undefined : QUICK11_EXCEL_DOWNLOAD_DISABLED_HINT}
+        className={`${styles.cta} ${isLight ? styles.ctaLight : ""} ${enabled ? "" : styles.ctaDisabled}`}
+      >
         {ctaLabel}
       </button>
 

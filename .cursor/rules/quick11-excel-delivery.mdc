@@ -8,7 +8,7 @@
 2. **交付到使用者下載資料夾**：腳本結尾須呼叫 `deliverExcelToUserDownloads`（`scripts/deliver-excel-to-user-downloads.mjs`）。
    - 預設路徑：**`D:\下載`**
    - 可覆寫環境變數：`EXCEL_USER_DOWNLOADS_DIR`
-3. 告知使用者下載資料夾內的**完整檔名**（例：`quick11-home-v5-dual-sheets.xlsx`；若原檔被 Excel 開啟鎖住，會自動改存 `…-v2.xlsx`、`…-v3.xlsx` 等）。
+3. 告知使用者唯一路徑：**`D:\下載\quick11-home-v5-dual-sheets.xlsx`**（或更新後的 `.xlsm`）。**勿**複製到 `%USERPROFILE%\Downloads` 等其他資料夾。
 
 ## 產物路徑（三份一致）
 
@@ -21,4 +21,4 @@
 ## 禁止
 
 - 僅改 `assets/` 而不跑生成、不複製到 `D:\下載` 就當完成。
-- 要使用者從 Cursor 直接開 `assets/*.xlsx` 預覽（無法看版面）。
+- 複製到 `C:\Users\…\Downloads` 或除 **`D:\下載`** 以外的任何使用者下載路徑。

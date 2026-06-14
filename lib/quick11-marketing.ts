@@ -7,6 +7,19 @@ export const QUICK11_EXCEL_UNLOCK_CODE = "自由666";
 /** 對外顯示名稱（頁底、四步驟彈窗一致） */
 export const QUICK11_EXCEL_DISPLAY_NAME = "本息＋負債比試算 Excel（公式可改）";
 
+/** Excel 下載預設關閉（範本更新中）；部署可設 NEXT_PUBLIC_QUICK11_EXCEL_DOWNLOAD=1 開啟 */
+export const QUICK11_EXCEL_DOWNLOAD_DEFAULT_ENABLED = false;
+
+export function isQuick11ExcelDownloadEnabled(): boolean {
+  const raw = process.env.NEXT_PUBLIC_QUICK11_EXCEL_DOWNLOAD?.trim().toLowerCase();
+  if (raw === "1" || raw === "true" || raw === "on") return true;
+  if (raw === "0" || raw === "false" || raw === "off") return false;
+  return QUICK11_EXCEL_DOWNLOAD_DEFAULT_ENABLED;
+}
+
+/** Excel 下載暫停時，按鈕 hover／title 提示 */
+export const QUICK11_EXCEL_DOWNLOAD_DISABLED_HINT = "Excel 範本更新中，暫停下載";
+
 /** 站內下載（須先分享解鎖 cookie） */
 export const QUICK11_EXCEL_DOWNLOAD_PATH = "/api/quick-11/excel";
 

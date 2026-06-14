@@ -127,6 +127,16 @@
   background: linear-gradient(90deg, #0284c7 0%, #0369a1 100%);
 }
 
+.ctaDisabled,
+.ctaDisabled.ctaLight {
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.42;
+  background: rgb(71 85 105 / 0.55);
+  box-shadow: none;
+  transform: none;
+}
+
 .progress {
   margin-top: 0.5rem;
   text-align: center;

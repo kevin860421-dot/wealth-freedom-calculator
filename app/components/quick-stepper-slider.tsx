@@ -1,6 +1,7 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import {
   amountFromInvertedRange,
   clampRangeAmount,
@@ -10,6 +11,50 @@ import {
 import styles from "./quick-stepper-slider.module.css";
 
 export { amountFromInvertedRange, clampRangeAmount, invertedFillPct, invertedRangeDisplay };
+
+function fitInputTextToWidth(input: HTMLInputElement, minPx: number, maxPx: number) {
+  const width = input.clientWidth;
+  if (width <= 0) return;
+  input.style.fontSize = `${maxPx}px`;
+  if (input.scrollWidth <= width) return;
+  let lo = minPx;
+  let hi = maxPx;
+  for (let i = 0; i < 24; i += 1) {
+    const mid = (lo + hi) / 2;
+    input.style.fontSize = `${mid}px`;
+    if (input.scrollWidth <= width) lo = mid;
+    else hi = mid;
+  }
+  input.style.fontSize = `${lo}px`;
+}
+
+function useStepperInputShrinkFit(text: string, tall: boolean) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const minPx = tall ? 13 : 12;
+  const maxPx = tall ? 22 : 18;
+
+  const fit = useCallback(() => {
+    const input = inputRef.current;
+    if (!input) return;
+    fitInputTextToWidth(input, minPx, maxPx);
+  }, [minPx, maxPx]);
+
+  useLayoutEffect(() => {
+    fit();
+    const id = requestAnimationFrame(() => fit());
+    return () => cancelAnimationFrame(id);
+  }, [text, fit]);
+
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => fit());
+    ro.observe(input);
+    return () => ro.disconnect();
+  }, [fit]);
+
+  return { inputRef, maxPx };
+}
 
 type StepperRowProps = {
   text: string;
@@ -37,6 +82,8 @@ export function QuickStepperRow({
   inputSuffix,
   onEnter,
 }: StepperRowProps) {
+  const { inputRef, maxPx } = useStepperInputShrinkFit(text, tall);
+
   return (
     <div className={styles.stepperRow}>
       <button type="button" className={styles.stepBtn} aria-label={`${ariaLabel} 增加`} onClick={() => onBump(bumpStep)}>
@@ -44,6 +91,7 @@ export function QuickStepperRow({
       </button>
       <div className={styles.inputRow}>
         <input
+          ref={inputRef}
           type="text"
           inputMode={inputMode}
           value={text}
@@ -60,6 +108,7 @@ export function QuickStepperRow({
           }}
           onFocus={(e) => e.target.select()}
           className={`${styles.inputField} ${tall ? styles.inputFieldTall : ""} ${inputSuffix ? styles.inputFieldWithSuffix : ""}`}
+          style={{ fontSize: maxPx }}
         />
         {inputSuffix}
       </div>

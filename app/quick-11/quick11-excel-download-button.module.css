@@ -38,6 +38,24 @@
   color: #059669;
 }
 
+.btnDisabled,
+.btnDisabled.btnLight {
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.42;
+  animation: none;
+  transform: none;
+  border-color: rgb(100 116 139 / 0.35);
+  background: rgb(30 41 59 / 0.55);
+  color: rgb(148 163 184 / 0.95);
+  box-shadow: none;
+}
+
+.btnDisabled .excel,
+.btnDisabled.btnLight .excel {
+  color: rgb(148 163 184 / 0.95);
+}
+
 .label {
   display: inline-flex;
   align-items: baseline;

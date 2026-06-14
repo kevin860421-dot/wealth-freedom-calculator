@@ -33,6 +33,7 @@ import {
   type PaymentRow,
 } from "./logic";
 import { QUICK11_LOAN_PRESETS, type Quick11LoanPresetKey } from "./loan-scenarios";
+import { isQuick11ExcelDownloadEnabled } from "@/lib/quick11-marketing";
 import type { Quick11EmbedPreset } from "./embed-preset";
 import goldStat from "./quick-11-golden-stat.module.css";
 import { buildRateShowdownRows } from "./rate-showdown";
@@ -296,7 +297,12 @@ export function QuickCalculator11Content({
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [rateShowdownOpen, setRateShowdownOpen] = useState(false);
   const [isLight, setIsLight] = useState(false);
-  const [wizardOpen, setWizardOpen] = useState(initialWizardOpen);
+  const [wizardOpen, setWizardOpen] = useState(initialWizardOpen && isQuick11ExcelDownloadEnabled());
+
+  const openExcelWizard = useCallback(() => {
+    if (!isQuick11ExcelDownloadEnabled()) return;
+    setWizardOpen(true);
+  }, []);
 
   useEffect(() => {
     migrateQuick11SessionBundleIfNeeded();
@@ -1655,7 +1661,7 @@ export function QuickCalculator11Content({
                       }}
                       prepaySavedInterest={prepaySavedInterest}
                       freedomProjected={freedomProjected}
-                      onOpenExcelWizard={() => setWizardOpen(true)}
+                      onOpenExcelWizard={openExcelWizard}
                     />
                   ) : null}
 
@@ -1706,7 +1712,7 @@ export function QuickCalculator11Content({
                       hikeDtiPct={hikeDtiPct}
                       hikeTotalInterest={hikeOutput.annuityTotalInterest}
                       hikeInterestDelta={hikeInterestDelta}
-                      onOpenExcelWizard={() => setWizardOpen(true)}
+                      onOpenExcelWizard={openExcelWizard}
                       method={method}
                       onMethodChange={setMethod}
                       extraMonthlyPayment={extraMonthlyPayment}
@@ -1738,7 +1744,7 @@ export function QuickCalculator11Content({
 
             {!embeddedInMiniBlog && currentPage !== 8 ? (
               <div id="quick11-excel-lead" className="mt-1.5 mb-10">
-                <Quick11ExcelDownloadButton isLight={isLight} onOpenWizard={() => setWizardOpen(true)} />
+                <Quick11ExcelDownloadButton isLight={isLight} onOpenWizard={openExcelWizard} />
               </div>
             ) : null}
 
@@ -1777,7 +1783,7 @@ export function QuickCalculator11Content({
                   onRegisterTryOpen={(tryOpen) => {
                     exitIntentTryOpenRef.current = tryOpen;
                   }}
-                  onOpenWizard={() => setWizardOpen(true)}
+                  onOpenWizard={openExcelWizard}
                 />
                 {bottomCta.show ? (
                   <Quick11IdleNudgeCard
