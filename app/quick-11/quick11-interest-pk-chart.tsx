@@ -49,6 +49,14 @@ type Quick11InterestPkChartProps = {
   compareShortLabel: string;
   title?: string;
   isLight?: boolean;
+  /** 看板左欄標籤（預設：目前方案） */
+  tickerLabelA?: string;
+  /** 看板第三列標籤（預設：差額代價） */
+  diffRowLabel?: string;
+  /** cost：A−B，正數為代價；gain：B−A，正數為複利優勢 */
+  diffSemantics?: "cost" | "gain";
+  positiveDiffHint?: string;
+  negativeDiffHint?: string;
 };
 
 function pickYearTickIndices(years: number[]): Set<number> {
@@ -175,6 +183,11 @@ export function Quick11InterestPkChart({
   compareShortLabel,
   title = "累積利息走勢比較",
   isLight = false,
+  tickerLabelA = "目前方案",
+  diffRowLabel = "差額代價",
+  diffSemantics = "cost",
+  positiveDiffHint,
+  negativeDiffHint,
 }: Quick11InterestPkChartProps) {
   const colorB = isLight ? COLOR_B_LIGHT : COLOR_B_DARK;
   const gridColor = isLight ? GRID_LIGHT : GRID_DARK;
@@ -300,21 +313,36 @@ export function Quick11InterestPkChart({
   const year = years[activeIndex] ?? years[lastIndex] ?? 0;
   const valA = seriesA[activeIndex] ?? 0;
   const valB = seriesB[activeIndex] ?? 0;
-  const diff = valA - valB;
+  const rawDiff = diffSemantics === "gain" ? valB - valA : valA - valB;
+  const diff = rawDiff;
+  const defaultPositiveHint = diffSemantics === "gain" ? "(複利多)" : "(多付)";
+  const defaultNegativeHint = diffSemantics === "gain" ? "(較少)" : "(省下)";
   const diffHint =
-    diff < 0 ? "(省下)" : diff > 0 ? "(多付)" : "";
+    diff < 0 ? (negativeDiffHint ?? defaultNegativeHint) : diff > 0 ? (positiveDiffHint ?? defaultPositiveHint) : "";
   const diffValueClass =
-    diff < 0
-      ? isLight
-        ? styles.tickerRowValueDiffSaveLight
-        : styles.tickerRowValueDiffSaveDark
-      : diff > 0
+    diffSemantics === "gain"
+      ? diff > 0
         ? isLight
-          ? styles.tickerRowValueDiffCostLight
-          : styles.tickerRowValueDiffCostDark
-        : isLight
-          ? styles.tickerRowValueDiffNeutralLight
-          : styles.tickerRowValueDiffNeutralDark;
+          ? styles.tickerRowValueDiffSaveLight
+          : styles.tickerRowValueDiffSaveDark
+        : diff < 0
+          ? isLight
+            ? styles.tickerRowValueDiffCostLight
+            : styles.tickerRowValueDiffCostDark
+          : isLight
+            ? styles.tickerRowValueDiffNeutralLight
+            : styles.tickerRowValueDiffNeutralDark
+      : diff < 0
+        ? isLight
+          ? styles.tickerRowValueDiffSaveLight
+          : styles.tickerRowValueDiffSaveDark
+        : diff > 0
+          ? isLight
+            ? styles.tickerRowValueDiffCostLight
+            : styles.tickerRowValueDiffCostDark
+          : isLight
+            ? styles.tickerRowValueDiffNeutralLight
+            : styles.tickerRowValueDiffNeutralDark;
 
   return (
     <div className={`${styles.shell} ${isLight ? styles.shellLight : styles.shellDark}`}>
@@ -345,7 +373,7 @@ export function Quick11InterestPkChart({
                 maxPx={14}
                 fitKey="label-a"
               >
-                🔴 目前方案
+                🔴 {tickerLabelA}
               </TickerFitText>
               <TickerFitText
                 className={`${styles.tickerRowValue} ${styles.tickerRowValueA}`}
@@ -385,7 +413,7 @@ export function Quick11InterestPkChart({
                 maxPx={14}
                 fitKey="label-diff"
               >
-                ⚖️ 差額代價
+                ⚖️ {diffRowLabel}
               </TickerFitText>
               <TickerFitText
                 className={`${styles.tickerRowValue} ${diffValueClass}`}

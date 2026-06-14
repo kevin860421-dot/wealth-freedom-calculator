@@ -5,6 +5,14 @@ export function formatTwd(n: number) {
   return v.toLocaleString("en-US");
 }
 
+/** 圖表里程碑：大數字用萬／億 */
+export function formatSmartUnit(n: number) {
+  const v = Math.round(Number.isFinite(n) ? n : 0);
+  if (v >= 100_000_000) return `${(v / 100_000_000).toFixed(1).replace(/\.0$/, "")} 億`;
+  if (v >= 10_000) return `${(v / 10_000).toFixed(1).replace(/\.0$/, "")} 萬`;
+  return formatTwd(v);
+}
+
 export function sanitizeCalcInput(s: string) {
   return s.replace(/[^\d+\-*/().,%\s]/g, "");
 }

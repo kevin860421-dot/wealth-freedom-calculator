@@ -1,15 +1,20 @@
 "use client";
 
-import Link from "next/link";
 import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { QuickStepperSliderField } from "@/app/components/quick-stepper-slider";
+import { Quick11InterestPkChart } from "@/app/quick-11/quick11-interest-pk-chart";
 import { QuickBlogLinksToggle } from "@/app/components/quick-blog-links-toggle";
 import { QuickBottomCtaStack } from "@/app/components/quick-bottom-cta-stack";
 import { QuickSeoArticle } from "@/app/components/quick-seo-article";
 import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
 import { clampNum } from "@/lib/quick-calculator-math";
-import { quickEtfNthMonthSnapshot, resolveDividendMonths } from "@/lib/quick-etf-period-dividend";
+import {
+  quickEtfAssetGrowthMilestones,
+  quickEtfEstimatedAnnualDividend,
+  quickEtfNthMonthSnapshot,
+  resolveDividendMonths,
+} from "@/lib/quick-etf-period-dividend";
 import { TICKER_PRESETS } from "../ticker-presets";
 import type { Quick4EmbedPreset } from "./embed-preset";
 import { parseQuick4PresetFromSearchParams } from "./embed-preset";
@@ -63,6 +68,7 @@ export default function QuickCalculator4View({
   const [nthText, setNthText] = useState("1");
   const [periodYearText, setPeriodYearText] = useState(String(DEFAULT_START_YEAR));
   const [periodMonthText, setPeriodMonthText] = useState(String(DEFAULT_START_MONTH));
+  const [dripEnabled, setDripEnabled] = useState(false);
 
   const filtered = useMemo(() => {
     const q = etfCodeInput.trim();
@@ -84,6 +90,7 @@ export default function QuickCalculator4View({
 
   const maxMonths = Math.max(1, years * 12);
   const nthClamped = useMemo(() => clampNum(nthPeriod, 1, maxMonths), [nthPeriod, maxMonths]);
+  const reinvestRatioPct = dripEnabled ? 100 : 0;
 
   const periodResult = useMemo(
     () =>
@@ -95,8 +102,10 @@ export default function QuickCalculator4View({
         startYM.m,
         nthClamped,
         ratio54cPct,
+        0.2,
+        reinvestRatioPct,
       ),
-    [monthlyInvest, annualPct, dividendMonths, startYM, nthClamped, ratio54cPct],
+    [monthlyInvest, annualPct, dividendMonths, startYM, nthClamped, ratio54cPct, reinvestRatioPct],
   );
 
   const periodOptions = useMemo(() => {
@@ -114,6 +123,31 @@ export default function QuickCalculator4View({
   const totalAsset = useMemo(() => periodResult.balanceEnd, [periodResult.balanceEnd]);
 
   const monthlyPayout = useMemo(() => periodResult.afterTaxDividend, [periodResult.afterTaxDividend]);
+
+  const annualDividendEstimate = useMemo(
+    () =>
+      quickEtfEstimatedAnnualDividend(
+        periodResult.balanceEnd,
+        annualPct,
+        dividendMonths,
+        ratio54cPct,
+      ),
+    [periodResult.balanceEnd, annualPct, dividendMonths, ratio54cPct],
+  );
+
+  const assetGrowthChart = useMemo(
+    () =>
+      quickEtfAssetGrowthMilestones(
+        monthlyInvest,
+        annualPct,
+        dividendMonths,
+        startYM.y,
+        startYM.m,
+        years,
+        ratio54cPct,
+      ),
+    [monthlyInvest, annualPct, dividendMonths, startYM, years, ratio54cPct],
+  );
 
   useEffect(() => {
     // Keep period selection valid when year range shrinks.
@@ -189,6 +223,10 @@ export default function QuickCalculator4View({
         const v = Number(nRaw);
         if (Number.isFinite(v)) setNthPeriod(Math.max(1, Math.trunc(v)));
       }
+
+      const dripRaw = sp.get("drip");
+      if (dripRaw === "1" || dripRaw === "true") setDripEnabled(true);
+      if (dripRaw === "0" || dripRaw === "false") setDripEnabled(false);
     });
   }, [initialEmbedPreset]);
 
@@ -202,6 +240,7 @@ export default function QuickCalculator4View({
       url.searchParams.set("sy", String(startYM.y));
       url.searchParams.set("sm", String(startYM.m));
       url.searchParams.set("n", String(nthClamped));
+      url.searchParams.set("drip", dripEnabled ? "1" : "0");
       const nav = navigator as unknown as { share?: (v: { url?: string }) => Promise<void> };
       if (typeof nav.share === "function") {
         await nav.share({ url: url.toString() });
@@ -523,16 +562,178 @@ export default function QuickCalculator4View({
               </div>
             </div>
 
-            <div style={{ ...cardStyle, borderColor: "rgba(147,197,253,0.4)" }}>
-              <div style={{ fontSize: 15, fontWeight: 800 }}>可月領多少</div>
-              <div style={{ marginTop: 8, fontSize: 32, fontWeight: 950, color: "#93c5fd" }}>{formatTwd(monthlyPayout)}</div>
-              <div style={{ marginTop: 4, fontSize: 12, color: "rgba(191,219,254,0.9)" }}>依標的配息月份；非配息月為 0</div>
+            <label
+              style={{
+                ...cardStyle,
+                borderColor: dripEnabled ? "rgba(192,132,252,0.65)" : "rgba(255,255,255,0.14)",
+                background: dripEnabled ? "rgba(88,28,135,0.22)" : "rgba(0,0,0,0.16)",
+                display: "grid",
+                gridTemplateColumns: "22px minmax(0, 1fr)",
+                columnGap: 12,
+                rowGap: 6,
+                alignItems: "start",
+                cursor: "pointer",
+                minWidth: 0,
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={dripEnabled}
+                onChange={(e) => setDripEnabled(e.target.checked)}
+                style={{
+                  width: 18,
+                  height: 18,
+                  marginTop: 3,
+                  accentColor: "#c084fc",
+                  gridRow: "1 / 3",
+                }}
+              />
+              <div style={{ minWidth: 0, display: "grid", gap: 4 }}>
+                <div
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 900,
+                    lineHeight: 1.35,
+                    color: dripEnabled ? "#e9d5ff" : "#e8eefc",
+                  }}
+                >
+                  🟪 滾利模式
+                </div>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 800,
+                    lineHeight: 1.4,
+                    color: dripEnabled ? "#ddd6fe" : "#cbd5e1",
+                  }}
+                >
+                  開啟股息再投入
+                </div>
+              </div>
+              <div
+                style={{
+                  gridColumn: 2,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  lineHeight: 1.45,
+                  color: dripEnabled ? "rgba(233,213,255,0.9)" : "rgba(148,163,184,0.95)",
+                }}
+              >
+                資產將隨複利加速成長
+              </div>
+              <div
+                style={{
+                  gridColumn: "1 / -1",
+                  fontSize: 12,
+                  lineHeight: 1.5,
+                  color: dripEnabled ? "rgba(233,213,255,0.82)" : "rgba(148,163,184,0.88)",
+                  paddingTop: 2,
+                  borderTop: "1px solid rgba(255,255,255,0.08)",
+                }}
+              >
+                {dripEnabled
+                  ? "稅後股息自動再買入標的，總資產與預估領息會用複利重算。"
+                  : "目前為領息領走：股息不滾回部位。勾選後可對照複利差距。"}
+              </div>
+            </label>
+
+            <div
+              style={{
+                ...cardStyle,
+                borderColor: "rgba(147,197,253,0.35)",
+                display: "grid",
+                gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+                gap: 12,
+                minWidth: 0,
+              }}
+            >
+              <div style={{ minWidth: 0, borderRight: "1px solid rgba(255,255,255,0.08)", paddingRight: 10 }}>
+                <div style={{ fontSize: 15, color: "rgba(191,219,254,0.95)", fontWeight: 800 }}>可月領（當月）</div>
+                <div
+                  style={{
+                    marginTop: 8,
+                    fontSize: "clamp(22px, 7vw, 32px)",
+                    fontWeight: 950,
+                    color: "#93c5fd",
+                    lineHeight: 1.1,
+                    fontVariantNumeric: "tabular-nums",
+                    overflowWrap: "anywhere",
+                  }}
+                >
+                  {formatTwd(monthlyPayout)}
+                </div>
+                <div style={{ marginTop: 6, fontSize: 12, color: "rgba(191,219,254,0.82)", lineHeight: 1.4 }}>
+                  依配息月份；非配息月為 0
+                </div>
+              </div>
+              <div style={{ minWidth: 0, display: "grid", gap: 10 }}>
+                <div>
+                  <div style={{ fontSize: 15, color: "rgba(254,240,138,0.95)", fontWeight: 800 }}>預估全年總領股息</div>
+                  <div
+                    style={{
+                      marginTop: 6,
+                      fontSize: "clamp(18px, 5.5vw, 28px)",
+                      fontWeight: 950,
+                      color: "#fde047",
+                      lineHeight: 1.1,
+                      fontVariantNumeric: "tabular-nums",
+                      overflowWrap: "anywhere",
+                    }}
+                  >
+                    {formatTwd(annualDividendEstimate.afterTaxAnnual)}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 15, color: "rgba(254,240,138,0.95)", fontWeight: 800 }}>平均每月幫你加薪</div>
+                  <div
+                    style={{
+                      marginTop: 6,
+                      fontSize: "clamp(18px, 5.5vw, 28px)",
+                      fontWeight: 950,
+                      color: "#fbbf24",
+                      lineHeight: 1.1,
+                      fontVariantNumeric: "tabular-nums",
+                      overflowWrap: "anywhere",
+                    }}
+                  >
+                    {formatTwd(annualDividendEstimate.avgMonthlyAfterTax)}
+                  </div>
+                </div>
+                <div style={{ fontSize: 12, color: "rgba(254,240,138,0.78)", lineHeight: 1.4 }}>
+                  依目前總資產粗估
+                </div>
+              </div>
             </div>
 
-            <div style={{ ...cardStyle, borderColor: "rgba(74,222,128,0.4)" }}>
-              <div style={{ fontSize: 15, fontWeight: 800 }}>總資產</div>
-              <div style={{ marginTop: 8, fontSize: 32, fontWeight: 950, color: "#4ade80" }}>{formatTwd(totalAsset)}</div>
+            <div style={{ ...cardStyle, borderColor: "rgba(74,222,128,0.4)", minWidth: 0 }}>
+              <div style={{ fontSize: 17, fontWeight: 800 }}>總資產{dripEnabled ? "（股息再投入）" : "（領息領走）"}</div>
+              <div
+                style={{
+                  marginTop: 8,
+                  fontSize: "clamp(26px, 8vw, 36px)",
+                  fontWeight: 950,
+                  color: "#4ade80",
+                  lineHeight: 1.1,
+                  fontVariantNumeric: "tabular-nums",
+                  overflowWrap: "anywhere",
+                }}
+              >
+                {formatTwd(totalAsset)}
+              </div>
             </div>
+
+            <Quick11InterestPkChart
+              years={assetGrowthChart.years}
+              seriesA={assetGrowthChart.cashOutSeries}
+              seriesB={assetGrowthChart.dripSeries}
+              title="資產成長走勢比較"
+              legendA="領息領走：總資產"
+              legendB="股息再投入：總資產"
+              compareShortLabel="股息再投入"
+              tickerLabelA="領息領走"
+              diffRowLabel="複利差距"
+              diffSemantics="gain"
+            />
 
             <QuickBottomCtaStack
               quickId={4}
