@@ -14,6 +14,9 @@
     "generate:quick11-excel-chart": "py -3 scripts/add-quick11-excel-xlwings-chart.py",
     "generate:quick11-excel-deliver": "node scripts/deliver-excel-to-user-downloads.mjs",
     "generate:quick11-excel-full": "npm run generate:quick11-excel && npm run generate:quick11-excel-chart",
+    "generate:quick4-ticker-posts": "node scripts/gen-quick4-ticker-posts.mjs",
+    "verify:quick4-routing": "npx tsx --tsconfig tsconfig.json scripts/verify-quick4-routing.ts",
+    "verify:quick4-coverage": "npx tsx --tsconfig tsconfig.json scripts/verify-quick4-coverage.ts",
     "check:mini-blog-publish": "npx tsx --tsconfig tsconfig.json scripts/check-mini-blog-publish-overlap.ts"
   },
   "dependencies": {

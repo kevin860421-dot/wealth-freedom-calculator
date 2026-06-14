@@ -44,7 +44,7 @@ const existing = [
 const etfMore = [
   ["00646", "元大S&P500", "quarter", 48, 0.35, 2.9, 4.2],
   ["00662", "富邦NASDAQ", "semiannual", 28, 0.4, 2.8, 5.5],
-  ["00752", "中信中國A50", "quarter", 18, 0.25, 5.5, 1.2],
+  ["00730", "富邦台灣優質高息", "quarter", 16, 0.24, 6.0, 1.5],
   ["00692", "富邦公司治理", "quarter", 28, 0.5, 7.1, 0.5],
   ["00701", "國泰股利精選30", "quarter", 22, 0.28, 5.1, 1.8],
   ["00713", "元大台灣高息低波", "quarter", 52, 0.65, 5.0, 2.0],
@@ -58,7 +58,7 @@ const etfMore = [
   ["00830", "國泰費城半導體", "quarter", 45, 0.42, 3.7, 3.8],
   ["00850", "元大臺灣ESG永續", "quarter", 26, 0.35, 5.4, 1.6],
   ["00881", "國泰台灣科技龍頭", "quarter", 21, 0.3, 5.7, 1.4],
-  ["00885", "富邦越南", "semiannual", 15, 0.25, 3.3, 2.8],
+  ["00907", "永豐優息存股", "month", 14, 0.11, 8.5, 0.5, M12],
   ["00891", "中信美國市政債", "month", 35, 0.12, 4.1, 0],
   ["00905", "富邦信用債1-5Y", "month", 32, 0.1, 3.8, 0],
   ["00909", "國泰數位支付服務", "quarter", 20, 0.18, 3.6, 3.2],
@@ -198,6 +198,21 @@ export type TickerPreset = {
   /** 54C 應稅股利占現金股利占比（%），供二代健保試算 */
   ratio54c?: string;
 };
+
+/** 從預設 label 判斷標的種類（例：「…- ETF - …」「…- 股票 - …」） */
+export function tickerAssetKind(label: string): "ETF" | "股票" | null {
+  if (label.includes("- ETF -")) return "ETF";
+  if (label.includes("- 股票 -")) return "股票";
+  return null;
+}
+
+/** 本金換算約可買股數，附代號與種類（例：約 270 股（0050 ETF）） */
+export function formatApproxSharesLine(principal: number, preset: Pick<TickerPreset, "id" | "label" | "price"> | null | undefined): string {
+  if (!preset?.price || preset.price <= 0) return "";
+  const shares = Math.floor(principal / preset.price).toLocaleString("zh-TW");
+  const kind = tickerAssetKind(preset.label);
+  return kind ? \`約 \${shares} 股（\${preset.id} \${kind}）\` : \`約 \${shares} 股（\${preset.id}）\`;
+}
 
 `;
 

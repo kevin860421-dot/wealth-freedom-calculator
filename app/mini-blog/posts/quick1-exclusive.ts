@@ -15,7 +15,10 @@ import {
   QUICK12_PUBLISH_DATES,
   getQuick12EmbedTarget,
 } from "./quick12-posts-2-100";
+import { QUICK4_PUBLISH_DATES, QUICK4_TICKER_POSTS } from "./quick4-posts-tickers";
+import { QUICK4_COMPARISON_POSTS } from "./quick4-comparison-posts";
 import { QUICK7_TOPIC_SEEDS } from "./quick7-topic-seeds";
+import { buildQuick4TickerExclusiveSections } from "@/app/quick-4/ticker-article-sections";
 import type { Quick1ExclusiveSection, TopicSeed } from "./topic-types";
 
 export type { Quick1ExclusiveSection, TopicSeed } from "./topic-types";
@@ -145,28 +148,7 @@ const QUICK3_PUBLISH_DATES: Record<string, string> = {
   "quick3-avoid-overoptimistic-goal-gap": "2026-12-20T09:00:00+08:00",
 };
 
-const QUICK4_PUBLISH_DATES: Record<string, string> = {
-  "quick4-etf-monthly-income-simulator-guide": "2026-05-07T09:00:00+08:00",
-  "quick4-first-10000-dividend-milestone": "2026-05-19T09:00:00+08:00",
-  "quick4-monthly-20000-dividend-blueprint": "2026-05-31T09:00:00+08:00",
-  "quick4-monthly-30000-dividend-reality-check": "2026-06-12T09:00:00+08:00",
-  "quick4-which-period-can-i-start-withdraw": "2026-06-24T09:00:00+08:00",
-  "quick4-dividend-frequency-monthly-vs-quarterly": "2026-07-06T09:00:00+08:00",
-  "quick4-reinvest-vs-cashout-dividend-choice": "2026-07-18T09:00:00+08:00",
-  "quick4-tax-fee-impact-on-dividend-cashflow": "2026-07-30T09:00:00+08:00",
-  "quick4-0050-vs-high-dividend-etf-cashflow": "2026-08-11T09:00:00+08:00",
-  "quick4-year-month-selector-practical-planning": "2026-08-23T09:00:00+08:00",
-  "quick4-late-start-dividend-catchup-plan": "2026-09-04T09:00:00+08:00",
-  "quick4-salary-growth-dividend-stepup": "2026-09-16T09:00:00+08:00",
-  "quick4-single-income-dividend-safety-margin": "2026-09-28T09:00:00+08:00",
-  "quick4-couple-dividend-goal-alignment": "2026-10-10T09:00:00+08:00",
-  "quick4-bonus-topup-dividend-acceleration": "2026-10-22T09:00:00+08:00",
-  "quick4-dividend-vs-selling-shares-cashflow": "2026-11-03T09:00:00+08:00",
-  "quick4-stress-test-dividend-during-drawdown": "2026-11-15T09:00:00+08:00",
-  "quick4-annual-reset-dividend-plan-checklist": "2026-11-27T09:00:00+08:00",
-  "quick4-export-excel-compare-two-scenarios": "2026-12-09T09:00:00+08:00",
-  "quick4-build-30year-dividend-discipline": "2026-12-21T09:00:00+08:00",
-};
+/** 第 4 台發布排程見 {@link QUICK4_PUBLISH_DATES}（100 檔標的文 ＋ 20 篇主題文穿插；1～3 天／篇，連假跳過） */
 
 const QUICK5_PUBLISH_DATES: Record<string, string> = {
   "quick5-principal-vs-compound-reality": "2026-05-08T09:00:00+08:00",
@@ -1413,6 +1395,8 @@ const TOPIC_SEEDS: TopicSeed[] = [
     calculatorRoute: "/quick-4",
     calculatorName: "ETF 領息夢想模擬器",
   },
+  ...QUICK4_COMPARISON_POSTS,
+  ...QUICK4_TICKER_POSTS,
   {
     slug: "quick5-principal-vs-compound-reality",
     title: "💣 雪球效應：本金 vs 複利｜你以為在存錢，其實在買時間",
@@ -2983,6 +2967,14 @@ export const QUICK11_ROUTE_LINK_ITEMS: ReadonlyArray<{ href: string; title: stri
     description: s.subtitle,
   }));
 
+/** 第 4 台 mini-blog 連結（120 篇；折疊區僅顯示已發布） */
+export const QUICK4_ROUTE_LINK_ITEMS: ReadonlyArray<{ href: string; title: string; description: string }> =
+  TOPIC_SEEDS.filter((s) => s.calculatorRoute === "/quick-4").map((s) => ({
+    href: `/mini-blog/${s.slug}`,
+    title: s.title,
+    description: s.subtitle,
+  }));
+
 /** 第 11 台專文：前言 → 理財觀點 → 操作指南（讀者向，不出現 slug／錨點／快捷等幕後用語）。 */
 function buildSectionsQuick11(seed: TopicSeed, calculatorName: string): Quick1ExclusiveSection[] {
   return [
@@ -3323,14 +3315,14 @@ export const QUICK1_EXCLUSIVE_POSTS: Quick1ExclusivePost[] = TOPIC_SEEDS.map((se
       ? QUICK11_PUBLISH_DATES[seed.slug]
       : calculatorRoute === "/quick-12" && QUICK12_PUBLISH_DATES[seed.slug]
         ? QUICK12_PUBLISH_DATES[seed.slug]
-        : reorderedPublishAt ??
+        : calculatorRoute === "/quick-4" && QUICK4_PUBLISH_DATES[seed.slug]
+          ? QUICK4_PUBLISH_DATES[seed.slug]
+          : reorderedPublishAt ??
         (calculatorRoute === "/quick-2"
           ? (QUICK2_PUBLISH_DATES[seed.slug] ?? fallbackDate)
           : calculatorRoute === "/quick-3"
             ? (QUICK3_PUBLISH_DATES[seed.slug] ?? fallbackDate)
-            : calculatorRoute === "/quick-4"
-              ? (QUICK4_PUBLISH_DATES[seed.slug] ?? fallbackDate)
-              : calculatorRoute === "/quick-5"
+            : calculatorRoute === "/quick-5"
                 ? (QUICK5_PUBLISH_DATES[seed.slug] ?? fallbackDate)
                 : calculatorRoute === "/quick-6"
                   ? (QUICK6_PUBLISH_DATES[seed.slug] ?? fallbackDate)
@@ -3368,7 +3360,14 @@ export const QUICK1_EXCLUSIVE_POSTS: Quick1ExclusivePost[] = TOPIC_SEEDS.map((se
         ? buildQuick11ExclusiveSections(seed.slug, seed, calculatorName, scheduledAt)
         : calculatorRoute === "/quick-12"
           ? buildQuick12ExclusiveSections(seed.slug, seed, calculatorName, scheduledAt)
-          : investingMay10Arch
+          : calculatorRoute === "/quick-4" && seed.tickerCode
+            ? buildQuick4TickerExclusiveSections(seed, calculatorName, scheduledAt)
+            : calculatorRoute === "/quick-4" &&
+                (seed.slug.includes("-compare") ||
+                  seed.slug.includes("dividend-ex-month") ||
+                  seed.slug.includes("00929-monthly"))
+              ? buildMiniBlogSectionsInvestingV2(seed, calculatorName, calculatorRoute, scheduledAt)
+              : investingMay10Arch
             ? buildMiniBlogSectionsInvestingV2(seed, calculatorName, calculatorRoute, scheduledAt)
             : buildSections(seed, calculatorName)),
     closeQuestion: seed.closeQuestion,

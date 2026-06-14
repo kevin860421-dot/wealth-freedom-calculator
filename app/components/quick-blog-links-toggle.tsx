@@ -5,6 +5,7 @@ import {
   getQuick1ExclusivePostBySlug,
   isQuick1ExclusivePostPublished,
   QUICK11_ROUTE_LINK_ITEMS,
+  QUICK4_ROUTE_LINK_ITEMS,
 } from "../mini-blog/posts/quick1-exclusive";
 import { QUICK12_ROUTE_LINK_ITEMS } from "../mini-blog/posts/quick12-posts-2-100";
 
@@ -335,108 +336,7 @@ const QUICK_ROUTE_LINKS: Record<QuickRoute, readonly { href: string; title: stri
       description: "先誠實，再樂觀。",
     },
   ],
-  "/quick-4": [
-    {
-      href: "/mini-blog/quick4-etf-monthly-income-simulator-guide",
-      title: "ETF 領息夢想模擬器：先看每月現金流",
-      description: "先校準可月領，再談報酬想像。",
-    },
-    {
-      href: "/mini-blog/quick4-first-10000-dividend-milestone",
-      title: "月領 1 萬門檻怎麼拆",
-      description: "先看第幾期，別只看終點。",
-    },
-    {
-      href: "/mini-blog/quick4-monthly-20000-dividend-blueprint",
-      title: "月領 2 萬路線圖",
-      description: "投入、年數、節奏一起看。",
-    },
-    {
-      href: "/mini-blog/quick4-monthly-30000-dividend-reality-check",
-      title: "月領 3 萬現實校正",
-      description: "先確認現金流能不能撐住。",
-    },
-    {
-      href: "/mini-blog/quick4-which-period-can-i-start-withdraw",
-      title: "第幾期可以開始領息",
-      description: "直接用期別選擇看答案。",
-    },
-    {
-      href: "/mini-blog/quick4-dividend-frequency-monthly-vs-quarterly",
-      title: "月配 vs 季配差異",
-      description: "重點在你每月現金流體感。",
-    },
-    {
-      href: "/mini-blog/quick4-reinvest-vs-cashout-dividend-choice",
-      title: "配息再投入或領出",
-      description: "兩條路會慢慢分岔。",
-    },
-    {
-      href: "/mini-blog/quick4-tax-fee-impact-on-dividend-cashflow",
-      title: "稅費對領息的真實影響",
-      description: "別只看稅前殖利率。",
-    },
-    {
-      href: "/mini-blog/quick4-0050-vs-high-dividend-etf-cashflow",
-      title: "0050 vs 高股息 ETF",
-      description: "先比現金流穩定度。",
-    },
-    {
-      href: "/mini-blog/quick4-year-month-selector-practical-planning",
-      title: "年份月份怎麼選最實用",
-      description: "直接對應未來生活節點。",
-    },
-    {
-      href: "/mini-blog/quick4-late-start-dividend-catchup-plan",
-      title: "晚開始怎麼追領息目標",
-      description: "先做可持續版本。",
-    },
-    {
-      href: "/mini-blog/quick4-salary-growth-dividend-stepup",
-      title: "加薪後如何加速領息",
-      description: "先加穩，再加快。",
-    },
-    {
-      href: "/mini-blog/quick4-single-income-dividend-safety-margin",
-      title: "單薪族領息安全邊際",
-      description: "不中斷比衝太快重要。",
-    },
-    {
-      href: "/mini-blog/quick4-couple-dividend-goal-alignment",
-      title: "伴侶領息目標怎麼對齊",
-      description: "同一時間軸比較不會吵。",
-    },
-    {
-      href: "/mini-blog/quick4-bonus-topup-dividend-acceleration",
-      title: "獎金加碼怎麼放最有感",
-      description: "加在對的期數更有效。",
-    },
-    {
-      href: "/mini-blog/quick4-dividend-vs-selling-shares-cashflow",
-      title: "領息 vs 賣股換現金流",
-      description: "兩者邏輯要分開看。",
-    },
-    {
-      href: "/mini-blog/quick4-stress-test-dividend-during-drawdown",
-      title: "回檔時領息計畫怎麼守",
-      description: "先有逆風劇本。",
-    },
-    {
-      href: "/mini-blog/quick4-annual-reset-dividend-plan-checklist",
-      title: "每年重設領息計畫清單",
-      description: "參數要跟現況一起更新。",
-    },
-    {
-      href: "/mini-blog/quick4-export-excel-compare-two-scenarios",
-      title: "匯出 Excel 比兩套路線",
-      description: "一次只改一個變數最好。",
-    },
-    {
-      href: "/mini-blog/quick4-build-30year-dividend-discipline",
-      title: "30 年領息紀律怎麼養",
-      description: "靠流程，不靠情緒。",
-    },
-  ],
+  "/quick-4": QUICK4_ROUTE_LINK_ITEMS,
   "/quick-5": [
     {
       href: "/mini-blog/quick5-principal-vs-compound-reality",
@@ -1079,7 +979,7 @@ export function QuickBlogLinksToggle({ quickRoute, title = "📚 本台小計算
           marginTop: 10,
           display: "grid",
           gap: 8,
-          ...(quickRoute === "/quick-11" || quickRoute === "/quick-12" || quickRoute === "/quick-13"
+          ...(quickRoute === "/quick-11" || quickRoute === "/quick-12" || quickRoute === "/quick-13" || quickRoute === "/quick-4"
             ? { maxHeight: "min(70vh, 520px)", overflowY: "auto", paddingRight: 4 }
             : {}),
         }}

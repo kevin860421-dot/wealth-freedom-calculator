@@ -34,4 +34,6 @@ export type TopicSeed = {
   calculatorName?: string;
   calculatorNote?: string;
   customSections?: Quick1ExclusiveSection[];
+  /** 第 4 台標的代碼（ETF／股票）；供 SEO 落地與試算 embed 對齊 */
+  tickerCode?: string;
 };

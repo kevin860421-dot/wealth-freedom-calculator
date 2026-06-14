@@ -11,6 +11,8 @@ import { QuickSeoExtras } from "@/app/components/quick-seo-extras";
 import { clampNum } from "@/lib/quick-calculator-math";
 import { quickEtfNthMonthSnapshot, resolveDividendMonths } from "@/lib/quick-etf-period-dividend";
 import { TICKER_PRESETS } from "../ticker-presets";
+import type { Quick4EmbedPreset } from "./embed-preset";
+import { parseQuick4PresetFromSearchParams } from "./embed-preset";
 import {
   DEFAULT_START_MONTH,
   DEFAULT_START_YEAR,
@@ -30,7 +32,24 @@ import {
   shiftCalendar,
 } from "./logic";
 
-export default function QuickCalculator4View() {
+type QuickCalculator4ViewProps = {
+  embeddedInMiniBlog?: boolean;
+  initialEmbedPreset?: Quick4EmbedPreset;
+};
+
+function applyEtfCode(id: string, setSelectedCode: (v: string) => void, setEtfCodeInput: (v: string) => void) {
+  const code = id.toUpperCase().trim();
+  const hit = TICKER_PRESETS.find((p) => p.id === code);
+  if (hit) {
+    setSelectedCode(code);
+    setEtfCodeInput(code);
+  }
+}
+
+export default function QuickCalculator4View({
+  embeddedInMiniBlog = false,
+  initialEmbedPreset,
+}: QuickCalculator4ViewProps = {}) {
   const [shareState, setShareState] = useState<"idle" | "copied">("idle");
   const [monthlyInvest, setMonthlyInvest] = useState(20000);
   const [monthlyInvestText, setMonthlyInvestText] = useState(formatTwd(20000));
@@ -111,13 +130,19 @@ export default function QuickCalculator4View() {
   useEffect(() => {
     queueMicrotask(() => {
       const sp = new URLSearchParams(window.location.search);
+      const preset = parseQuick4PresetFromSearchParams(sp) ?? initialEmbedPreset;
+
       const miRaw = sp.get("mi") ?? sp.get("monthly");
       const yRaw = sp.get("y") ?? sp.get("years");
-      const etfRaw = sp.get("etf");
       const sy = sp.get("sy") ?? sp.get("start_year");
       const sm = sp.get("sm") ?? sp.get("start_month");
       const nRaw = sp.get("n") ?? sp.get("nth");
-      if (miRaw != null) {
+
+      if (preset?.monthlyInvest != null) {
+        const next = Math.round(clampNum(preset.monthlyInvest, MONEY_MIN, MONEY_MAX) / 100) * 100;
+        setMonthlyInvest(next);
+        setMonthlyInvestText(formatTwd(next));
+      } else if (miRaw != null) {
         const v = Number(miRaw.replace(/,/g, ""));
         if (Number.isFinite(v)) {
           const next = Math.round(clampNum(v, MONEY_MIN, MONEY_MAX) / 100) * 100;
@@ -125,7 +150,12 @@ export default function QuickCalculator4View() {
           setMonthlyInvestText(formatTwd(next));
         }
       }
-      if (yRaw != null) {
+
+      if (preset?.years != null) {
+        const next = Math.round(clampNum(preset.years, YEARS_MIN, YEARS_MAX));
+        setYears(next);
+        setYearsText(String(next));
+      } else if (yRaw != null) {
         const v = Number(yRaw);
         if (Number.isFinite(v)) {
           const next = Math.round(clampNum(v, YEARS_MIN, YEARS_MAX));
@@ -133,28 +163,41 @@ export default function QuickCalculator4View() {
           setYearsText(String(next));
         }
       }
-      if (etfRaw != null && etfRaw.trim()) {
-        const id = etfRaw.toUpperCase().trim();
-        const hit = TICKER_PRESETS.find((p) => p.id === id);
-        if (hit) {
-          setSelectedCode(id);
-          setEtfCodeInput(id);
+
+      if (preset?.etfCode) {
+        applyEtfCode(preset.etfCode, setSelectedCode, setEtfCodeInput);
+      } else {
+        const etfRaw = sp.get("code") ?? sp.get("etf");
+        if (etfRaw != null && etfRaw.trim()) {
+          applyEtfCode(etfRaw, setSelectedCode, setEtfCodeInput);
         }
       }
-      const s = parseYearMonth(sy, sm, DEFAULT_START_YEAR, DEFAULT_START_MONTH);
+
+      const startY = preset?.startYear ?? (sy != null ? Number(sy) : undefined);
+      const startM = preset?.startMonth ?? (sm != null ? Number(sm) : undefined);
+      const s = parseYearMonth(
+        startY != null ? String(startY) : null,
+        startM != null ? String(startM) : null,
+        DEFAULT_START_YEAR,
+        DEFAULT_START_MONTH,
+      );
       setStartYM({ y: s.yy, m: s.mm });
-      if (nRaw != null) {
+
+      if (preset?.nthPeriod != null) {
+        setNthPeriod(Math.max(1, Math.trunc(preset.nthPeriod)));
+      } else if (nRaw != null) {
         const v = Number(nRaw);
         if (Number.isFinite(v)) setNthPeriod(Math.max(1, Math.trunc(v)));
       }
     });
-  }, []);
+  }, [initialEmbedPreset]);
 
   const onShare = async () => {
     try {
       const url = new URL(window.location.href);
       url.searchParams.set("mi", String(monthlyInvest));
       url.searchParams.set("y", String(years));
+      url.searchParams.set("code", selectedCode);
       url.searchParams.set("etf", selectedCode);
       url.searchParams.set("sy", String(startYM.y));
       url.searchParams.set("sm", String(startYM.m));
@@ -495,9 +538,9 @@ export default function QuickCalculator4View() {
               quickId={4}
               style={{ boxShadow: "0 10px 24px rgba(37,99,235,0.45)" }}
             />
-            <QuickBlogLinksToggle quickRoute="/quick-4" />
-            <QuickSeoExtras id={4} />
-            <QuickSeoArticle id={4} />
+            {!embeddedInMiniBlog ? <QuickBlogLinksToggle quickRoute="/quick-4" /> : null}
+            {!embeddedInMiniBlog ? <QuickSeoExtras id={4} /> : null}
+            {!embeddedInMiniBlog ? <QuickSeoArticle id={4} /> : null}
           </div>
         </section>
       </div>

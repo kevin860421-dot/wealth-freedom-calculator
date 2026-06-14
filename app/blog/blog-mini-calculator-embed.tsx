@@ -6,6 +6,7 @@
  */
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { quick11EmbedPresetFromSlug } from "../quick-11/loan-scenarios";
+import { quick4EmbedPresetFromSlug } from "../quick-4/ticker-scenarios";
 import { getQuick12EmbedTarget } from "../mini-blog/posts/quick12-posts-2-100";
 import styles from "./blog.module.css";
 import "./mini-calculator-embed.css";
@@ -25,7 +26,7 @@ const Quick11 = lazy(() => import("../quick-11/QuickCalculator11Content"));
 const Quick1 = lazy(() => import("../quick-1/view"));
 const Quick2 = lazy(() => import("../quick-2/page"));
 const Quick3 = lazy(() => import("../quick-3/page"));
-const Quick4 = lazy(() => import("../quick-4/page"));
+const Quick4 = lazy(() => import("../quick-4/view"));
 const Quick5 = lazy(() => import("../quick-5/page"));
 const Quick6 = lazy(() => import("../quick-6/page"));
 const Quick7 = lazy(() => import("../quick-7/page"));
@@ -53,6 +54,7 @@ export function BlogMiniCalculatorEmbed({ route, title, note, miniBlogSlug }: Pr
   const Calculator = resolveCalculator(route);
   const quick11Anchor = route === "/quick-11" && miniBlogSlug ? quick11EmbedPresetFromSlug(miniBlogSlug) : undefined;
   const quick12Embed = route === "/quick-12" && miniBlogSlug ? getQuick12EmbedTarget(miniBlogSlug) : undefined;
+  const quick4Preset = route === "/quick-4" && miniBlogSlug ? quick4EmbedPresetFromSlug(miniBlogSlug) : undefined;
   const [shouldMount, setShouldMount] = useState(false);
   const mountRef = useRef<HTMLDivElement | null>(null);
 
@@ -93,26 +95,30 @@ export function BlogMiniCalculatorEmbed({ route, title, note, miniBlogSlug }: Pr
             <div className="isolate w-full wf-inline-calculator">
               <Suspense fallback={<div className={styles.miniEmbedFallback}>小計算機載入中...</div>}>
                 {route === "/quick-1" ? (
-                  <Calculator showArticleToggle={false} />
+                  <Quick1 showArticleToggle={false} />
                 ) : route === "/quick-11" ? (
                   <div className="not-prose isolate w-full min-w-0">
-                    <Calculator embeddedInMiniBlog initialEmbedPreset={quick11Anchor} />
+                    <Quick11 embeddedInMiniBlog initialEmbedPreset={quick11Anchor} />
                   </div>
                 ) : route === "/quick-12" ? (
                   <div className="not-prose isolate w-full min-w-0">
-                    <Calculator
+                    <Quick12
                       embeddedInMiniBlog
                       initialPage={quick12Embed?.page}
                       initialPkScenarioIdx={quick12Embed?.pkScenarioIdx}
                     />
                   </div>
+                ) : route === "/quick-4" ? (
+                  <div className="not-prose isolate w-full min-w-0">
+                    <Quick4 embeddedInMiniBlog initialEmbedPreset={quick4Preset} />
+                  </div>
                 ) : route === "/quick-13" ? (
                   <div className="not-prose isolate w-full min-w-0">
-                    <Calculator embeddedInMiniBlog />
+                    <Quick13 embeddedInMiniBlog />
                   </div>
-                ) : (
+                ) : Calculator != null ? (
                   <Calculator />
-                )}
+                ) : null}
               </Suspense>
             </div>
           )}
