@@ -1,0 +1,61 @@
+name: GameFi Pre-deployment Verification
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Load verification env
+        env:
+          SUPABASE_DATABASE_URL_POOLER: ${{ secrets.SUPABASE_DATABASE_URL_POOLER }}
+          SUPABASE_DIRECT_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_DATABASE_URL_POOLER" ] || [ -z "$SUPABASE_DIRECT_URL" ]; then
+            echo "⚠️  略過 DB 驗證：未設定 SUPABASE_DATABASE_URL_POOLER / SUPABASE_DIRECT_URL secrets"
+            echo "SKIP_DB_VERIFY=1" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          echo "DATABASE_URL=$SUPABASE_DATABASE_URL_POOLER" >> .env
+          echo "DIRECT_URL=$SUPABASE_DIRECT_URL" >> .env
+          echo "NEXT_PUBLIC_SUPABASE_URL=$SUPABASE_URL" >> .env.local
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" >> .env.local
+
+      - name: Prisma migrate deploy
+        if: env.SKIP_DB_VERIFY != '1'
+        run: npx prisma migrate deploy
+
+      - name: Boundary guard, typecheck, and full build
+        run: VERIFY_FULL_BUILD=1 node scripts/verify-bounds.js
+
+      - name: GameFi E2E provision test
+        if: env.SKIP_DB_VERIFY != '1'
+        run: npm run test:gamefi
+
+      # Vercel 已透過 Git 整合自動部署；此 workflow 僅負責驗證閘門。
+      # 若需改由 Actions 部署，請取消下方註解並設定 VERCEL_* secrets。
+      # - name: Deploy to Vercel
+      #   uses: amondnet/vercel-action@v25
+      #   with:
+      #     vercel-token: ${{ secrets.VERCEL_TOKEN }}
+      #     vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+      #     vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+      #     vercel-args: "--prod"

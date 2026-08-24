@@ -17,9 +17,20 @@
     "generate:quick4-ticker-posts": "node scripts/gen-quick4-ticker-posts.mjs",
     "verify:quick4-routing": "npx tsx --tsconfig tsconfig.json scripts/verify-quick4-routing.ts",
     "verify:quick4-coverage": "npx tsx --tsconfig tsconfig.json scripts/verify-quick4-coverage.ts",
-    "check:mini-blog-publish": "npx tsx --tsconfig tsconfig.json scripts/check-mini-blog-publish-overlap.ts"
+    "check:mini-blog-publish": "npx tsx --tsconfig tsconfig.json scripts/check-mini-blog-publish-overlap.ts",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "typecheck": "tsc --noEmit",
+    "verify:bounds": "node scripts/verify-bounds.js",
+    "test:gamefi": "npx tsx --tsconfig tsconfig.json tests/gamefi/provision.test.ts",
+    "verify:gamefi": "npm run db:deploy && npm run verify:bounds && npm run test:gamefi"
   },
   "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.49.1",
     "@tiptap/extension-color": "^3.22.4",
     "@tiptap/extension-image": "^3.22.4",
     "@tiptap/extension-link": "^3.22.4",
@@ -52,6 +63,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "postcss": "^8.5.8",
+    "prisma": "^5.22.0",
     "tailwindcss": "^3.4.19",
     "typescript": "^5"
   }

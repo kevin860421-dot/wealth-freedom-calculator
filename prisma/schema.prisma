@@ -1,0 +1,74 @@
+// GameFi Phase 1A — User / Wallet / Ledger（財富自由計算機）
+// Runtime: DATABASE_URL (pooler) · Migrate: DIRECT_URL (5432)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum WalletStatus {
+  ACTIVE
+  BLOCKED
+  AUDIT_HOLD
+}
+
+enum WalletLedgerActionType {
+  INITIAL_GRANT
+}
+
+model User {
+  id            String   @id @default(uuid()) @db.Uuid
+  authSubjectId String   @unique @map("auth_subject_id") @db.Uuid
+  email         String?  @unique
+  displayName   String   @default("") @map("display_name")
+  authProvider  String?  @map("auth_provider")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  wallet       UserWallet?
+  ledgerEntries WalletLedger[]
+
+  @@map("users")
+}
+
+model UserWallet {
+  id        String       @id @default(uuid()) @db.Uuid
+  userId    String       @unique @map("user_id") @db.Uuid
+  gems      Int
+  status    WalletStatus @default(ACTIVE)
+  version   Int          @default(1)
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ledgerEntries WalletLedger[]
+
+  @@map("user_wallets")
+}
+
+/// Append-only：禁止 UPDATE / DELETE（由應用層與未來 DB policy 強制）
+model WalletLedger {
+  id           String                 @id @default(uuid()) @db.Uuid
+  userId       String                 @map("user_id") @db.Uuid
+  walletId     String                 @map("wallet_id") @db.Uuid
+  actionType   WalletLedgerActionType @map("action_type")
+  gemChange    Int                    @map("gem_change")
+  balanceAfter Int                    @map("balance_after")
+  targetId     String?                @map("target_id")
+  requestId    String                 @map("request_id")
+  metadata     Json?
+  createdAt    DateTime               @default(now()) @map("created_at")
+
+  user   User       @relation(fields: [userId], references: [id], onDelete: Restrict)
+  wallet UserWallet @relation(fields: [walletId], references: [id], onDelete: Restrict)
+
+  @@unique([walletId, requestId], map: "wallet_ledger_wallet_request_uidx")
+  @@index([walletId, createdAt], map: "wallet_ledger_wallet_created_idx")
+  @@index([userId, createdAt], map: "wallet_ledger_user_created_idx")
+  @@map("wallet_ledger")
+}
