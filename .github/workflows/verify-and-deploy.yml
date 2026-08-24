@@ -42,6 +42,10 @@ jobs:
       - name: Prisma migrate deploy
         if: env.SKIP_DB_VERIFY != '1'
         run: npx prisma migrate deploy
+        env:
+          # CI 無法直連 db.*.supabase.co:5432 時，secret 應設為 session pooler :5432
+          DIRECT_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
+          DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL_POOLER }}
 
       - name: Boundary guard, typecheck, and full build
         run: VERIFY_FULL_BUILD=1 node scripts/verify-bounds.js
@@ -49,6 +53,9 @@ jobs:
       - name: GameFi E2E provision test
         if: env.SKIP_DB_VERIFY != '1'
         run: npm run test:gamefi
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL_POOLER }}
+          DIRECT_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
 
       # Vercel 已透過 Git 整合自動部署；此 workflow 僅負責驗證閘門。
       # 若需改由 Actions 部署，請取消下方註解並設定 VERCEL_* secrets。
