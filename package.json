@@ -24,6 +24,7 @@
     "db:deploy": "prisma migrate deploy",
     "typecheck": "tsc --noEmit",
     "verify:bounds": "node scripts/verify-bounds.js",
+    "check:env": "node scripts/check-env.js",
     "test:gamefi": "npx tsx --tsconfig tsconfig.json tests/gamefi/provision.test.ts",
     "verify:gamefi": "npm run db:deploy && npm run verify:bounds && npm run test:gamefi"
   },

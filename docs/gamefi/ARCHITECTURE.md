@@ -17,6 +17,7 @@
 建議交付前在本機執行：
 
 ```bash
+node scripts/check-env.js
 npm run verify:gamefi
 ```
 
@@ -48,9 +49,9 @@ GameFi 模組（用戶錢包、抽卡、下注）**不得侵入**財富自由計
 
 | 類型 | 路徑 | 範例 |
 |------|------|------|
-| UI 路由 | `app/gamefi/` | `app/gamefi/gacha/page.tsx` |
+| UI 路由 | `app/gamefi/` | `app/gamefi/page.tsx`、`gamefi-wallet-shell.tsx` |
 | 後端 API | `app/api/gamefi/` | `app/api/gamefi/wallet/route.ts` |
-| 業務邏輯 | `lib/gamefi/` | `lib/gamefi/wallet-service.ts` |
+| 業務邏輯 | `lib/gamefi/` | `lib/gamefi/wallet-service.ts`、`ledger-labels.ts` |
 | Auth（Phase 1A） | `lib/auth/` | `lib/auth/require-user.ts` |
 | DB | `prisma/`、`lib/db/` | `lib/db/client.ts` |
 
@@ -66,6 +67,9 @@ GameFi 模組（用戶錢包、抽卡、下注）**不得侵入**財富自由計
 | 專案名稱 | Wealth Freedom Calculator |
 | 區域 | `ap-southeast-1`（新加坡） |
 | Prisma Migrations | **3** 支（Phase 1A） |
+| GitHub Repo | `kevin860421-dot/wealth-freedom-calculator` |
+| Vercel 專案 | `wukaichuan/wealth-freedom-calculator` |
+| 正式網址 | https://wealth-freedom-calculator.vercel.app |
 
 ### 資料表關係
 
@@ -73,66 +77,86 @@ GameFi 模組（用戶錢包、抽卡、下注）**不得侵入**財富自由計
 users (1) ── (1) user_wallets (1) ── (N) wallet_ledger
 ```
 
-| 表 | Prisma Model | 說明 |
-|----|--------------|------|
-| `public.users` | `User` | 應用層用戶；`auth_subject_id` 對應 Supabase `auth.users.id` |
-| `public.user_wallets` | `UserWallet` | 寶石餘額快取欄位 `gems`（與 ledger 同事務更新） |
-| `public.wallet_ledger` | `WalletLedger` | 流水帳；欄位 `gem_change`、`balance_after` |
+| 表 | Prisma Model | DB 欄位 | 說明 |
+|----|--------------|---------|------|
+| `public.users` | `User` | `auth_subject_id` | 對應 Supabase `auth.users.id` |
+| `public.user_wallets` | `UserWallet` | **`gems`**（非 `gems_balance`） | 餘額快取 |
+| `public.wallet_ledger` | `WalletLedger` | `gem_change`、`action_type` | Append-only 流水 |
 
 ### Ledger SoT 鐵律
 
-1. **Append-Only**：Ledger 只能 `INSERT`；禁止 `UPDATE` / `DELETE`（目前為 **application-level**；未來可加 DB trigger migration）。
-2. **餘額一致性**：`user_wallets.gems` 變更必須與同一 transaction 內 ledger 的 `gem_change` 相符。
-3. **初始發放**：新用戶 `provisionUserWithWallet` → `gems = 1000` + 一筆 `INITIAL_GRANT` ledger（`gem_change = +1000`）。
-
-實作位置：`lib/auth/require-user.ts`（`lib/gamefi/wallet-service.ts` 為穩定 re-export）。
+1. **Append-Only**：Ledger 只能 `INSERT`。
+2. **餘額一致性**：`user_wallets.gems` 與同事務內 `wallet_ledger.gem_change` 一致。
+3. **初始發放**：`provisionUserWithWallet` → `gems = 1000` + `INITIAL_GRANT`（`gem_change = +1000`）。
 
 ---
 
 ## 3. 基礎設施環境變數（.env Spec）
 
-Prisma CLI **只讀 `.env`**；Next.js dev **讀 `.env.local`**。兩邊都要放 DB 連線。
+Prisma CLI **只讀 `.env`**；Next.js dev **讀 `.env.local`**。DB 連線建議兩邊都放。
 
 ```env
-# Supabase 前端 / Auth（可公開）
+# Supabase 前端 / Auth
 NEXT_PUBLIC_SUPABASE_URL=https://mtqpvfeyrupmeixkgtpr.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<publishable_key>
 
-# Prisma 執行期（Transaction pooler, port 6543）
+# Prisma 執行期（Transaction pooler :6543）
 DATABASE_URL=postgresql://postgres.mtqpvfeyrupmeixkgtpr:<PASSWORD>@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1
 
-# Prisma migrate deploy（Direct, port 5432）
+# Prisma migrate（Direct :5432 或 session pooler :5432）
 DIRECT_URL=postgresql://postgres:<PASSWORD>@db.mtqpvfeyrupmeixkgtpr.supabase.co:5432/postgres
+
+# Phase 1B Google OAuth 回傳（本機 / Production 各一組）
+AUTH_REDIRECT_URL=http://localhost:3000/gamefi/auth/callback
+NEXT_PUBLIC_AUTH_REDIRECT_URL=http://localhost:3000/gamefi/auth/callback
 ```
+
+### 本機診斷
+
+```bash
+node scripts/check-env.js
+```
+
+檢查 `DATABASE_URL`、`DIRECT_URL`、`NEXT_PUBLIC_SUPABASE_URL`、`AUTH_REDIRECT_URL` 是否存在與格式（**不輸出密碼**）。
 
 ### Vercel（Production / Preview）
 
-上述四個變數已配置於 `wukaichuan/wealth-freedom-calculator`。
+| 變數 | 狀態（截至 Phase 1C） |
+|------|----------------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ |
+| `DATABASE_URL` | ✅ |
+| `DIRECT_URL` | ✅ |
+| `AUTH_REDIRECT_URL` | ⚠️ **需補**（見 §3.1） |
+| `NEXT_PUBLIC_AUTH_REDIRECT_URL` | ⚠️ **需補** |
 
-> **注意**：Vercel 環境變數僅影響 **Runtime**，部署時**不會**自動執行 `prisma migrate deploy`。Schema 變更須在本機或 CI 先跑 migration。
+> Vercel 環境變數僅影響 Runtime，**不會**自動執行 `prisma migrate deploy`。
+
+### 3.1 Google 登入失敗時檢查路徑
+
+| 平台 | 路徑 | 要確認的 URL |
+|------|------|-------------|
+| **Supabase** | Dashboard → **Authentication** → **URL Configuration** | **Site URL**、**Redirect URLs** 含 `https://wealth-freedom-calculator.vercel.app/gamefi/auth/callback` |
+| **Supabase** | Dashboard → **Authentication** → **Providers** → **Google** | 啟用 + Client ID / Secret |
+| **Google Cloud** | [APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials) → 你的 **OAuth 2.0 Client ID** | **Authorized JavaScript origins**：`https://wealth-freedom-calculator.vercel.app`、`http://localhost:3000` |
+| **Google Cloud** | 同上 → **Authorized redirect URIs** | `https://<project-ref>.supabase.co/auth/v1/callback`（Supabase 提供的 Google callback，**不是**你的 `/gamefi/auth/callback`） |
+| **Vercel** | Project → **Settings** → **Environment Variables** | `NEXT_PUBLIC_AUTH_REDIRECT_URL` = `https://wealth-freedom-calculator.vercel.app/gamefi/auth/callback` |
+
+流程說明：瀏覽器 OAuth 先回 Supabase `auth/v1/callback`，再由 Supabase 導向你的 `AUTH_REDIRECT_URL`（`/gamefi/auth/callback`）。
 
 ---
 
 ## 4. 部署前 AI 自我驗證（Self-Verification Flow）
 
-### 驗證三部曲
-
 | 步驟 | 指令 | 目的 |
 |------|------|------|
-| 1. DB 結構一致 | `npx prisma migrate deploy` | 防範 schema 斷層 |
-| 2. 邊界 + 編譯 | `node scripts/verify-bounds.js` | 核心檔案存在 + TypeScript 通過 |
-| 3. E2E 開戶發寶石 | `npm run test:gamefi` | `provisionUserWithWallet` 邏輯正確 |
-
-一鍵執行：
+| 0. 環境 | `node scripts/check-env.js` | 本機 env 齊全 |
+| 1. DB | `npx prisma migrate deploy` | Schema 一致 |
+| 2. 邊界 + 編譯 | `node scripts/verify-bounds.js` | 核心未動 + build |
+| 3. E2E | `npm run test:gamefi` | provision 邏輯 |
 
 ```bash
 npm run verify:gamefi
-```
-
-完整 production build（較慢，CI 用）：
-
-```bash
-VERIFY_FULL_BUILD=1 node scripts/verify-bounds.js
 ```
 
 ---
@@ -142,38 +166,21 @@ VERIFY_FULL_BUILD=1 node scripts/verify-bounds.js
 ### A. `scripts/verify-bounds.js`
 
 - 檢查 §1 核心檔案是否存在
-- 執行 `npm run typecheck`
-- `VERIFY_FULL_BUILD=1` 時額外執行 `npm run build`
+- 執行 `npm run build`（失敗時 fallback `npx next build`）
 
-### B. `tests/gamefi/provision.test.ts`
+### B. `scripts/check-env.js`
 
-- 連線真實 `DATABASE_URL`
-- 在 **單一 transaction** 內呼叫 `provisionUserWithWallet`，驗證後 **rollback**（不留測試髒資料）
-- 斷言：`gems === 1000`、ledger 一筆、`gem_change === 1000`、`action_type === INITIAL_GRANT`
+- 讀取 `.env` / `.env.local`，遮罩敏感值後回報
+
+### C. `tests/gamefi/provision.test.ts`
+
+- Transaction rollback 驗證 1000 gems + INITIAL_GRANT
 
 ---
 
-## 6. GitHub Actions（`.github/workflows/verify-and-deploy.yml`）
+## 6. GitHub Actions
 
-Push / PR 至 `main` 時自動：
-
-1. `npm ci`
-2. `prisma migrate deploy`（需設定 repo secrets）
-3. `verify-bounds.js` + 完整 build
-4. `npm run test:gamefi`
-
-**必要 Secrets（GitHub → Settings → Secrets）：**
-
-| Secret | 說明 |
-|--------|------|
-| `SUPABASE_DATABASE_URL_POOLER` | 同 `DATABASE_URL` |
-| `SUPABASE_DIRECT_URL` | 同 `DIRECT_URL` |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase API URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Publishable key |
-
-未設定 DB secrets 時，workflow 會略過 DB 相關步驟但仍跑邊界與 build。
-
-Vercel 已透過 Git 整合自動部署；此 workflow 為**驗證閘門**，不取代 Vercel deploy hook。
+Push / PR → `main`：migrate → verify-bounds → test:gamefi。詳見 `.github/workflows/verify-and-deploy.yml`。
 
 ---
 
@@ -181,37 +188,86 @@ Vercel 已透過 Git 整合自動部署；此 workflow 為**驗證閘門**，不
 
 | 階段 | 狀態 | 內容 |
 |------|------|------|
-| **Phase 0** | ✅ | 只讀盤點 |
-| **Phase 0.5** | ✅ | 架構設計 |
-| **Phase 1A** | ✅ | Prisma schema、Supabase client、`requireUser`、`provisionUserWithWallet` |
-| **Phase 1B-0** | ✅ | DB 連線、migration、Vercel env |
-| **Phase 1B** | 🔜 | `app/gamefi/` 登入 UI、OAuth 流程 |
-| **Phase 1C** | 計畫中 | `GET /api/gamefi/wallet` |
-| **Phase 2** | 計畫中 | Gacha、Betting、對應 ledger 規則 |
+| Phase 0 / 0.5 | ✅ | 盤點、架構 |
+| Phase 1A | ✅ | Prisma、Supabase、`requireUser`、`provisionUserWithWallet` |
+| Phase 1B-0 | ✅ | DB、Vercel、GitHub Secrets、CI |
+| **Phase 1B** | ✅ | Google 登入、`/gamefi`、`/api/gamefi/me`、OAuth callback |
+| **Phase 1C** | ✅ | `GET /api/gamefi/wallet`、流水帳 UI |
+| Phase 2 | 計畫中 | Gacha、Betting |
 
 ---
 
-## 8. 已知技術債與安全計畫
+## 8. Phase 1C 設計規範（As-Built）
 
-1. **DB 密碼輪換**：若曾在對話或 log 暴露，應至 Supabase → Database → Reset password，並同步 `.env` / Vercel。
-2. **RLS 未啟用**：目前僅 server-side Prisma；若未來前端直連 Supabase，須補 RLS policy。
-3. **Ledger DB 層 append-only**：尚未有 trigger / REVOKE migration（規劃：`004_wallet_ledger_append_only_guard`）。
-4. **Auth E2E**：`test:gamefi` 目前測 wallet provision；完整 OAuth 流程待 Phase 1B。
+### 8.1 後端 API：`GET /api/gamefi/wallet`
+
+| 項目 | 規範 |
+|------|------|
+| 路徑 | `app/api/gamefi/wallet/route.ts` |
+| 驗證 | `requireUser()`（未登入 → **401**） |
+| 查詢 | `user_wallets.gems` + `wallet_ledger` 最近 **10** 筆，`created_at DESC` |
+| 錯誤 | DB 異常 → **500** |
+
+**回傳格式**（API 欄位名；DB 實際為 `gems` / `gem_change` / `action_type`）：
+
+```json
+{
+  "success": true,
+  "balance": 1000,
+  "ledger": [
+    {
+      "id": "uuid",
+      "type": "INITIAL_GRANT",
+      "amount": 1000,
+      "balance_after": 1000,
+      "created_at": "2026-08-24T12:00:00.000Z"
+    }
+  ]
+}
+```
+
+| JSON 欄位 | Prisma / DB 對照 |
+|-----------|------------------|
+| `balance` | `user_wallets.gems` |
+| `ledger[].type` | `wallet_ledger.action_type` |
+| `ledger[].amount` | `wallet_ledger.gem_change` |
+
+既有 `GET /api/gamefi/me` 保留（輕量 profile）；wallet 為餘額 + 流水專用。
+
+### 8.2 前端 UI：`app/gamefi/gamefi-wallet-shell.tsx`
+
+| 項目 | 規範 |
+|------|------|
+| 登入後 | `fetch("/api/gamefi/wallet")` |
+| 區塊 | 寶石餘額卡片 + **資產流水明細**（最近 10 筆） |
+| 樣式 | 莫蘭迪深色 Tailwind；正數 `var(--morandi-highlight)`、負數 `#d4a5a5` |
+| UX | Loading skeleton；`INITIAL_GRANT` 顯示「系統贈送」 |
+| 殼路由 | `app/gamefi/page.tsx`（Server metadata + Suspense） |
 
 ---
 
-## 9. 相關檔案索引
+## 9. 已知技術債
+
+1. DB 密碼輪換（若曾外洩）
+2. RLS 未啟用（目前 server-side Prisma）
+3. Ledger DB append-only trigger 未加
+4. Vercel 需補 `AUTH_REDIRECT_URL` / `NEXT_PUBLIC_AUTH_REDIRECT_URL`
+5. OAuth 完整 E2E 自動測試待 Phase 2 前補
+
+---
+
+## 10. 相關檔案索引
 
 ```
-prisma/schema.prisma
-prisma/migrations/20260824100100_init_users/
-prisma/migrations/20260824100200_init_wallets/
-prisma/migrations/20260824100300_init_wallet_ledger/
-lib/db/client.ts
-lib/supabase/{env,browser,server}.ts
-lib/auth/require-user.ts
+app/gamefi/page.tsx
+app/gamefi/gamefi-wallet-shell.tsx
+app/gamefi/auth/callback/route.ts
+app/api/gamefi/me/route.ts
+app/api/gamefi/wallet/route.ts
 lib/gamefi/wallet-service.ts
+lib/gamefi/ledger-labels.ts
+lib/auth/require-user.ts
+scripts/check-env.js
 scripts/verify-bounds.js
 tests/gamefi/provision.test.ts
-.github/workflows/verify-and-deploy.yml
 ```

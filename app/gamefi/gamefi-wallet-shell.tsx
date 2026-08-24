@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { getLedgerActionLabel } from "@/lib/gamefi/ledger-labels";
 import { getSupabaseBrowser } from "@/lib/supabase/browser";
 import { getPublicAuthRedirectUrl, isSupabaseConfigured } from "@/lib/supabase/env";
 
@@ -20,10 +21,30 @@ type MeResponse = {
   };
 };
 
+type WalletLedgerItem = {
+  id: string;
+  type: string;
+  amount: number;
+  balance_after: number;
+  created_at: string;
+};
+
+type WalletResponse = {
+  success: boolean;
+  balance: number;
+  ledger: WalletLedgerItem[];
+};
+
 type LoadState =
   | { status: "loading" }
   | { status: "guest" }
   | { status: "authenticated"; data: MeResponse }
+  | { status: "error"; message: string };
+
+type WalletLoadState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "ready"; data: WalletResponse }
   | { status: "error"; message: string };
 
 function GoogleMark() {
@@ -49,11 +70,69 @@ function GoogleMark() {
   );
 }
 
+function LedgerSkeleton() {
+  return (
+    <div className="mt-4 space-y-3" aria-hidden>
+      {[1, 2, 3].map((i) => (
+        <div
+          key={i}
+          className="h-14 animate-pulse rounded-lg"
+          style={{ backgroundColor: "var(--morandi-bg-mid)" }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function formatLedgerTime(iso: string): string {
+  try {
+    return new Date(iso).toLocaleString("zh-TW", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return iso;
+  }
+}
+
+function formatGemAmount(amount: number): string {
+  const abs = Math.abs(amount).toLocaleString("zh-TW");
+  return amount >= 0 ? `+${abs}` : `-${abs}`;
+}
+
 export function GamefiWalletShell() {
   const searchParams = useSearchParams();
   const authError = searchParams.get("error");
   const [state, setState] = useState<LoadState>({ status: "loading" });
+  const [walletState, setWalletState] = useState<WalletLoadState>({ status: "idle" });
   const [authBusy, setAuthBusy] = useState(false);
+
+  const loadWallet = useCallback(async () => {
+    setWalletState({ status: "loading" });
+    try {
+      const res = await fetch("/api/gamefi/wallet", { credentials: "include" });
+      if (res.status === 401) {
+        setWalletState({ status: "idle" });
+        return;
+      }
+      if (!res.ok) {
+        throw new Error(`wallet API ${res.status}`);
+      }
+      const data = (await res.json()) as WalletResponse;
+      if (!data.success) {
+        throw new Error("wallet API unsuccessful");
+      }
+      setWalletState({ status: "ready", data });
+    } catch (err) {
+      setWalletState({
+        status: "error",
+        message: err instanceof Error ? err.message : "流水載入失敗",
+      });
+    }
+  }, []);
 
   const loadProfile = useCallback(async () => {
     if (!isSupabaseConfigured()) {
@@ -67,6 +146,7 @@ export function GamefiWalletShell() {
     const supabase = getSupabaseBrowser();
     if (!supabase) {
       setState({ status: "guest" });
+      setWalletState({ status: "idle" });
       return;
     }
 
@@ -76,6 +156,7 @@ export function GamefiWalletShell() {
 
     if (!session) {
       setState({ status: "guest" });
+      setWalletState({ status: "idle" });
       return;
     }
 
@@ -83,6 +164,7 @@ export function GamefiWalletShell() {
       const res = await fetch("/api/gamefi/me", { credentials: "include" });
       if (res.status === 401) {
         setState({ status: "guest" });
+        setWalletState({ status: "idle" });
         return;
       }
       if (!res.ok) {
@@ -90,13 +172,14 @@ export function GamefiWalletShell() {
       }
       const data = (await res.json()) as MeResponse;
       setState({ status: "authenticated", data });
+      await loadWallet();
     } catch (err) {
       setState({
         status: "error",
         message: err instanceof Error ? err.message : "載入失敗",
       });
     }
-  }, []);
+  }, [loadWallet]);
 
   useEffect(() => {
     void loadProfile();
@@ -144,10 +227,18 @@ export function GamefiWalletShell() {
     try {
       await supabase.auth.signOut();
       setState({ status: "guest" });
+      setWalletState({ status: "idle" });
     } finally {
       setAuthBusy(false);
     }
   }
+
+  const displayBalance =
+    walletState.status === "ready"
+      ? walletState.data.balance
+      : state.status === "authenticated"
+        ? state.data.wallet.gems
+        : 0;
 
   return (
     <main
@@ -158,7 +249,7 @@ export function GamefiWalletShell() {
         className="mb-2 text-sm font-medium tracking-wide"
         style={{ color: "var(--morandi-text-soft)" }}
       >
-        GameFi · Phase 1B
+        GameFi · Phase 1C
       </p>
       <h1
         className="mb-2 text-2xl font-semibold tracking-tight sm:text-3xl"
@@ -178,9 +269,16 @@ export function GamefiWalletShell() {
         }}
       >
         {state.status === "loading" && (
-          <p className="text-center text-sm" style={{ color: "var(--morandi-text-soft)" }}>
-            載入中…
-          </p>
+          <div className="space-y-4" aria-busy>
+            <div
+              className="mx-auto h-4 w-32 animate-pulse rounded"
+              style={{ backgroundColor: "var(--morandi-bg-mid)" }}
+            />
+            <div
+              className="h-24 animate-pulse rounded-xl"
+              style={{ backgroundColor: "var(--morandi-bg-mid)" }}
+            />
+          </div>
         )}
 
         {state.status === "error" && (
@@ -249,13 +347,83 @@ export function GamefiWalletShell() {
               <p className="text-xs uppercase tracking-wider" style={{ color: "var(--morandi-text-muted)" }}>
                 寶石餘額 · Gems Balance
               </p>
-              <p
-                className="mt-2 text-3xl font-semibold tabular-nums"
-                style={{ color: "var(--morandi-highlight)" }}
-              >
-                {state.data.wallet.gems.toLocaleString("zh-TW")}
-              </p>
+              {walletState.status === "loading" ? (
+                <div
+                  className="mt-3 h-9 w-28 animate-pulse rounded"
+                  style={{ backgroundColor: "var(--morandi-surface)" }}
+                />
+              ) : (
+                <p
+                  className="mt-2 text-3xl font-semibold tabular-nums"
+                  style={{ color: "var(--morandi-highlight)" }}
+                >
+                  {displayBalance.toLocaleString("zh-TW")}
+                </p>
+              )}
             </div>
+
+            <div
+              className="rounded-xl border px-4 py-4"
+              style={{
+                borderColor: "var(--morandi-border)",
+                backgroundColor: "var(--morandi-bg-mid)",
+              }}
+            >
+              <p className="text-xs uppercase tracking-wider" style={{ color: "var(--morandi-text-muted)" }}>
+                資產流水明細
+              </p>
+              <p className="mt-1 text-xs" style={{ color: "var(--morandi-text-soft)" }}>
+                最近 10 筆交易
+              </p>
+
+              {walletState.status === "loading" && <LedgerSkeleton />}
+
+              {walletState.status === "error" && (
+                <p className="mt-3 text-sm" style={{ color: "#d4a5a5" }}>
+                  {walletState.message}
+                </p>
+              )}
+
+              {walletState.status === "ready" && walletState.data.ledger.length === 0 && (
+                <p className="mt-4 text-sm" style={{ color: "var(--morandi-text-soft)" }}>
+                  尚無流水紀錄
+                </p>
+              )}
+
+              {walletState.status === "ready" && walletState.data.ledger.length > 0 && (
+                <ul className="mt-4 space-y-2">
+                  {walletState.data.ledger.map((item) => {
+                    const positive = item.amount >= 0;
+                    return (
+                      <li
+                        key={item.id}
+                        className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5"
+                        style={{
+                          borderColor: "var(--morandi-border)",
+                          backgroundColor: "var(--morandi-surface)",
+                        }}
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium" style={{ color: "var(--morandi-text)" }}>
+                            {getLedgerActionLabel(item.type)}
+                          </p>
+                          <p className="text-xs" style={{ color: "var(--morandi-text-muted)" }}>
+                            {formatLedgerTime(item.created_at)}
+                          </p>
+                        </div>
+                        <p
+                          className="shrink-0 text-sm font-semibold tabular-nums"
+                          style={{ color: positive ? "var(--morandi-highlight)" : "#d4a5a5" }}
+                        >
+                          {formatGemAmount(item.amount)} Gems
+                        </p>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+
             <button
               type="button"
               disabled={authBusy}
