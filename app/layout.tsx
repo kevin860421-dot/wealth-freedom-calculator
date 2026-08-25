@@ -9,6 +9,7 @@ import { getPublicStatsSnapshot } from "@/lib/stats-store";
 import { PwaServiceWorkerRegister } from "./pwa-service-worker-register";
 import { StatsProvider } from "./stats-provider";
 import { VisitStatsSeoSnippet } from "./visit-stats-seo-snippet";
+import { GameFiGlobalMount } from "@/components/gamefi/gamefi-global-mount";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -97,7 +98,10 @@ export default async function RootLayout({
       >
         <VisitStatsSeoSnippet stats={initialStats} />
         <PwaServiceWorkerRegister />
-        <StatsProvider initialStats={initialStats}>{children}</StatsProvider>
+        <StatsProvider initialStats={initialStats}>
+          {children}
+          <GameFiGlobalMount />
+        </StatsProvider>
         <Analytics />
       </body>
     </html>

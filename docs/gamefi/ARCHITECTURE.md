@@ -21,6 +21,8 @@ node scripts/check-env.js
 npm run verify:gamefi
 ```
 
+`verify:gamefi` 執行升級版 `verify-bounds.js`（邊界 + 前端 Prisma/OAuth 檢查 + build）。完整 DB E2E 用 `npm run verify:gamefi:full`。
+
 ---
 
 ## 1. 系統邊界與防護原則（System Boundary）
@@ -238,6 +240,7 @@ Push / PR → `main`：migrate → verify-bounds → test:gamefi。詳見 `.gith
 
 | 項目 | 規範 |
 |------|------|
+| OAuth | `getOAuthRedirectTo()`（`lib/gamefi/oauth-redirect.ts`）讀取 `NEXT_PUBLIC_AUTH_REDIRECT_URL` / `AUTH_REDIRECT_URL`；production 若誤帶 localhost 則改用 `window.location.origin` |
 | 登入後 | `fetch("/api/gamefi/wallet")` |
 | 區塊 | 寶石餘額卡片 + **資產流水明細**（最近 10 筆） |
 | 樣式 | 莫蘭迪深色 Tailwind；正數 `var(--morandi-highlight)`、負數 `#d4a5a5` |
@@ -266,6 +269,7 @@ app/api/gamefi/me/route.ts
 app/api/gamefi/wallet/route.ts
 lib/gamefi/wallet-service.ts
 lib/gamefi/ledger-labels.ts
+lib/gamefi/oauth-redirect.ts
 lib/auth/require-user.ts
 scripts/check-env.js
 scripts/verify-bounds.js

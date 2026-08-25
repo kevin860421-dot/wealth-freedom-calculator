@@ -4,8 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { getLedgerActionLabel } from "@/lib/gamefi/ledger-labels";
+import { getOAuthRedirectTo } from "@/lib/gamefi/oauth-redirect";
 import { getSupabaseBrowser } from "@/lib/supabase/browser";
-import { getPublicAuthRedirectUrl, isSupabaseConfigured } from "@/lib/supabase/env";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 type MeResponse = {
   user: {
@@ -204,10 +205,11 @@ export function GamefiWalletShell() {
 
     setAuthBusy(true);
     try {
+      const redirectTo = getOAuthRedirectTo();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: getPublicAuthRedirectUrl(),
+          redirectTo,
           queryParams: { prompt: "select_account" },
         },
       });

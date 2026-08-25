@@ -25,8 +25,11 @@
     "typecheck": "tsc --noEmit",
     "verify:bounds": "node scripts/verify-bounds.js",
     "check:env": "node scripts/check-env.js",
+    "check:gamefi-health": "npx tsx --tsconfig tsconfig.json scripts/run-gamefi-health-check.ts",
     "test:gamefi": "npx tsx --tsconfig tsconfig.json tests/gamefi/provision.test.ts",
-    "verify:gamefi": "npm run db:deploy && npm run verify:bounds && npm run test:gamefi"
+    "test:gamefi:gacha": "npx tsx --tsconfig tsconfig.json tests/gamefi/gacha-db.test.ts",
+    "verify:gamefi": "node scripts/verify-bounds.js",
+    "verify:gamefi:full": "npm run db:deploy && npm run verify:bounds && npm run test:gamefi"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -42,11 +45,12 @@
     "@tiptap/react": "^3.22.4",
     "@tiptap/starter-kit": "^3.22.4",
     "@vercel/analytics": "^2.0.1",
+    "canvas-confetti": "^1.9.4",
     "chart.js": "^4.5.1",
     "exceljs": "^4.4.0",
-    "framer-motion": "^12.38.0",
+    "framer-motion": "^12.43.0",
     "html2canvas": "^1.4.1",
-    "lucide-react": "^1.8.0",
+    "lucide-react": "^1.34.0",
     "next": "16.1.6",
     "qrcode": "^1.5.4",
     "react": "19.2.3",
@@ -55,6 +59,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19",

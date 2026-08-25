@@ -19,6 +19,7 @@ enum WalletStatus {
 
 enum WalletLedgerActionType {
   INITIAL_GRANT
+  GACHA_SUMMON
 }
 
 model User {
@@ -32,6 +33,7 @@ model User {
 
   wallet       UserWallet?
   ledgerEntries WalletLedger[]
+  cards        UserCard[]
 
   @@map("users")
 }
@@ -71,4 +73,20 @@ model WalletLedger {
   @@index([walletId, createdAt], map: "wallet_ledger_wallet_created_idx")
   @@index([userId, createdAt], map: "wallet_ledger_user_created_idx")
   @@map("wallet_ledger")
+}
+
+model UserCard {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  cardSlug  String   @map("card_slug")
+  level     Int      @default(1)
+  attack    Int      @default(100)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, cardSlug], map: "user_cards_user_card_slug_uidx")
+  @@index([userId], map: "user_cards_user_idx")
+  @@map("user_cards")
 }

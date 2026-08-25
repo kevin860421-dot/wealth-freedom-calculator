@@ -61,6 +61,10 @@ jobs:
           DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL_POOLER }}
           DIRECT_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
 
+      - name: GameFi env redirect check (local script parity)
+        run: node scripts/check-env.js
+        continue-on-error: true
+
       # Vercel 已透過 Git 整合自動部署；此 workflow 僅負責驗證閘門。
       # 若需改由 Actions 部署，請取消下方註解並設定 VERCEL_* secrets。
       # - name: Deploy to Vercel

@@ -3,6 +3,8 @@ export function getLedgerActionLabel(type: string): string {
   switch (type) {
     case "INITIAL_GRANT":
       return "系統贈送";
+    case "GACHA_SUMMON":
+      return "卡片召喚";
     default:
       return type;
   }

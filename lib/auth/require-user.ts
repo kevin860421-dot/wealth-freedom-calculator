@@ -1,7 +1,7 @@
 import type { User as SupabaseAuthUser } from "@supabase/supabase-js";
-import type { Prisma, User, UserWallet } from "@prisma/client";
+import type { User, UserWallet } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { getPrisma } from "@/lib/db/client";
+import { getPrisma, type PrismaTx } from "@/lib/db/client";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 /** 新使用者註冊時一次性發放的 Gems（須同步寫入 WalletLedger INITIAL_GRANT） */
@@ -46,9 +46,9 @@ function resolveDisplayName(authUser: SupabaseAuthUser): string {
  */
 export async function provisionUserWithWallet(
   authUser: SupabaseAuthUser,
-  tx?: Prisma.TransactionClient,
+  tx?: PrismaTx,
 ): Promise<{ user: User; wallet: UserWallet }> {
-  const run = async (client: Prisma.TransactionClient) => {
+  const run = async (client: PrismaTx) => {
     const user = await client.user.create({
       data: {
         authSubjectId: authUser.id,
