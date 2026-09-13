@@ -16,7 +16,7 @@ import {
   getQuick12EmbedTarget,
 } from "./quick12-posts-2-100";
 import { QUICK4_PUBLISH_DATES, QUICK4_TICKER_POSTS } from "./quick4-posts-tickers";
-import { QUICK4_COMPARISON_POSTS } from "./quick4-comparison-posts";
+import { QUICK4_COMPARISON_POSTS, QUICK4_EXTRA_PUBLISH_DATES } from "./quick4-comparison-posts";
 import { QUICK4_INTENT_LEADS } from "./quick4-intent-leads";
 import { QUICK7_TOPIC_SEEDS } from "./quick7-topic-seeds";
 import { buildQuick4TickerExclusiveSections } from "@/app/quick-4/ticker-article-sections";
@@ -3316,8 +3316,8 @@ export const QUICK1_EXCLUSIVE_POSTS: Quick1ExclusivePost[] = TOPIC_SEEDS.map((se
       ? QUICK11_PUBLISH_DATES[seed.slug]
       : calculatorRoute === "/quick-12" && QUICK12_PUBLISH_DATES[seed.slug]
         ? QUICK12_PUBLISH_DATES[seed.slug]
-        : calculatorRoute === "/quick-4" && QUICK4_PUBLISH_DATES[seed.slug]
-          ? QUICK4_PUBLISH_DATES[seed.slug]
+        : calculatorRoute === "/quick-4" && (QUICK4_PUBLISH_DATES[seed.slug] ?? QUICK4_EXTRA_PUBLISH_DATES[seed.slug])
+          ? (QUICK4_PUBLISH_DATES[seed.slug] ?? QUICK4_EXTRA_PUBLISH_DATES[seed.slug])
           : reorderedPublishAt ??
         (calculatorRoute === "/quick-2"
           ? (QUICK2_PUBLISH_DATES[seed.slug] ?? fallbackDate)

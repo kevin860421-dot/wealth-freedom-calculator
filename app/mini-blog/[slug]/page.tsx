@@ -16,6 +16,7 @@ import { QUICK7_DISPLAY_TITLE } from "@/app/quick-7/display-title";
 import { QUICK12_DISPLAY_TITLE } from "@/app/quick-12/display-title";
 import styles from "../../blog/blog.module.css";
 import { Quick11ExcelLeadBlockForArticle } from "../../quick-11/quick11-excel-lead-block-for-article";
+import { Exdiv2026Picker } from "../exdiv-2026-picker";
 import { QUICK11_SUCCESS_BLOG_PATH, QUICK11_SUCCESS_BLOG_TITLE } from "@/lib/quick11-marketing";
 
 type PageProps = {
@@ -127,6 +128,12 @@ export default async function MiniBlogPostPage({ params }: PageProps) {
                 ) : null}
               </section>
             </div>
+
+            {post.slug === "quick4-2026-official-ex-dividend-calendar" ? (
+              <div className={styles.article}>
+                <Exdiv2026Picker />
+              </div>
+            ) : null}
 
             <div className={styles.articleAdjacentEmbed}>
               <BlogMiniCalculatorEmbed
