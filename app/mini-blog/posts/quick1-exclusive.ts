@@ -17,6 +17,7 @@ import {
 } from "./quick12-posts-2-100";
 import { QUICK4_PUBLISH_DATES, QUICK4_TICKER_POSTS } from "./quick4-posts-tickers";
 import { QUICK4_COMPARISON_POSTS } from "./quick4-comparison-posts";
+import { QUICK4_INTENT_LEADS } from "./quick4-intent-leads";
 import { QUICK7_TOPIC_SEEDS } from "./quick7-topic-seeds";
 import { buildQuick4TickerExclusiveSections } from "@/app/quick-4/ticker-article-sections";
 import type { Quick1ExclusiveSection, TopicSeed } from "./topic-types";
@@ -3354,22 +3355,24 @@ export const QUICK1_EXCLUSIVE_POSTS: Quick1ExclusivePost[] = TOPIC_SEEDS.map((se
         : investingMay10Arch
           ? defaultCalculatorNoteAfterMay10(calculatorRoute)
           : "先改月投，再改年數，最後看月領示意。先求做得到，再求做得快。"),
-    sections:
-      seed.customSections ??
-      (calculatorRoute === "/quick-11"
-        ? buildQuick11ExclusiveSections(seed.slug, seed, calculatorName, scheduledAt)
-        : calculatorRoute === "/quick-12"
-          ? buildQuick12ExclusiveSections(seed.slug, seed, calculatorName, scheduledAt)
-          : calculatorRoute === "/quick-4" && seed.tickerCode
-            ? buildQuick4TickerExclusiveSections(seed, calculatorName, scheduledAt)
-            : calculatorRoute === "/quick-4" &&
-                (seed.slug.includes("-compare") ||
-                  seed.slug.includes("dividend-ex-month") ||
-                  seed.slug.includes("00929-monthly"))
-              ? buildMiniBlogSectionsInvestingV2(seed, calculatorName, calculatorRoute, scheduledAt)
-              : investingMay10Arch
-            ? buildMiniBlogSectionsInvestingV2(seed, calculatorName, calculatorRoute, scheduledAt)
-            : buildSections(seed, calculatorName)),
+    sections: [
+      ...(QUICK4_INTENT_LEADS[seed.slug] ?? []),
+      ...(seed.customSections ??
+        (calculatorRoute === "/quick-11"
+          ? buildQuick11ExclusiveSections(seed.slug, seed, calculatorName, scheduledAt)
+          : calculatorRoute === "/quick-12"
+            ? buildQuick12ExclusiveSections(seed.slug, seed, calculatorName, scheduledAt)
+            : calculatorRoute === "/quick-4" && seed.tickerCode
+              ? buildQuick4TickerExclusiveSections(seed, calculatorName, scheduledAt)
+              : calculatorRoute === "/quick-4" &&
+                  (seed.slug.includes("-compare") ||
+                    seed.slug.includes("dividend-ex-month") ||
+                    seed.slug.includes("00929-monthly"))
+                ? buildMiniBlogSectionsInvestingV2(seed, calculatorName, calculatorRoute, scheduledAt)
+                : investingMay10Arch
+                  ? buildMiniBlogSectionsInvestingV2(seed, calculatorName, calculatorRoute, scheduledAt)
+                  : buildSections(seed, calculatorName))),
+    ],
     closeQuestion: seed.closeQuestion,
     disclaimer:
       calculatorRoute === "/quick-11"
