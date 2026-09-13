@@ -1,7 +1,6 @@
 "use client";
 
 import { GameFiProvider } from "@/lib/gamefi/context/gamefi-context";
-import { FloatingBattlePanel } from "@/components/gamefi/floating-battle-panel";
 import { GameFiActionListener } from "@/components/gamefi/gamefi-action-listener";
 import { GachaSummonModal } from "@/components/gamefi/gacha-summon-modal";
 
@@ -10,7 +9,6 @@ export function GameFiGlobalMount() {
   return (
     <GameFiProvider>
       <GameFiActionListener />
-      <FloatingBattlePanel />
       <GachaSummonModal />
     </GameFiProvider>
   );
