@@ -1,0 +1,298 @@
+.box {
+  --year-pad-l: 0.55rem;
+  --year-pad-r: 0.35rem;
+  --month-pad-l: 0.35rem;
+  --month-pad-r: 0.55rem;
+  --year-menu-pad-x: 0.7rem;
+  --chevron-w: 1.85rem;
+  --suffix-w: 1.35rem;
+  --unit-h: 2.25rem;
+  --year-digit-w: 4ch;
+  --month-digit-w: 2ch;
+  --year-unit-w: calc(
+    var(--year-digit-w) + var(--year-pad-l) + var(--year-pad-r) + var(--chevron-w) + var(--suffix-w)
+  );
+  --month-unit-w: calc(
+    var(--month-digit-w) + var(--month-pad-l) + var(--month-pad-r) + var(--chevron-w) +
+      var(--suffix-w)
+  );
+  --picker-row-w: calc(var(--year-unit-w) + var(--month-unit-w) + 0.45rem);
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  width: 100%;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: nowrap;
+  width: var(--picker-row-w);
+  min-width: var(--picker-row-w);
+  max-width: 100%;
+  justify-content: flex-end;
+}
+
+.yearUnit,
+.monthUnit {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: var(--unit-h);
+  min-height: var(--unit-h);
+  box-sizing: border-box;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 4px;
+}
+
+.yearUnit {
+  width: var(--year-unit-w);
+  min-width: var(--year-unit-w);
+  max-width: var(--year-unit-w);
+  flex: 0 0 var(--year-unit-w);
+  overflow: visible;
+}
+
+.monthUnit {
+  width: var(--month-unit-w);
+  min-width: var(--month-unit-w);
+  max-width: var(--month-unit-w);
+  flex: 0 0 var(--month-unit-w);
+  overflow: visible;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--chevron-w) var(--suffix-w);
+  align-items: center;
+}
+
+.yearUnit:hover,
+.monthUnit:hover,
+.yearUnit[data-open="true"],
+.monthUnit[data-open="true"] {
+  background: rgba(28, 25, 23, 0.04);
+}
+
+.digitCol {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.yearDigitCol {
+  justify-content: flex-start;
+  padding: 0 var(--year-pad-r) 0 var(--year-pad-l);
+  overflow: visible;
+}
+
+.monthDigitCol {
+  grid-column: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--month-digit-w);
+  align-items: center;
+  justify-items: end;
+  padding: 0;
+  margin: 0 var(--month-pad-r) 0 var(--month-pad-l);
+}
+
+.yearInput,
+.monthInput {
+  box-sizing: border-box;
+  height: 100%;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  margin: 0;
+  background: transparent;
+  color: #1c1917;
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  padding: 0;
+  min-width: 0;
+  appearance: none;
+  outline: none;
+  cursor: text;
+}
+
+.yearInput {
+  width: var(--year-digit-w);
+  flex: 0 0 var(--year-digit-w);
+  text-align: left;
+}
+
+.monthInput {
+  grid-column: 2;
+  width: var(--month-digit-w);
+  flex: 0 0 var(--month-digit-w);
+  text-align: right;
+  font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", monospace;
+}
+
+.yearUnit:hover .yearInput,
+.monthUnit:hover .monthInput,
+.yearInput:focus,
+.monthInput:focus {
+  border-bottom-color: #d6d3d1;
+  cursor: text;
+}
+
+.monthUnit > .chevron {
+  grid-column: 2;
+}
+
+.monthUnit > .unitSuffix {
+  grid-column: 3;
+}
+
+.chevron {
+  position: relative;
+  flex: 0 0 var(--chevron-w);
+  width: var(--chevron-w);
+  min-width: var(--chevron-w);
+  height: 100%;
+  pointer-events: none;
+}
+
+.chevron::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid #78716c;
+  transform: translate(-50%, -42%);
+}
+
+.unitSuffix {
+  flex: 0 0 var(--suffix-w);
+  width: var(--suffix-w);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9375rem;
+  color: #1c1917;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 3px);
+  z-index: 40;
+  margin: 0;
+  padding: 0.2rem 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #d6d3d1;
+  border-radius: 4px;
+  box-shadow: 0 8px 20px rgba(28, 25, 23, 0.12);
+  box-sizing: border-box;
+  cursor: default;
+}
+
+.yearMenu {
+  left: 0;
+  right: 0;
+  width: 100%;
+  padding: 0.25rem var(--year-menu-pad-x);
+  max-height: 16rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 1px solid #a8a29e;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.9),
+    0 10px 24px rgba(28, 25, 23, 0.16);
+}
+
+.yearMenu .menuItem {
+  width: 100%;
+  padding: 0.1rem 0;
+  box-sizing: border-box;
+}
+
+.yearNum {
+  display: block;
+  width: var(--year-digit-w);
+  flex-shrink: 0;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.monthMenu {
+  left: 0;
+  right: 0;
+  width: 100%;
+  padding: 0.22rem var(--month-pad-r) 0.22rem var(--month-pad-l);
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: none;
+  overflow: visible;
+  background: #fff;
+  border: 1px solid #a8a29e;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.9),
+    0 10px 24px rgba(28, 25, 23, 0.16);
+}
+
+.menuItem {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: #1c1917;
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.6;
+  text-align: left;
+  padding: 0.18rem 0.35rem 0.18rem 0;
+  cursor: pointer;
+}
+
+.monthMenu .menuItem.monthMenuItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--month-digit-w);
+  align-items: center;
+  width: 100%;
+  padding: 0.06rem 0;
+  text-align: right;
+}
+
+.monthNum {
+  grid-column: 2;
+  display: block;
+  width: var(--month-digit-w);
+  flex-shrink: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", monospace;
+}
+
+.menuItem:hover:not(.menuItemBlocked),
+.menuItem[data-current="true"]:not(.menuItemBlocked) {
+  background: #f5f5f4;
+}
+
+.menuItemBlocked {
+  color: #a8a29e;
+  cursor: not-allowed;
+  opacity: 0.78;
+}
+
+@media (max-width: 768px) {
+  .box {
+    width: 100%;
+    align-items: flex-end;
+  }
+}

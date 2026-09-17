@@ -1,0 +1,14 @@
+---
+description: 稅後實領月報「月領1萬本金／張數」計算契約（與 lib/blog/after-tax-rank.ts 一致）
+globs: lib/blog/after-tax-rank.ts,app/blog/**/after-tax*,app/blog/blog-after-tax-rank*.tsx,canvases/*after-tax*
+alwaysApply: false
+---
+
+# 月領 1 萬本金／實領逆推
+
+- **不就源扣綜所稅**；表格無「扣稅」欄。匯費固定 `AFTER_TAX_RANK_WIRE_FEE = 10`。
+- 該期實領目標：`perPeriodNetTarget`（月 1 萬／季 3 萬／半年 6 萬／年 12 萬）。
+- 每股該期股息：`dividendPerShareForPeriod(row, basis)`（附榜 last；主榜 ttm→`recentCashPayouts` 中位數，缺資料時由 ttm 均分期數或 last 回退）。
+- 逆推：`solveLotsForPeriodNet` — 手續費 `ceil(張數×15)` 迭代；毛額≥2 萬則二代健保 2.11% 就源。
+- 本金：`張數×1000×股價`；排行依本金由低到高。
+- 改後跑：`npm run verify:after-tax-rank`。

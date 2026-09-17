@@ -44,6 +44,18 @@ export type BlogPostRegistryEntry = {
 
 export const BLOG_POST_REGISTRY: BlogPostRegistryEntry[] = [
   // ─────────────────────────────────────────────────────────
+  // 稅後實領月報：獨立系列，不插入 mini-blog，也不挪動下面試算筆記的 publishAtIso
+  // ─────────────────────────────────────────────────────────
+  {
+    slug: "2026-08-after-tax-dividend-rank",
+    publishAtIso: "2026-09-21T20:00:00+08:00",
+    listTitle: "稅後實領月報（1）｜2026年8月配息排行：月領一萬要多少",
+    listDescription:
+      "截止2026/08/31。用證交所收盤與e添富已除息金額，試算扣稅與二代健保後平均月領一萬所需本金。",
+    featureHomeHero: false,
+    featureHomeFooter: false,
+  },
+  // ─────────────────────────────────────────────────────────
   // 財富試算筆記（1）～（50）：主試算／長尾 SEO（排程見各 publishAtIso）
   // ─────────────────────────────────────────────────────────
   {
