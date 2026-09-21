@@ -1405,15 +1405,13 @@ function renderRankMobilePrimaryCell(
 
 const RANK_TABLE_MOBILE_MAX_PX = 768;
 
-/** 量「外層 panel」（width:100%）而不是 shell 本身；shell 在桌機是 fit-content，量自己會循環。 */
-function readRankTableIsMobile(shell: HTMLElement | null): boolean {
+/**
+ * 只看視窗寬度（真正的手機），不看容器寬度。
+ * 桌機視窗但容器較窄時：維持 13 欄，表在白框內橫滑（max-content + min-width 100%）。
+ */
+function readRankTableIsMobile(_shell: HTMLElement | null): boolean {
   if (typeof window === "undefined") return false;
-  if (window.innerWidth <= RANK_TABLE_MOBILE_MAX_PX) return true;
-  if (!shell) return false;
-  const box = shell.parentElement ?? shell;
-  const width = box.getBoundingClientRect().width;
-  if (width <= 0) return false;
-  return width <= RANK_TABLE_MOBILE_MAX_PX;
+  return window.innerWidth <= RANK_TABLE_MOBILE_MAX_PX;
 }
 
 function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
@@ -1435,11 +1433,8 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
     if (!layoutShell) return;
     const read = () => setIsMobileLayout(readRankTableIsMobile(layoutShell));
     read();
-    const ro = new ResizeObserver(read);
-    ro.observe(layoutShell.parentElement ?? layoutShell);
     window.addEventListener("resize", read);
     return () => {
-      ro.disconnect();
       window.removeEventListener("resize", read);
     };
   }, [layoutShell]);
