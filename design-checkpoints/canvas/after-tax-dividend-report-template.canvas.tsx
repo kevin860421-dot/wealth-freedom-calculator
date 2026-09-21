@@ -1953,7 +1953,7 @@ export default function AfterTaxDividendReportTemplate() {
   max-width: 100%;
 }
 .rank-report-table-shell[data-rank-layout="desktop"] {
-  width: fit-content;
+  width: 100%;
 }
 .rank-report-table-shell[data-rank-layout="mobile"] {
   width: 100%;
@@ -2085,7 +2085,8 @@ export default function AfterTaxDividendReportTemplate() {
 }
 .rank-report-table-scroll {
   --rank-sticky-w: 3.25rem;
-  width: fit-content;
+  /* 9/17 節點 989c1c7：外框 100% 貼齊正文右緣；表 max-content + min-width 100% */
+  width: 100%;
   max-width: 100%;
   overflow-x: auto;
   border: 1px solid #e7e5e4;
@@ -2097,6 +2098,7 @@ export default function AfterTaxDividendReportTemplate() {
 .rank-report-table-scroll [role="table"],
 .rank-report-table-scroll .rank-report-data-table {
   width: max-content !important;
+  min-width: 100% !important;
   max-width: none !important;
   table-layout: auto;
   border-collapse: collapse;
