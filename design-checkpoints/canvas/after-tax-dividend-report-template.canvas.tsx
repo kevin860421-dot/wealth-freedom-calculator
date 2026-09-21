@@ -1299,11 +1299,23 @@ const RANK_TABLE_HEADERS: { id: string; label: string }[] = [
 /** 手機主欄（優先級 1）：身分 + 排行依據 + 行動時點。股息／頻率降到展開明細。 */
 const RANK_MOBILE_PRIMARY_IDS = ["rank", "ticker", "capital", "lastBuy"] as const;
 
+/** 手機表頭縮寫（只改顯示字，不改欄位 id）。 */
+const RANK_MOBILE_HEADER_LABEL: Partial<Record<(typeof RANK_MOBILE_PRIMARY_IDS)[number], string>> = {
+  lastBuy: "買進日",
+};
+
 const RANK_MOBILE_HEADERS = RANK_MOBILE_PRIMARY_IDS.map((id) => {
   const h = RANK_TABLE_HEADERS.find((x) => x.id === id);
   if (!h) throw new Error(`[canvas-rank] missing mobile header: ${id}`);
-  return h;
+  return { id: h.id, label: RANK_MOBILE_HEADER_LABEL[id] ?? h.label };
 });
+
+/** 手機日期：同年榜單省略年份，"2026-08-18" → "08/18"；無日期維持 "—"。 */
+function mobileDateLabel(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!m) return iso;
+  return `${m[2]}/${m[3]}`;
+}
 
 const RANK_MOBILE_COL_COUNT = RANK_MOBILE_PRIMARY_IDS.length;
 
@@ -1399,7 +1411,11 @@ function renderRankMobilePrimaryCell(
         </td>
       );
     case "lastBuy":
-      return <td data-col="lastBuy">{row.lastBuy}</td>;
+      return (
+        <td data-col="lastBuy" title={row.lastBuy}>
+          {mobileDateLabel(row.lastBuy)}
+        </td>
+      );
     default:
       return null;
   }
@@ -2428,9 +2444,12 @@ export default function AfterTaxDividendReportTemplate() {
 }
 .rank-report-mobile-table th[data-col="lastBuy"],
 .rank-report-mobile-table td[data-col="lastBuy"] {
-  width: 6rem;
+  width: 3.75rem;
   text-align: center;
   font-variant-numeric: tabular-nums;
+  color: #57534e;
+  padding-left: 4px;
+  padding-right: 4px;
 }
 .rank-report-mobile-table th[data-col="expand"],
 .rank-report-mobile-table td[data-col="expand"] {
