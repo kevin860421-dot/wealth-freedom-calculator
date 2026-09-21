@@ -1501,8 +1501,8 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
         </table>
       </div>
       ) : (
-      <div className="rank-report-mobile-scroll">
-        <table className="rank-report-mobile-table">
+      <div className="rank-report-table-scroll rank-report-mobile-scroll">
+        <table className="rank-report-data-table rank-report-mobile-table">
           <thead>
             <tr>
               {RANK_MOBILE_HEADERS.map((h) => (
@@ -2371,31 +2371,42 @@ export default function AfterTaxDividendReportTemplate() {
   font-size: 14px;
   white-space: nowrap;
 }
-/* 固定欄寬：排行 / 本金 / 最後買進日 / ▼ 都給定寬，剩餘全給代號欄；格內一律裁切不疊字 */
+/*
+ * 手機表 = 同一張桌機表（同 class：rank-report-table-scroll / rank-report-data-table），
+ * 表頭灰、斑馬紋、邊線、sticky 全部沿用；這裡只覆寫「欄寬與裁切」。
+ */
 .rank-report-mobile-table th,
 .rank-report-mobile-table td {
   padding: 8px 6px;
-  border-bottom: 1px solid #e7e5e4;
   overflow: hidden;
   text-overflow: ellipsis;
   vertical-align: middle;
 }
 .rank-report-mobile-table thead th {
-  background: #f9fafb !important;
   padding: 10px 6px;
-  font-weight: 600;
-  color: #374151;
+}
+/* tbody 夾了明細列，桌機的 nth-child(even) 斑馬紋對不上 → 用 rank-data-row-alt 上色 */
+.rank-report-mobile-table tbody tr.rank-data-row td {
+  background: #fff !important;
+}
+.rank-report-mobile-table tbody tr.rank-data-row-alt td {
+  background: #fafaf9 !important;
 }
 .rank-report-mobile-table th[data-col="rank"],
 .rank-report-mobile-table td[data-col="rank"] {
-  width: 3rem;
+  width: var(--rank-sticky-w);
+  min-width: var(--rank-sticky-w);
   text-align: center;
   padding-left: 4px;
   padding-right: 4px;
 }
 .rank-report-mobile-table th[data-col="ticker"],
 .rank-report-mobile-table td[data-col="ticker"] {
+  left: var(--rank-sticky-w);
+  width: auto;
+  min-width: 0;
   text-align: left;
+  white-space: nowrap;
 }
 .rank-report-mobile-table td[data-col="ticker"] .rank-ticker-stack {
   display: flex;
@@ -2427,6 +2438,8 @@ export default function AfterTaxDividendReportTemplate() {
   text-align: right;
   padding-left: 2px;
   padding-right: 6px;
+  white-space: nowrap;
+  vertical-align: middle;
 }
 .rank-report-mobile-table .rank-capital-amount {
   font-size: 14px;
