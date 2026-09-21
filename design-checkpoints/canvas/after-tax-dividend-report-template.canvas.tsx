@@ -1409,18 +1409,16 @@ function renderRankMobilePrimaryCell(
   }
 }
 
+/** 真手機：裝置螢幕 ≤768 CSS px（含 DevTools 裝置模擬）。 */
 const RANK_TABLE_MOBILE_MAX_PX = 768;
+/** 桌機把視窗／Canvas 面板拉到很窄：≤600 才切手機版；700 多仍是桌機 13 欄橫滑。 */
+const RANK_TABLE_NARROW_VIEWPORT_PX = 600;
 
-/**
- * 以「裝置螢幕寬」判手機（screen.width），不是視窗／面板寬。
- * 桌機把 Canvas 面板拉窄、或瀏覽器視窗縮小：仍是桌機 13 欄，表在白框內橫滑。
- * 真手機（螢幕 ≤768 CSS px）或 DevTools 裝置模擬：才切 6 欄 + ▼。
- */
 function readRankTableIsMobile(_shell: HTMLElement | null): boolean {
   if (typeof window === "undefined") return false;
   const screenW = window.screen?.width ?? 0;
-  if (screenW > 0) return screenW <= RANK_TABLE_MOBILE_MAX_PX;
-  return window.innerWidth <= RANK_TABLE_MOBILE_MAX_PX;
+  if (screenW > 0 && screenW <= RANK_TABLE_MOBILE_MAX_PX) return true;
+  return window.innerWidth <= RANK_TABLE_NARROW_VIEWPORT_PX;
 }
 
 function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
