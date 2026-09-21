@@ -4,10 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 
 export const AFTER_TAX_RANK_TABLE_MOBILE_MAX_PX = 768;
 
-/** 只看視窗寬度（真正的手機）；桌機視窗下容器再窄也維持桌機 12 欄 + 框內橫滑。 */
-function readIsMobileLayout(_shell: HTMLElement | null): boolean {
+function readIsMobileLayout(shell: HTMLElement | null): boolean {
   if (typeof window === "undefined") return false;
-  return window.innerWidth <= AFTER_TAX_RANK_TABLE_MOBILE_MAX_PX;
+  const viewportNarrow = window.innerWidth <= AFTER_TAX_RANK_TABLE_MOBILE_MAX_PX;
+  if (viewportNarrow) return true;
+  if (!shell) return false;
+  return shell.getBoundingClientRect().width <= AFTER_TAX_RANK_TABLE_MOBILE_MAX_PX;
 }
 
 /**
@@ -31,8 +33,11 @@ export function useAfterTaxRankTableIsMobile(): [
     const read = () => setIsMobile(readIsMobileLayout(shell));
 
     read();
+    const ro = new ResizeObserver(read);
+    ro.observe(shell);
     window.addEventListener("resize", read);
     return () => {
+      ro.disconnect();
       window.removeEventListener("resize", read);
     };
   }, [shell]);

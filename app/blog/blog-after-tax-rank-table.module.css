@@ -83,9 +83,8 @@
 }
 
 .table {
-  /* 9/17 節點 989c1c7：寬版面欄位撐滿、窄版面縮到內容寬後橫滑 */
   width: max-content;
-  min-width: 100%;
+  max-width: 100%;
   table-layout: auto;
   border-collapse: collapse;
   font-size: 0.9375rem;
