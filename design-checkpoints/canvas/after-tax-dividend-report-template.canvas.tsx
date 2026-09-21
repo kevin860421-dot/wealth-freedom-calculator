@@ -1405,11 +1405,15 @@ function renderRankMobilePrimaryCell(
 
 const RANK_TABLE_MOBILE_MAX_PX = 768;
 
+/** 量「外層 panel」（width:100%）而不是 shell 本身；shell 在桌機是 fit-content，量自己會循環。 */
 function readRankTableIsMobile(shell: HTMLElement | null): boolean {
   if (typeof window === "undefined") return false;
   if (window.innerWidth <= RANK_TABLE_MOBILE_MAX_PX) return true;
   if (!shell) return false;
-  return shell.getBoundingClientRect().width <= RANK_TABLE_MOBILE_MAX_PX;
+  const box = shell.parentElement ?? shell;
+  const width = box.getBoundingClientRect().width;
+  if (width <= 0) return false;
+  return width <= RANK_TABLE_MOBILE_MAX_PX;
 }
 
 function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
@@ -1432,7 +1436,7 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
     const read = () => setIsMobileLayout(readRankTableIsMobile(layoutShell));
     read();
     const ro = new ResizeObserver(read);
-    ro.observe(layoutShell);
+    ro.observe(layoutShell.parentElement ?? layoutShell);
     window.addEventListener("resize", read);
     return () => {
       ro.disconnect();
@@ -1947,8 +1951,6 @@ export default function AfterTaxDividendReportTemplate() {
 .rank-report-table-shell {
   min-width: 0;
   max-width: 100%;
-  container-type: inline-size;
-  container-name: rank-dashboard;
 }
 .rank-report-table-shell[data-rank-layout="desktop"] {
   width: fit-content;
@@ -2358,7 +2360,7 @@ export default function AfterTaxDividendReportTemplate() {
 .rank-report-data-table thead th[data-col="capital"] {
   white-space: nowrap !important;
 }
-.rank-report-table-scroll .rank-report-mobile-table {
+.rank-report-mobile-scroll .rank-report-mobile-table {
   width: 100% !important;
   max-width: 100% !important;
   table-layout: fixed;
