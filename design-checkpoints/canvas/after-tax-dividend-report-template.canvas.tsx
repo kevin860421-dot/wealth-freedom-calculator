@@ -1350,11 +1350,29 @@ function rankDetailValue(row: Derived, col: string): string {
   }
 }
 
+/** 手機專用：展開鈕獨立一欄、固定最右；桌機表沒有這欄。 */
+function renderRankMobileExpandCell(row: Derived, expanded: boolean, onToggle: () => void) {
+  return (
+    <td key="expand" data-col="expand" className="rank-expand-td">
+      <button
+        type="button"
+        className="rank-row-expand-btn"
+        aria-expanded={expanded}
+        aria-controls={`rank-detail-${row.ticker}`}
+        aria-label={`${row.ticker} 展開稅後明細`}
+        onClick={onToggle}
+      >
+        <span aria-hidden="true">{expanded ? "▲" : "▼"}</span>
+      </button>
+    </td>
+  );
+}
+
 function renderRankMobilePrimaryCell(
   col: (typeof RANK_MOBILE_PRIMARY_IDS)[number],
   row: Derived,
-  expanded: boolean,
-  onToggle: () => void,
+  _expanded: boolean,
+  _onToggle: () => void,
 ) {
   const tone = rankRowTone(row);
   switch (col) {
@@ -1368,19 +1386,7 @@ function renderRankMobilePrimaryCell(
     case "ticker":
       return (
         <td data-col="ticker" className="rank-ticker-td">
-          <div className="rank-ticker-td-inner">
-            <RankTickerCell ticker={row.ticker} name={row.name} />
-            <button
-              type="button"
-              className="rank-row-expand-btn"
-              aria-expanded={expanded}
-              aria-controls={`rank-detail-${row.ticker}`}
-              aria-label={`${row.ticker} 展開稅後明細`}
-              onClick={onToggle}
-            >
-              <span aria-hidden="true">{expanded ? "▲" : "▼"}</span>
-            </button>
-          </div>
+          <RankTickerCell ticker={row.ticker} name={row.name} />
         </td>
       );
     case "capital":
@@ -1406,11 +1412,14 @@ function renderRankMobilePrimaryCell(
 const RANK_TABLE_MOBILE_MAX_PX = 768;
 
 /**
- * 只看視窗寬度（真正的手機），不看容器寬度。
- * 桌機視窗但容器較窄時：維持 13 欄，表在白框內橫滑（max-content + min-width 100%）。
+ * 以「裝置螢幕寬」判手機（screen.width），不是視窗／面板寬。
+ * 桌機把 Canvas 面板拉窄、或瀏覽器視窗縮小：仍是桌機 13 欄，表在白框內橫滑。
+ * 真手機（螢幕 ≤768 CSS px）或 DevTools 裝置模擬：才切 6 欄 + ▼。
  */
 function readRankTableIsMobile(_shell: HTMLElement | null): boolean {
   if (typeof window === "undefined") return false;
+  const screenW = window.screen?.width ?? 0;
+  if (screenW > 0) return screenW <= RANK_TABLE_MOBILE_MAX_PX;
   return window.innerWidth <= RANK_TABLE_MOBILE_MAX_PX;
 }
 
@@ -1507,6 +1516,7 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
                   {h.label}
                 </th>
               ))}
+              <th data-col="expand" scope="col" aria-label="展開明細" />
             </tr>
           </thead>
           <tbody>
@@ -1521,6 +1531,9 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
                       setExpandedTicker(expanded ? "" : row.ticker),
                     ),
                   )}
+                  {renderRankMobileExpandCell(row, expanded, () =>
+                    setExpandedTicker(expanded ? "" : row.ticker),
+                  )}
                 </tr>,
                 <tr
                   key={`${row.ticker}-detail`}
@@ -1528,7 +1541,7 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
                   className="rank-mobile-detail-row"
                   data-expanded={expanded ? "true" : "false"}
                 >
-                  <td colSpan={RANK_MOBILE_COL_COUNT}>
+                  <td colSpan={RANK_MOBILE_COL_COUNT + 1}>
                     <dl className="rank-mobile-detail-grid">
                       {RANK_MOBILE_DETAIL.map(({ col, label }) => (
                         <div key={col} className="rank-mobile-detail-item">
@@ -2396,6 +2409,15 @@ export default function AfterTaxDividendReportTemplate() {
 .rank-report-mobile-table th:nth-child(6),
 .rank-report-mobile-table td:nth-child(6) {
   text-align: center;
+}
+.rank-report-mobile-table th[data-col="expand"],
+.rank-report-mobile-table td[data-col="expand"] {
+  width: 2.75rem;
+  min-width: 2.75rem;
+  text-align: right;
+  padding-left: 4px;
+  padding-right: 8px;
+  vertical-align: middle;
 }
 .rank-report-mobile-table thead th {
   background: #f9fafb !important;
