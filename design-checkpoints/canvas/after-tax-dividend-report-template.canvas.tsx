@@ -1296,14 +1296,8 @@ const RANK_TABLE_HEADERS: { id: string; label: string }[] = [
 ];
 
 /** 手機版獨立表：只渲染這 6 欄（與 blog AFTER_TAX_RANK_MOBILE_PRIMARY_COLS 一致） */
-const RANK_MOBILE_PRIMARY_IDS = [
-  "rank",
-  "ticker",
-  "capital",
-  "cashDiv",
-  "freq",
-  "lastBuy",
-] as const;
+/** 手機主欄（優先級 1）：身分 + 排行依據 + 行動時點。股息／頻率降到展開明細。 */
+const RANK_MOBILE_PRIMARY_IDS = ["rank", "ticker", "capital", "lastBuy"] as const;
 
 const RANK_MOBILE_HEADERS = RANK_MOBILE_PRIMARY_IDS.map((id) => {
   const h = RANK_TABLE_HEADERS.find((x) => x.id === id);
@@ -1314,6 +1308,8 @@ const RANK_MOBILE_HEADERS = RANK_MOBILE_PRIMARY_IDS.map((id) => {
 const RANK_MOBILE_COL_COUNT = RANK_MOBILE_PRIMARY_IDS.length;
 
 const RANK_MOBILE_DETAIL: { col: string; label: string }[] = [
+  { col: "cashDiv", label: "股息" },
+  { col: "freq", label: "頻率" },
   { col: "net", label: "實領" },
   { col: "stockDiv", label: "股利" },
   { col: "wireFee", label: "匯費" },
@@ -1331,6 +1327,10 @@ function rankRowTone(row: Derived): "success" | "warning" | "neutral" {
 
 function rankDetailValue(row: Derived, col: string): string {
   switch (col) {
+    case "cashDiv":
+      return row.lastCashPerUnit.toFixed(2);
+    case "freq":
+      return row.freq;
     case "net":
       return money(row.net);
     case "stockDiv":
@@ -1398,10 +1398,6 @@ function renderRankMobilePrimaryCell(
           </div>
         </td>
       );
-    case "cashDiv":
-      return <td data-col="cashDiv">{row.lastCashPerUnit.toFixed(2)}</td>;
-    case "freq":
-      return <td data-col="freq">{row.freq}</td>;
     case "lastBuy":
       return <td data-col="lastBuy">{row.lastBuy}</td>;
     default:
@@ -2375,61 +2371,68 @@ export default function AfterTaxDividendReportTemplate() {
   font-size: 14px;
   white-space: nowrap;
 }
-.rank-report-mobile-table th:nth-child(1),
-.rank-report-mobile-table td:nth-child(1) {
-  position: sticky;
-  left: 0;
-  z-index: 2;
-  width: 3.25rem;
-  min-width: 3.25rem;
-  text-align: center;
-  background: #fff;
-  box-shadow: 1px 0 0 #e7e5e4;
-}
-.rank-report-mobile-table th:nth-child(2),
-.rank-report-mobile-table td:nth-child(2) {
-  position: sticky;
-  left: 3.25rem;
-  z-index: 2;
-  text-align: left;
-  background: #fff;
-  box-shadow: 4px 0 10px -6px rgba(28, 25, 23, 0.12);
-  max-width: min(10.5rem, 52vw);
-}
-.rank-report-mobile-table th:nth-child(3),
-.rank-report-mobile-table td:nth-child(3),
-.rank-report-mobile-table th:nth-child(4),
-.rank-report-mobile-table td:nth-child(4) {
-  text-align: right;
-}
-.rank-report-mobile-table th:nth-child(5),
-.rank-report-mobile-table td:nth-child(5),
-.rank-report-mobile-table th:nth-child(6),
-.rank-report-mobile-table td:nth-child(6) {
-  text-align: center;
-}
-.rank-report-mobile-table th[data-col="expand"],
-.rank-report-mobile-table td[data-col="expand"] {
-  width: 2.75rem;
-  min-width: 2.75rem;
-  text-align: right;
-  padding-left: 4px;
-  padding-right: 8px;
+/* 固定欄寬：排行 / 本金 / 最後買進日 / ▼ 都給定寬，剩餘全給代號欄；格內一律裁切不疊字 */
+.rank-report-mobile-table th,
+.rank-report-mobile-table td {
+  padding: 8px 6px;
+  border-bottom: 1px solid #e7e5e4;
+  overflow: hidden;
+  text-overflow: ellipsis;
   vertical-align: middle;
 }
 .rank-report-mobile-table thead th {
   background: #f9fafb !important;
   padding: 10px 6px;
+  font-weight: 600;
+  color: #374151;
 }
-.rank-report-mobile-table th,
-.rank-report-mobile-table td {
-  padding: 8px 6px;
-  border-bottom: 1px solid #e7e5e4;
+.rank-report-mobile-table th[data-col="rank"],
+.rank-report-mobile-table td[data-col="rank"] {
+  width: 3rem;
+  text-align: center;
+  padding-left: 4px;
+  padding-right: 4px;
 }
-.rank-report-mobile-table .rank-ticker-name {
+.rank-report-mobile-table th[data-col="ticker"],
+.rank-report-mobile-table td[data-col="ticker"] {
+  text-align: left;
+}
+.rank-report-mobile-table td[data-col="ticker"] .rank-ticker-stack {
+  display: flex;
+  max-width: 100%;
+  min-width: 0;
+}
+.rank-report-mobile-table td[data-col="ticker"] .rank-ticker-code,
+.rank-report-mobile-table td[data-col="ticker"] .rank-ticker-name {
+  display: block;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100%;
+  white-space: nowrap;
+}
+.rank-report-mobile-table th[data-col="capital"],
+.rank-report-mobile-table td[data-col="capital"] {
+  width: 6.25rem;
+  text-align: right;
+}
+.rank-report-mobile-table th[data-col="lastBuy"],
+.rank-report-mobile-table td[data-col="lastBuy"] {
+  width: 6rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.rank-report-mobile-table th[data-col="expand"],
+.rank-report-mobile-table td[data-col="expand"] {
+  width: 2.75rem;
+  text-align: right;
+  padding-left: 2px;
+  padding-right: 6px;
+}
+.rank-report-mobile-table .rank-capital-amount {
+  font-size: 14px;
+}
+.rank-report-mobile-table .rank-capital-lots {
+  font-size: 11px;
 }
 .rank-mobile-detail-row[data-expanded="true"] {
   display: table-row;
