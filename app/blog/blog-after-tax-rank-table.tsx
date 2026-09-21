@@ -76,7 +76,6 @@ export function BlogAfterTaxRankTable() {
                     <span className={styles.tickerCode}>{row.ticker}</span>
                     <span className={styles.tickerName}>{row.name}</span>
                   </div>
-                  <span className={styles.note}>{row.ttmNote}</span>
                 </td>
                 <td>{row.stockDivPerUnit.toFixed(2)}</td>
                 <td>{row.lastCashPerUnit.toFixed(2)}</td>

@@ -5,11 +5,48 @@
 }
 
 .wrap {
-  max-width: 52rem;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 2.25rem clamp(1rem, 4vw, 1.5rem) 4rem;
+  padding: 2.25rem 16px 4rem;
   font-size: 1.0625rem;
   line-height: 1.72;
+}
+
+@media (min-width: 1201px) {
+  .wrap {
+    max-width: 1250px;
+    margin: 40px auto;
+    padding-left: 60px;
+    padding-right: 60px;
+  }
+}
+
+@media (max-width: 1200px) and (min-width: 1025px) {
+  .wrap {
+    margin: 30px auto;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .wrap {
+    margin: 20px auto;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .wrap {
+    margin: 10px auto;
+    padding-left: 4px;
+    padding-right: 4px;
+    padding-top: 1.5rem;
+    padding-bottom: 3rem;
+  }
 }
 
 .kicker {
