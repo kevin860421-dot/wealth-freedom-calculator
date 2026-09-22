@@ -2499,14 +2499,21 @@ export default function AfterTaxDividendReportTemplate() {
   width: 1%;
   text-align: center;
   white-space: nowrap;
+  vertical-align: middle;
   font-variant-numeric: tabular-nums;
   color: #57534e;
 }
+.rank-report-mobile-table th[data-col="capital"],
+.rank-report-mobile-table td[data-col="capital"] {
+  vertical-align: middle;
+}
+/* 桌機 nth-child(5)（本金欄）有 vertical-align:top，手機第 5 欄是頻率 → 這裡明確壓回 middle */
 .rank-report-mobile-table th[data-col="cashDiv"],
 .rank-report-mobile-table td[data-col="cashDiv"] {
   width: 1%;
   text-align: right;
   white-space: nowrap;
+  vertical-align: middle;
   font-variant-numeric: tabular-nums;
 }
 .rank-report-mobile-table th[data-col="freq"],
@@ -2514,6 +2521,9 @@ export default function AfterTaxDividendReportTemplate() {
   width: 1%;
   text-align: center;
   white-space: nowrap;
+  vertical-align: middle;
+  padding-left: 8px;
+  padding-right: 8px;
 }
 /* tier wide：視窗 <480 時股息／頻率離開表列、進 ▼ 明細；≥480 反之 */
 @media (max-width: 479px) {
