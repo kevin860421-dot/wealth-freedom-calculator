@@ -2589,10 +2589,25 @@ export default function AfterTaxDividendReportTemplate() {
   white-space: nowrap;
   vertical-align: middle;
 }
-/* ▼ 鈕 32→28px；觸控目標靠整格 td（≥40px 高）補足 */
+/* ▼ 前面那一欄（寬時是買進日、最窄時是本金）多 12px 右內距，數字不貼按鈕 */
+.rank-report-mobile-table th:nth-last-child(2),
+.rank-report-mobile-table td:nth-last-child(2) {
+  padding-right: 12px;
+}
+/* ▼ 鈕 32→28px、去邊框改純箭頭（圓形 hover 底），視覺變輕；桌機表沒有這欄 */
 .rank-report-mobile-table .rank-row-expand-btn {
   width: 1.75rem;
   height: 1.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #78716c;
+  font-size: 11px;
+}
+.rank-report-mobile-table .rank-row-expand-btn:hover,
+.rank-report-mobile-table .rank-row-expand-btn[aria-expanded="true"] {
+  background: #f0efed;
+  color: #1c1917;
 }
 .rank-report-mobile-table .rank-capital-amount {
   font-size: 14px;
