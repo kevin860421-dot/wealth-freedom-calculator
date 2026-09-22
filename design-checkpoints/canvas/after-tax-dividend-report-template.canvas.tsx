@@ -37,6 +37,8 @@ const ETF_FOCUS_PK_TICKERS = ["00919", "00929", "00878"] as const;
 const REPORT_SECTION_TABS: {
   id: ReportSection;
   label: string;
+  /** 手機（<600）等分 segmented 用的短標；沒給就用 label */
+  shortLabel?: string;
   ariaLabel: string;
 }[] = [
   { id: "total-rank", label: "總排行", ariaLabel: "總排行" },
@@ -53,6 +55,7 @@ const REPORT_SECTION_TABS: {
   {
     id: "ex-div-preview",
     label: "搶先除息｜下月買進日",
+    shortLabel: "搶先除息",
     ariaLabel: "搶先除息：下月除息看盤與最後買進日",
   },
 ];
@@ -2577,6 +2580,43 @@ export default function AfterTaxDividendReportTemplate() {
   .first-row-wrapper {
     margin-bottom: 16px;
   }
+}
+/* 分頁標籤：桌機顯示全稱，手機（<600）顯示短標 */
+.first-level-tabs .tab-label-short {
+  display: none;
+}
+@media (max-width: 599px) {
+  .first-level-tabs .tab-label-full {
+    display: none;
+  }
+  .first-level-tabs .tab-label-short {
+    display: inline;
+  }
+  /* 手機：segmented control — 四格等分填滿一行，不滑、不切字 */
+  .finance-dashboard-container .first-level-tabs {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    padding: 4px;
+    gap: 4px;
+    overflow: hidden;
+  }
+  .finance-dashboard-container .first-level-tabs .tab-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 8px 6px;
+    font-size: 13px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* 等分後第一格文字置中，第二排改貼左框線（specificity 高於下方 768 規則） */
+  .finance-dashboard-container .second-row-wrapper {
+    padding-left: 4px;
+  }
+}
+@media (max-width: 768px) {
   .second-row-wrapper {
     margin-bottom: 10px;
     padding-left: 13px;
@@ -2838,7 +2878,7 @@ export default function AfterTaxDividendReportTemplate() {
               role="tablist"
               aria-label="月報主分類"
             >
-              {REPORT_SECTION_TABS.map(({ id, label, ariaLabel }) => {
+              {REPORT_SECTION_TABS.map(({ id, label, shortLabel, ariaLabel }) => {
                 const active = section === id;
                 return (
                   <button
@@ -2851,7 +2891,8 @@ export default function AfterTaxDividendReportTemplate() {
                     data-active={active ? "true" : "false"}
                     onClick={() => setSection(id)}
                   >
-                    {label}
+                    <span className="tab-label-full">{label}</span>
+                    <span className="tab-label-short">{shortLabel ?? label}</span>
                   </button>
                 );
               })}
