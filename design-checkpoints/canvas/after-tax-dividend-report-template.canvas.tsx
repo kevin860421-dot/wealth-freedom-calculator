@@ -1300,19 +1300,23 @@ const RANK_TABLE_HEADERS: { id: string; label: string }[] = [
 
 /** 手機版獨立表：只渲染這 6 欄（與 blog AFTER_TAX_RANK_MOBILE_PRIMARY_COLS 一致） */
 /**
- * 手機欄位（DataTables responsivePriority 概念）：
- * - 一律顯示：排行、代號、月領1萬本金、買進日
- * - tier "wide"（視窗 ≥480）才顯示：股息、頻率；<480 收進 ▼ 明細
+ * 手機欄位（DataTables responsivePriority 概念，但門檻是「量出來」不是寫死 px）：
+ * - 一律顯示：排行、代號、月領1萬本金、買進日、▼
+ * - 可讓位：頻率 → 股息（依 RANK_MOBILE_OPTIONAL_ORDER，越前面越先收進 ▼ 明細）
+ * - 規則：代號欄實際寬度 < RANK_MOBILE_TICKER_MIN_PX 就收一欄；
+ *   代號欄寬 ≥ MIN + 該欄寬 + GAP 才放回來（留緩衝避免臨界寬度來回閃）
  */
 const RANK_MOBILE_PRIMARY_IDS = ["rank", "ticker", "capital", "cashDiv", "freq", "lastBuy"] as const;
-const RANK_MOBILE_WIDE_TIER_IDS: ReadonlySet<(typeof RANK_MOBILE_PRIMARY_IDS)[number]> = new Set([
-  "cashDiv",
-  "freq",
-]);
-/* 480 這條門檻寫在 CSS @media（tier wide）；改門檻請同步兩處 @media。 */
+type RankMobileColId = (typeof RANK_MOBILE_PRIMARY_IDS)[number];
+const RANK_MOBILE_OPTIONAL_ORDER: readonly RankMobileColId[] = ["freq", "cashDiv"];
+/** 代號欄至少要能一行放下「復華台灣科技優息」8 字（11px）＋內距。 */
+const RANK_MOBILE_TICKER_MIN_PX = 112;
+const RANK_MOBILE_RESTORE_GAP_PX = 16;
+/** 欄位被收起後量不到寬度，用最後一次看到的寬度；初值為經驗值。 */
+const RANK_MOBILE_OPTIONAL_FALLBACK_PX: Record<string, number> = { freq: 48, cashDiv: 56 };
 
 /** 手機表頭縮寫（只改顯示字，不改欄位 id）。 */
-const RANK_MOBILE_HEADER_LABEL: Partial<Record<(typeof RANK_MOBILE_PRIMARY_IDS)[number], string>> = {
+const RANK_MOBILE_HEADER_LABEL: Partial<Record<RankMobileColId, string>> = {
   lastBuy: "買進日",
 };
 
@@ -1322,9 +1326,12 @@ const RANK_MOBILE_HEADERS = RANK_MOBILE_PRIMARY_IDS.map((id) => {
   return {
     id: h.id,
     label: RANK_MOBILE_HEADER_LABEL[id] ?? h.label,
-    tier: RANK_MOBILE_WIDE_TIER_IDS.has(id) ? "wide" : "base",
   };
 });
+
+function rankMobileHiddenCols(hiddenCount: number): ReadonlySet<RankMobileColId> {
+  return new Set(RANK_MOBILE_OPTIONAL_ORDER.slice(0, hiddenCount));
+}
 
 /** 手機日期：同年榜單省略年份，"2026-08-18" → "08/18"；無日期維持 "—"。 */
 function mobileDateLabel(iso: string): string {
@@ -1332,8 +1339,6 @@ function mobileDateLabel(iso: string): string {
   if (!m) return iso;
   return `${m[2]}/${m[3]}`;
 }
-
-const RANK_MOBILE_COL_COUNT = RANK_MOBILE_PRIMARY_IDS.length;
 
 const RANK_MOBILE_DETAIL: { col: string; label: string }[] = [
   { col: "cashDiv", label: "股息" },
@@ -1427,17 +1432,9 @@ function renderRankMobilePrimaryCell(
         </td>
       );
     case "cashDiv":
-      return (
-        <td data-col="cashDiv" data-tier="wide">
-          {row.lastCashPerUnit.toFixed(2)}
-        </td>
-      );
+      return <td data-col="cashDiv">{row.lastCashPerUnit.toFixed(2)}</td>;
     case "freq":
-      return (
-        <td data-col="freq" data-tier="wide">
-          {row.freq}
-        </td>
-      );
+      return <td data-col="freq">{row.freq}</td>;
     case "lastBuy":
       return (
         <td data-col="lastBuy" title={row.lastBuy}>
@@ -1485,6 +1482,51 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
       window.removeEventListener("resize", read);
     };
   }, [layoutShell]);
+
+  /* 手機表：量代號欄實際寬度，決定收幾個可讓位欄（頻率 → 股息）。 */
+  const [mobileTable, setMobileTable] = useState<HTMLTableElement | null>(null);
+  const [hiddenCount, setHiddenCount] = useState(0);
+  const optionalWidthRef = useRef<Record<string, number>>({ ...RANK_MOBILE_OPTIONAL_FALLBACK_PX });
+
+  useEffect(() => {
+    if (!isMobileLayout || !mobileTable) return;
+    const measure = () => {
+      const tickerTh = mobileTable.querySelector<HTMLElement>('thead th[data-col="ticker"]');
+      if (!tickerTh) return;
+      for (const id of RANK_MOBILE_OPTIONAL_ORDER) {
+        const th = mobileTable.querySelector<HTMLElement>(`thead th[data-col="${id}"]`);
+        if (th) optionalWidthRef.current[id] = th.getBoundingClientRect().width;
+      }
+      const tickerW = tickerTh.getBoundingClientRect().width;
+      setHiddenCount((prev) => {
+        if (tickerW < RANK_MOBILE_TICKER_MIN_PX && prev < RANK_MOBILE_OPTIONAL_ORDER.length) {
+          return prev + 1;
+        }
+        if (prev > 0) {
+          const next = RANK_MOBILE_OPTIONAL_ORDER[prev - 1];
+          const need =
+            RANK_MOBILE_TICKER_MIN_PX +
+            (optionalWidthRef.current[next] ?? RANK_MOBILE_OPTIONAL_FALLBACK_PX[next] ?? 56) +
+            RANK_MOBILE_RESTORE_GAP_PX;
+          if (tickerW >= need) return prev - 1;
+        }
+        return prev;
+      });
+    };
+    measure();
+    const target = mobileTable.parentElement ?? mobileTable;
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", measure);
+      return () => window.removeEventListener("resize", measure);
+    }
+    const ro = new ResizeObserver(measure);
+    ro.observe(target);
+    return () => ro.disconnect();
+    // hiddenCount 在 deps：每收／放一欄後重量一次，讓 0→1→2 能連續走完
+  }, [isMobileLayout, mobileTable, hiddenCount]);
+
+  const hiddenCols = rankMobileHiddenCols(hiddenCount);
+  const mobileVisibleIds = RANK_MOBILE_PRIMARY_IDS.filter((id) => !hiddenCols.has(id));
 
   return (
     <div
@@ -1546,11 +1588,15 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
       </div>
       ) : (
       <div className="rank-report-table-scroll rank-report-mobile-scroll">
-        <table className="rank-report-data-table rank-report-mobile-table">
+        <table
+          ref={setMobileTable}
+          className="rank-report-data-table rank-report-mobile-table"
+          data-hidden-optional={hiddenCount}
+        >
           <thead>
             <tr>
-              {RANK_MOBILE_HEADERS.map((h) => (
-                <th key={h.id} data-col={h.id} data-tier={h.tier} scope="col">
+              {RANK_MOBILE_HEADERS.filter((h) => !hiddenCols.has(h.id as RankMobileColId)).map((h) => (
+                <th key={h.id} data-col={h.id} scope="col">
                   {h.label}
                 </th>
               ))}
@@ -1564,7 +1610,7 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
                 rowIndex % 2 === 1 ? "rank-data-row rank-data-row-alt" : "rank-data-row";
               return [
                 <tr key={row.ticker} className={rowClass}>
-                  {RANK_MOBILE_PRIMARY_IDS.map((col) =>
+                  {mobileVisibleIds.map((col) =>
                     renderRankMobilePrimaryCell(col, row, expanded, () =>
                       setExpandedTicker(expanded ? "" : row.ticker),
                     ),
@@ -1579,21 +1625,14 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
                   className="rank-mobile-detail-row"
                   data-expanded={expanded ? "true" : "false"}
                 >
-                  <td colSpan={RANK_MOBILE_COL_COUNT + 1}>
+                  <td colSpan={mobileVisibleIds.length + 1}>
                     <dl className="rank-mobile-detail-grid">
-                      {RANK_MOBILE_DETAIL.map(({ col, label }) => (
-                        <div
-                          key={col}
-                          className="rank-mobile-detail-item"
-                          data-col={col}
-                          data-tier={
-                            RANK_MOBILE_WIDE_TIER_IDS.has(
-                              col as (typeof RANK_MOBILE_PRIMARY_IDS)[number],
-                            )
-                              ? "wide"
-                              : "base"
-                          }
-                        >
+                      {RANK_MOBILE_DETAIL.filter(
+                        ({ col }) =>
+                          !RANK_MOBILE_OPTIONAL_ORDER.includes(col as RankMobileColId) ||
+                          hiddenCols.has(col as RankMobileColId),
+                      ).map(({ col, label }) => (
+                        <div key={col} className="rank-mobile-detail-item" data-col={col}>
                           <dt>{label}</dt>
                           <dd>{rankDetailValue(row, col)}</dd>
                         </div>
@@ -2525,18 +2564,7 @@ export default function AfterTaxDividendReportTemplate() {
   padding-left: 8px;
   padding-right: 8px;
 }
-/* tier wide：視窗 <480 時股息／頻率離開表列、進 ▼ 明細；≥480 反之 */
-@media (max-width: 479px) {
-  .rank-report-mobile-table th[data-tier="wide"],
-  .rank-report-mobile-table td[data-tier="wide"] {
-    display: none;
-  }
-}
-@media (min-width: 480px) {
-  .rank-mobile-detail-item[data-tier="wide"] {
-    display: none;
-  }
-}
+/* 頻率／股息是否進表列由 JS 量代號欄寬度決定（RANK_MOBILE_OPTIONAL_ORDER），不用 @media。 */
 .rank-report-mobile-table th[data-col="expand"],
 .rank-report-mobile-table td[data-col="expand"] {
   width: 1%;
