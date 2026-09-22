@@ -17,7 +17,7 @@ import { useCallback, useEffect, useState } from "react";
  * 稅後實領配息報表樣板（唯一邏輯本）。
  * 複製下一期／週報時：只改 PERIOD + SNAPSHOT + 說明文，不准另發明欄位或稅率。
  * 非正式站網址、未進部落格。數字為示意樣本，非正式行情。
- * @preview-reload 2026-09-21T22:42+08
+ * @preview-reload 2026-09-22T20:32+08
  */
 
 const NHI_RATE = 0.0211;
