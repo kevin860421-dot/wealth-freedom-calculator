@@ -1312,7 +1312,10 @@ type RankMobileColId = (typeof RANK_MOBILE_PRIMARY_IDS)[number];
 const RANK_MOBILE_OPTIONAL_ORDER: readonly RankMobileColId[] = ["freq", "cashDiv", "lastBuy"];
 /** 代號欄至少要能一行放下「復華台灣科技優息」8 字（11px）＋內距。 */
 const RANK_MOBILE_TICKER_MIN_PX = 112;
-const RANK_MOBILE_RESTORE_GAP_PX = 16;
+/** 回復緩衝：收欄門檻 112 不動，放回只多要 8px 防臨界閃動（16 會讓欄卡在門檻下放不回來）。 */
+const RANK_MOBILE_RESTORE_GAP_PX = 8;
+/** 手機表 th/td 標準左右內距（對應 CSS `padding: 8px 4px`）。 */
+const RANK_MOBILE_CELL_PAD_X = 4;
 /** 欄位被收起後量不到寬度，用最後一次看到的寬度；初值為經驗值。 */
 const RANK_MOBILE_OPTIONAL_FALLBACK_PX: Record<string, number> = {
   freq: 48,
@@ -1491,7 +1494,7 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
     };
   }, [layoutShell]);
 
-  /* 手機表：量代號欄實際寬度，決定收幾個可讓位欄（頻率 → 股息）。 */
+  /* 手機表：量代號欄實際寬度，決定收幾個可讓位欄（頻率 → 股息 → 買進日）。 */
   const [mobileTable, setMobileTable] = useState<HTMLTableElement | null>(null);
   const [hiddenCount, setHiddenCount] = useState(0);
   const optionalWidthRef = useRef<Record<string, number>>({ ...RANK_MOBILE_OPTIONAL_FALLBACK_PX });
@@ -1503,7 +1506,11 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
       if (!tickerTh) return;
       for (const id of RANK_MOBILE_OPTIONAL_ORDER) {
         const th = mobileTable.querySelector<HTMLElement>(`thead th[data-col="${id}"]`);
-        if (th) optionalWidthRef.current[id] = th.getBoundingClientRect().width;
+        if (!th) continue;
+        // 倒數第二欄身上有 nth-last-child(2) 的 12px 右內距；量「標準內距」下的寬，門檻才不會被灌水
+        const padR = parseFloat(getComputedStyle(th).paddingRight) || RANK_MOBILE_CELL_PAD_X;
+        optionalWidthRef.current[id] =
+          th.getBoundingClientRect().width - padR + RANK_MOBILE_CELL_PAD_X;
       }
       const tickerW = tickerTh.getBoundingClientRect().width;
       setHiddenCount((prev) => {
