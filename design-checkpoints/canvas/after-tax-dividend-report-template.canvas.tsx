@@ -1308,12 +1308,17 @@ const RANK_TABLE_HEADERS: { id: string; label: string }[] = [
  */
 const RANK_MOBILE_PRIMARY_IDS = ["rank", "ticker", "capital", "cashDiv", "freq", "lastBuy"] as const;
 type RankMobileColId = (typeof RANK_MOBILE_PRIMARY_IDS)[number];
-const RANK_MOBILE_OPTIONAL_ORDER: readonly RankMobileColId[] = ["freq", "cashDiv"];
+/* 買進日排第三：排行（座標）、代號（身分）、本金（主角）永不讓位。 */
+const RANK_MOBILE_OPTIONAL_ORDER: readonly RankMobileColId[] = ["freq", "cashDiv", "lastBuy"];
 /** 代號欄至少要能一行放下「復華台灣科技優息」8 字（11px）＋內距。 */
 const RANK_MOBILE_TICKER_MIN_PX = 112;
 const RANK_MOBILE_RESTORE_GAP_PX = 16;
 /** 欄位被收起後量不到寬度，用最後一次看到的寬度；初值為經驗值。 */
-const RANK_MOBILE_OPTIONAL_FALLBACK_PX: Record<string, number> = { freq: 48, cashDiv: 56 };
+const RANK_MOBILE_OPTIONAL_FALLBACK_PX: Record<string, number> = {
+  freq: 48,
+  cashDiv: 56,
+  lastBuy: 60,
+};
 
 /** 手機表頭縮寫（只改顯示字，不改欄位 id）。 */
 const RANK_MOBILE_HEADER_LABEL: Partial<Record<RankMobileColId, string>> = {
@@ -1343,6 +1348,7 @@ function mobileDateLabel(iso: string): string {
 const RANK_MOBILE_DETAIL: { col: string; label: string }[] = [
   { col: "cashDiv", label: "股息" },
   { col: "freq", label: "頻率" },
+  { col: "lastBuy", label: "最後買進日" },
   { col: "net", label: "實領" },
   { col: "stockDiv", label: "股利" },
   { col: "wireFee", label: "匯費" },
@@ -1364,6 +1370,8 @@ function rankDetailValue(row: Derived, col: string): string {
       return row.lastCashPerUnit.toFixed(2);
     case "freq":
       return row.freq;
+    case "lastBuy":
+      return row.lastBuy;
     case "net":
       return money(row.net);
     case "stockDiv":
@@ -2487,6 +2495,10 @@ export default function AfterTaxDividendReportTemplate() {
 .rank-report-mobile-table tbody tr.rank-data-row-alt td {
   background: #fafaf9 !important;
 }
+/* 手機：排行欄「●1」只需 40px，比桌機 sticky 寬（52px）省 12px 給代號；ticker 的 left 跟著變數走 */
+.rank-report-mobile-scroll {
+  --rank-sticky-w: 2.5rem;
+}
 .rank-report-mobile-table th[data-col="rank"],
 .rank-report-mobile-table td[data-col="rank"] {
   width: var(--rank-sticky-w);
@@ -2494,8 +2506,11 @@ export default function AfterTaxDividendReportTemplate() {
   max-width: var(--rank-sticky-w);
   text-align: center;
   white-space: nowrap;
-  padding-left: 4px;
-  padding-right: 4px;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+.rank-report-mobile-table .rank-row-dot {
+  margin-right: 3px;
 }
 .rank-report-mobile-table th[data-col="ticker"],
 .rank-report-mobile-table td[data-col="ticker"] {
@@ -2569,10 +2584,15 @@ export default function AfterTaxDividendReportTemplate() {
 .rank-report-mobile-table td[data-col="expand"] {
   width: 1%;
   text-align: right;
-  padding-left: 2px;
-  padding-right: 6px;
+  padding-left: 0;
+  padding-right: 4px;
   white-space: nowrap;
   vertical-align: middle;
+}
+/* ▼ 鈕 32→28px；觸控目標靠整格 td（≥40px 高）補足 */
+.rank-report-mobile-table .rank-row-expand-btn {
+  width: 1.75rem;
+  height: 1.75rem;
 }
 .rank-report-mobile-table .rank-capital-amount {
   font-size: 14px;
