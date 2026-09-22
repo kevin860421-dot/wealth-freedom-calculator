@@ -1296,8 +1296,17 @@ const RANK_TABLE_HEADERS: { id: string; label: string }[] = [
 ];
 
 /** 手機版獨立表：只渲染這 6 欄（與 blog AFTER_TAX_RANK_MOBILE_PRIMARY_COLS 一致） */
-/** 手機主欄（優先級 1）：身分 + 排行依據 + 行動時點。股息／頻率降到展開明細。 */
-const RANK_MOBILE_PRIMARY_IDS = ["rank", "ticker", "capital", "lastBuy"] as const;
+/**
+ * 手機欄位（DataTables responsivePriority 概念）：
+ * - 一律顯示：排行、代號、月領1萬本金、買進日
+ * - tier "wide"（視窗 ≥480）才顯示：股息、頻率；<480 收進 ▼ 明細
+ */
+const RANK_MOBILE_PRIMARY_IDS = ["rank", "ticker", "capital", "cashDiv", "freq", "lastBuy"] as const;
+const RANK_MOBILE_WIDE_TIER_IDS: ReadonlySet<(typeof RANK_MOBILE_PRIMARY_IDS)[number]> = new Set([
+  "cashDiv",
+  "freq",
+]);
+/* 480 這條門檻寫在 CSS @media（tier wide）；改門檻請同步兩處 @media。 */
 
 /** 手機表頭縮寫（只改顯示字，不改欄位 id）。 */
 const RANK_MOBILE_HEADER_LABEL: Partial<Record<(typeof RANK_MOBILE_PRIMARY_IDS)[number], string>> = {
@@ -1307,7 +1316,11 @@ const RANK_MOBILE_HEADER_LABEL: Partial<Record<(typeof RANK_MOBILE_PRIMARY_IDS)[
 const RANK_MOBILE_HEADERS = RANK_MOBILE_PRIMARY_IDS.map((id) => {
   const h = RANK_TABLE_HEADERS.find((x) => x.id === id);
   if (!h) throw new Error(`[canvas-rank] missing mobile header: ${id}`);
-  return { id: h.id, label: RANK_MOBILE_HEADER_LABEL[id] ?? h.label };
+  return {
+    id: h.id,
+    label: RANK_MOBILE_HEADER_LABEL[id] ?? h.label,
+    tier: RANK_MOBILE_WIDE_TIER_IDS.has(id) ? "wide" : "base",
+  };
 });
 
 /** 手機日期：同年榜單省略年份，"2026-08-18" → "08/18"；無日期維持 "—"。 */
@@ -1408,6 +1421,18 @@ function renderRankMobilePrimaryCell(
             <span className="rank-capital-amount">{money(row.capital)}</span>
             <span className="rank-capital-lots">{lotsLabel(row.lots)} 張</span>
           </div>
+        </td>
+      );
+    case "cashDiv":
+      return (
+        <td data-col="cashDiv" data-tier="wide">
+          {row.lastCashPerUnit.toFixed(2)}
+        </td>
+      );
+    case "freq":
+      return (
+        <td data-col="freq" data-tier="wide">
+          {row.freq}
         </td>
       );
     case "lastBuy":
@@ -1522,7 +1547,7 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
           <thead>
             <tr>
               {RANK_MOBILE_HEADERS.map((h) => (
-                <th key={h.id} data-col={h.id} scope="col">
+                <th key={h.id} data-col={h.id} data-tier={h.tier} scope="col">
                   {h.label}
                 </th>
               ))}
@@ -1554,7 +1579,18 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
                   <td colSpan={RANK_MOBILE_COL_COUNT + 1}>
                     <dl className="rank-mobile-detail-grid">
                       {RANK_MOBILE_DETAIL.map(({ col, label }) => (
-                        <div key={col} className="rank-mobile-detail-item">
+                        <div
+                          key={col}
+                          className="rank-mobile-detail-item"
+                          data-col={col}
+                          data-tier={
+                            RANK_MOBILE_WIDE_TIER_IDS.has(
+                              col as (typeof RANK_MOBILE_PRIMARY_IDS)[number],
+                            )
+                              ? "wide"
+                              : "base"
+                          }
+                        >
                           <dt>{label}</dt>
                           <dd>{rankDetailValue(row, col)}</dd>
                         </div>
@@ -2462,6 +2498,31 @@ export default function AfterTaxDividendReportTemplate() {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
   color: #57534e;
+}
+.rank-report-mobile-table th[data-col="cashDiv"],
+.rank-report-mobile-table td[data-col="cashDiv"] {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.rank-report-mobile-table th[data-col="freq"],
+.rank-report-mobile-table td[data-col="freq"] {
+  width: 1%;
+  text-align: center;
+  white-space: nowrap;
+}
+/* tier wide：視窗 <480 時股息／頻率離開表列、進 ▼ 明細；≥480 反之 */
+@media (max-width: 479px) {
+  .rank-report-mobile-table th[data-tier="wide"],
+  .rank-report-mobile-table td[data-tier="wide"] {
+    display: none;
+  }
+}
+@media (min-width: 480px) {
+  .rank-mobile-detail-item[data-tier="wide"] {
+    display: none;
+  }
 }
 .rank-report-mobile-table th[data-col="expand"],
 .rank-report-mobile-table td[data-col="expand"] {
