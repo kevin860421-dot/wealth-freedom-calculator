@@ -2383,23 +2383,24 @@ export default function AfterTaxDividendReportTemplate() {
 .rank-report-mobile-scroll .rank-report-mobile-table {
   width: 100% !important;
   max-width: 100% !important;
-  table-layout: fixed;
+  table-layout: auto;
   font-size: 14px;
   white-space: nowrap;
 }
 /*
  * 手機表 = 同一張桌機表（同 class：rank-report-table-scroll / rank-report-data-table），
  * 表頭灰、斑馬紋、邊線、sticky 全部沿用；這裡只覆寫「欄寬與裁切」。
+ * 欄寬策略：排行／本金／買進日／▼ 貼內容（width:1% + nowrap），代號欄吸收全部剩餘寬。
  */
 .rank-report-mobile-table th,
 .rank-report-mobile-table td {
-  padding: 8px 6px;
+  padding: 8px 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   vertical-align: middle;
 }
 .rank-report-mobile-table thead th {
-  padding: 10px 6px;
+  padding: 10px 4px;
 }
 /* tbody 夾了明細列，桌機的 nth-child(even) 斑馬紋對不上 → 用 rank-data-row-alt 上色 */
 .rank-report-mobile-table tbody tr.rank-data-row td {
@@ -2412,48 +2413,59 @@ export default function AfterTaxDividendReportTemplate() {
 .rank-report-mobile-table td[data-col="rank"] {
   width: var(--rank-sticky-w);
   min-width: var(--rank-sticky-w);
+  max-width: var(--rank-sticky-w);
   text-align: center;
+  white-space: nowrap;
   padding-left: 4px;
   padding-right: 4px;
 }
 .rank-report-mobile-table th[data-col="ticker"],
 .rank-report-mobile-table td[data-col="ticker"] {
   left: var(--rank-sticky-w);
-  width: auto;
+  width: 100%;
+  max-width: 0;
   min-width: 0;
   text-align: left;
-  white-space: nowrap;
+  white-space: normal;
+  padding-left: 6px;
 }
 .rank-report-mobile-table td[data-col="ticker"] .rank-ticker-stack {
   display: flex;
   max-width: 100%;
   min-width: 0;
 }
-.rank-report-mobile-table td[data-col="ticker"] .rank-ticker-code,
-.rank-report-mobile-table td[data-col="ticker"] .rank-ticker-name {
+.rank-report-mobile-table td[data-col="ticker"] .rank-ticker-code {
   display: block;
+  white-space: nowrap;
+}
+/* 名稱：最多兩行才截，不在一行就砍字 */
+.rank-report-mobile-table td[data-col="ticker"] .rank-ticker-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   max-width: 100%;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-all;
+  line-height: 1.3;
 }
 .rank-report-mobile-table th[data-col="capital"],
 .rank-report-mobile-table td[data-col="capital"] {
-  width: 6.25rem;
+  width: 1%;
   text-align: right;
+  white-space: nowrap;
 }
 .rank-report-mobile-table th[data-col="lastBuy"],
 .rank-report-mobile-table td[data-col="lastBuy"] {
-  width: 3.75rem;
+  width: 1%;
   text-align: center;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
   color: #57534e;
-  padding-left: 4px;
-  padding-right: 4px;
 }
 .rank-report-mobile-table th[data-col="expand"],
 .rank-report-mobile-table td[data-col="expand"] {
-  width: 2.75rem;
+  width: 1%;
   text-align: right;
   padding-left: 2px;
   padding-right: 6px;
