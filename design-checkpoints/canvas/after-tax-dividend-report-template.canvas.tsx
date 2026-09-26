@@ -1457,6 +1457,50 @@ function renderRankMobilePrimaryCell(
   }
 }
 
+/** 展開後沿用同一組欄，排成第二列、第三列，不再另開一塊明細卡。 */
+function renderRankMobileFollowRows(
+  row: Derived,
+  expanded: boolean,
+  rowClass: string,
+  mobileVisibleIds: readonly RankMobileColId[],
+  hiddenCols: ReadonlySet<RankMobileColId>,
+) {
+  const fields = RANK_MOBILE_DETAIL.filter(
+    ({ col }) =>
+      !RANK_MOBILE_OPTIONAL_ORDER.includes(col as RankMobileColId) ||
+      hiddenCols.has(col as RankMobileColId),
+  );
+  const valueSlots = mobileVisibleIds.filter((id) => id !== "rank");
+  const perRow = Math.max(valueSlots.length, 1);
+  const chunks: { col: string; label: string }[][] = [];
+  for (let i = 0; i < fields.length; i += perRow) chunks.push(fields.slice(i, i + perRow));
+
+  return chunks.map((chunk, chunkIndex) => (
+    <tr
+      key={`${row.ticker}-follow-${chunkIndex}`}
+      id={chunkIndex === 0 ? `rank-detail-${row.ticker}` : undefined}
+      className={`rank-mobile-follow-row ${rowClass}`}
+      data-expanded={expanded ? "true" : "false"}
+    >
+      {mobileVisibleIds.map((colId) => {
+        if (colId === "rank") return <td key="rank" data-col="rank" />;
+        const field = chunk[valueSlots.indexOf(colId)];
+        return (
+          <td key={colId} data-col={colId}>
+            {field ? (
+              <span className="rank-follow-stack">
+                <span className="rank-follow-label">{field.label}</span>
+                <span className="rank-follow-value">{rankDetailValue(row, field.col)}</span>
+              </span>
+            ) : null}
+          </td>
+        );
+      })}
+      <td key="expand" data-col="expand" />
+    </tr>
+  ));
+}
+
 /** 真手機：裝置螢幕 ≤768 CSS px（含 DevTools 裝置模擬）。 */
 const RANK_TABLE_MOBILE_MAX_PX = 768;
 /** 桌機把視窗／Canvas 面板拉到很窄：≤600 才切手機版；700 多仍是桌機 13 欄橫滑。 */
@@ -1634,27 +1678,13 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
                     setExpandedTicker(expanded ? "" : row.ticker),
                   )}
                 </tr>,
-                <tr
-                  key={`${row.ticker}-detail`}
-                  id={`rank-detail-${row.ticker}`}
-                  className="rank-mobile-detail-row"
-                  data-expanded={expanded ? "true" : "false"}
-                >
-                  <td colSpan={mobileVisibleIds.length + 1}>
-                    <dl className="rank-mobile-detail-grid">
-                      {RANK_MOBILE_DETAIL.filter(
-                        ({ col }) =>
-                          !RANK_MOBILE_OPTIONAL_ORDER.includes(col as RankMobileColId) ||
-                          hiddenCols.has(col as RankMobileColId),
-                      ).map(({ col, label }) => (
-                        <div key={col} className="rank-mobile-detail-item" data-col={col}>
-                          <dt>{label}</dt>
-                          <dd>{rankDetailValue(row, col)}</dd>
-                        </div>
-                      ))}
-                    </dl>
-                  </td>
-                </tr>,
+                ...renderRankMobileFollowRows(
+                  row,
+                  expanded,
+                  rowClass,
+                  mobileVisibleIds,
+                  hiddenCols,
+                ),
               ];
             })}
           </tbody>
@@ -2419,34 +2449,25 @@ export default function AfterTaxDividendReportTemplate() {
   background: #f5f5f4;
   color: #1c1917;
 }
-.rank-mobile-detail-row {
+.rank-mobile-follow-row {
   display: none;
 }
-.rank-mobile-detail-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px 12px;
-  margin: 0;
-  padding: 6px 0 4px;
-}
-.rank-mobile-detail-item {
-  margin: 0;
+.rank-follow-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   min-width: 0;
+  line-height: 1.3;
 }
-.rank-mobile-detail-item dt {
-  margin: 0;
+.rank-follow-label {
   font-size: 11px;
   font-weight: 500;
   color: #78716c;
-  line-height: 1.35;
 }
-.rank-mobile-detail-item dd {
-  margin: 2px 0 0;
+.rank-follow-value {
   font-size: 14px;
   font-weight: 600;
   color: #1c1917;
-  line-height: 1.4;
-  text-align: right;
 }
 .rank-capital-stack {
   display: flex;
@@ -2622,22 +2643,34 @@ export default function AfterTaxDividendReportTemplate() {
 .rank-report-mobile-table .rank-capital-lots {
   font-size: 11px;
 }
-.rank-mobile-detail-row[data-expanded="true"] {
+.rank-mobile-follow-row[data-expanded="true"] {
   display: table-row;
 }
-.rank-mobile-detail-row td {
-  padding-top: 0;
-  padding-bottom: 10px;
-  background: #f5f5f4 !important;
-  border-bottom: 1px solid #e7e5e4;
+.rank-report-mobile-table tr.rank-mobile-follow-row td {
+  padding-top: 6px;
+  padding-bottom: 8px;
   white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  vertical-align: top;
+}
+.rank-report-mobile-table tr.rank-mobile-follow-row td[data-col="ticker"] .rank-follow-stack {
+  align-items: flex-start;
+}
+.rank-report-mobile-table tr.rank-mobile-follow-row td[data-col="capital"] .rank-follow-stack,
+.rank-report-mobile-table tr.rank-mobile-follow-row td[data-col="cashDiv"] .rank-follow-stack {
+  align-items: flex-end;
+}
+.rank-report-mobile-table tr.rank-mobile-follow-row td[data-col="freq"] .rank-follow-stack,
+.rank-report-mobile-table tr.rank-mobile-follow-row td[data-col="lastBuy"] .rank-follow-stack {
+  align-items: center;
 }
 .rank-report-table-shell[data-rank-layout="mobile"] .rank-report-mobile-scroll {
   width: 100%;
   max-width: 100%;
   overflow-x: auto;
 }
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   [data-rank-title-row] {
     display: flex !important;
     flex-direction: column;
@@ -2649,6 +2682,8 @@ export default function AfterTaxDividendReportTemplate() {
     display: flex;
     justify-content: flex-end;
   }
+}
+@media (max-width: 768px) {
   [data-rank-title-row] [data-rank-h1] {
     font-size: clamp(1.75rem, 6.2vw, 2.125rem) !important;
     line-height: 1.42 !important;
