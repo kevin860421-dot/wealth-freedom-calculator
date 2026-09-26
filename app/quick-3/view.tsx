@@ -175,11 +175,12 @@ export default function QuickCalculator3View() {
               {shareState === "copied" ? "已複製" : "分享"}
             </button>
           </div>
-          <div
+          <h1
             className="quick3-title-gradient"
             style={{
               fontSize: 30,
               fontWeight: 950,
+              margin: 0,
               marginTop: 10,
               lineHeight: 1.12,
               whiteSpace: "nowrap",
@@ -188,7 +189,7 @@ export default function QuickCalculator3View() {
             }}
           >
             💣 夢想月領試算器
-          </div>
+          </h1>
         </div>
 
         <section

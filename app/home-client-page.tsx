@@ -3616,7 +3616,7 @@ export default function Home() {
             <div style={{ fontSize: 11, color: "#39ff14", textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>
               WEALTH FREEDOM
             </div>
-            <h1 className={heroGold.desktopH1}>{heroTitle}</h1>
+            <p className={heroGold.desktopH1}>{heroTitle}</p>
             <p style={{ fontSize: 13, color: "#9ca3af", marginTop: 8, marginBottom: 0 }}>
               月領 {targetQuarterIncomeNum.toLocaleString("zh-TW")}，不是夢，是複利紀律。
             </p>
@@ -5081,27 +5081,6 @@ export default function Home() {
               letterSpacing: "0.2em",
             }}
           >
-            {/* 視覺隱藏 SEO 文案（仍於 HTML 中；螢幕助讀略過）— 搜尋引擎可能視隱藏內容為不當操作，請自行評估 */}
-            <p
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                width: "1px",
-                height: "1px",
-                padding: 0,
-                margin: "-1px",
-                overflow: "hidden",
-                clipPath: "inset(50%)",
-                whiteSpace: "nowrap",
-                border: 0,
-              }}
-            >
-              財富自由計算機
-              財務自由規劃工具，協助台灣投資人以台股 ETF（如 0050、0056、006208、00878、00929、00934、00935
-              等）及自訂標的進行長期複利與被動收入模擬。支援定期定額、額外加碼投入、股利再投入比例、月配／季配／半年配／年配與自訂配息月份，並可試算年化報酬、股利殖利率與 FIRE
-              達標年期。試算表整合股利所得課稅、54C 應稅股利占比、8.5% 股利抵減與上限、分離課稅選項、二代健保補充保費門檻與費率、申購與再投入手續費等假設，提供累積金額、每期扣除與總資產欄位，並可匯出
-              Excel 做情境比較。本頁內容僅供教育與參考，不構成投資、稅務或法律建議；實際申報與交易請以主管機關、稽徵機關、券商及基金公司公告與您個案事實為準。建議同步檢視緊急預備金、保險保障與整體資產配置。
-            </p>
             <span style={{ fontSize: 28, lineHeight: 1, opacity: 0.85 }} aria-hidden>
               ✦
             </span>

@@ -18,6 +18,24 @@ import styles from "../../blog/blog.module.css";
 import { Quick11ExcelLeadBlockForArticle } from "../../quick-11/quick11-excel-lead-block-for-article";
 import { Exdiv2026Picker } from "../exdiv-2026-picker";
 import { QUICK11_SUCCESS_BLOG_PATH, QUICK11_SUCCESS_BLOG_TITLE } from "@/lib/quick11-marketing";
+import { absoluteUrl, getSiteOrigin } from "@/lib/site-origin";
+
+const RELATED_NEXT_STEPS: Record<string, { href: string; label: string }[]> = {
+  "quick4-00935-dividend-simulator": [
+    { href: "/mini-blog/quick4-2026-official-ex-dividend-calendar", label: "2026 已公告除息日：00935 是 3/17、9/16" },
+    { href: "/mini-blog/quick4-dividend-ex-month-calendar-guide", label: "0056、00878、00919 的除息月份怎麼錯開" },
+  ],
+  "quick4-dividend-ex-month-calendar-guide": [
+    { href: "/mini-blog/quick4-2026-official-ex-dividend-calendar", label: "已公告的除息日與最後買進日" },
+    { href: "/mini-blog/quick4-00935-dividend-simulator", label: "00935 配息月份：評價月 2 月、8 月" },
+  ],
+  "quick4-00922-dividend-simulator": [
+    { href: "/mini-blog/quick4-dividend-ex-month-calendar-guide", label: "除息月份對照：哪個月可能是 0" },
+  ],
+  "quick4-00662-dividend-simulator": [
+    { href: "/mini-blog/quick4-dividend-ex-month-calendar-guide", label: "除息月份對照：半年配的空窗長什麼樣" },
+  ],
+};
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -91,9 +109,28 @@ export default async function MiniBlogPostPage({ params }: PageProps) {
                           : post.calculatorRoute === "/quick-13"
                             ? QUICK13_DISPLAY_TITLE
         : "存股複利計算機";
+  const relatedSteps = RELATED_NEXT_STEPS[post.slug] ?? [];
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.seoTitle,
+    description: post.metaDescription,
+    datePublished: post.publishAtIso,
+    inLanguage: "zh-Hant",
+    author: {
+      "@type": "Organization",
+      name: "財富自由計算機",
+      url: getSiteOrigin(),
+    },
+    mainEntityOfPage: absoluteUrl(`/mini-blog/${post.slug}`),
+  };
 
   return (
     <article className={styles.wrap} data-mini-blog-route={post.calculatorRoute}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd).replace(/</g, "\\u003c") }}
+      />
       <div className={styles.postMetaRow}>
         <Link href="/mini-blog" className={styles.back} prefetch={false}>
           ← 小計算機專屬文章列表
@@ -128,6 +165,21 @@ export default async function MiniBlogPostPage({ params }: PageProps) {
                 ) : null}
               </section>
             </div>
+
+            {relatedSteps.length > 0 ? (
+              <div className={styles.article}>
+                <p className={styles.grafTight}>同一題再往下看：</p>
+                <ul>
+                  {relatedSteps.map((item) => (
+                    <li key={item.href}>
+                      <Link href={item.href} prefetch={false}>
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
 
             {post.slug === "quick4-2026-official-ex-dividend-calendar" ? (
               <div className={styles.article}>

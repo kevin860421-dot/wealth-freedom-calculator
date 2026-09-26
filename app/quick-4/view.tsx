@@ -367,9 +367,9 @@ export default function QuickCalculator4View({
           </button>
         </div>
 
-        <div style={{ fontSize: 28, fontWeight: 950, marginBottom: 8 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 950, margin: 0, marginBottom: 8 }}>
           📈 ETF 領息夢想模擬器
-        </div>
+        </h1>
 
         <section style={{ border: "1px solid rgba(255,255,255,0.12)", borderRadius: 14, padding: 10, background: "rgba(255,255,255,0.05)" }}>
           <div style={{ display: "grid", gap: 12 }}>

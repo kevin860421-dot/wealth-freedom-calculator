@@ -1,20 +1,34 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { absoluteUrl } from "@/lib/site-origin";
 import { blogPostPath, getPublishedBlogPosts } from "./posts/registry";
 import styles from "./blog.module.css";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "部落格｜財富自由計算機",
+  title: "存股與股利課稅文章｜財富自由計算機",
   description:
     "存股、股利課稅、財富自由與被動收入相關文章。資訊僅供參考，不構成投資或稅務建議。",
+  alternates: { canonical: "/blog" },
 };
 
 export default function BlogIndexPage() {
   const published = getPublishedBlogPosts();
+  const blogJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: "存股與股利課稅文章",
+    description: "存股、股利課稅、財富自由與被動收入相關文章。資訊僅供參考，不構成投資或稅務建議。",
+    url: absoluteUrl("/blog"),
+    inLanguage: "zh-Hant",
+  };
   return (
     <div className={styles.wrap}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd).replace(/</g, "\\u003c") }}
+      />
       <Link href="/" className={styles.back} target="_blank" rel="noopener noreferrer">
         ← 回到財富自由計算機（另開分頁）
       </Link>

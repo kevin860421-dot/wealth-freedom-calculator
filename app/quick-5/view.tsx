@@ -183,11 +183,12 @@ export default function QuickCalculator5View() {
               {shareState === "copied" ? "已複製" : "分享"}
             </button>
           </div>
-          <div
+          <h1
             className="quick5-title-gradient"
             style={{
               fontSize: 30,
               fontWeight: 950,
+              margin: 0,
               marginTop: 10,
               lineHeight: 1.12,
               whiteSpace: "nowrap",
@@ -196,7 +197,7 @@ export default function QuickCalculator5View() {
             }}
           >
             雪球效應：本金 vs 複利
-          </div>
+          </h1>
         </div>
 
         <section
