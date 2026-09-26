@@ -44,7 +44,7 @@ export function HomeDesktopHeroKpi({
           <div style={{ fontSize: 11, color: "#39ff14", textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>
             WEALTH FREEDOM
           </div>
-          <h1 className={heroGold.desktopH1}>財富自由計算機</h1>
+          <p className={heroGold.desktopH1}>財富自由計算機</p>
           <p style={{ fontSize: 13, color: "#9ca3af", marginTop: 8, marginBottom: 0 }}>
             月領 {targetQuarterIncomeNum.toLocaleString("zh-TW")}，不是夢，是複利紀律。
           </p>

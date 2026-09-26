@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
+import { ClarityAnalytics } from "@/app/components/clarity-analytics";
 import { Geist, Geist_Mono, Noto_Sans_TC } from "next/font/google";
 import Script from "next/script";
 import { getSiteOrigin } from "@/lib/site-origin";
@@ -76,8 +77,11 @@ export default async function RootLayout({
   const initialStats = getPublicStatsSnapshot();
 
   return (
-    <html lang="zh-TW">
+    <html lang="zh-TW" suppressHydrationWarning>
       <head>
+        <Script id="strip-injected-attrs" strategy="beforeInteractive">
+          {`(function(){try{function strip(n){if(!n||n.nodeType!==1)return;if(n.removeAttribute)n.removeAttribute("data-cursor-ref");}var o=new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var m=ms[i];if(m.type==="attributes"&&m.attributeName==="data-cursor-ref")strip(m.target);var nodes=m.addedNodes;if(!nodes)continue;for(var j=0;j<nodes.length;j++){var n=nodes[j];strip(n);if(n.querySelectorAll){var els=n.querySelectorAll("[data-cursor-ref]");for(var k=0;k<els.length;k++)strip(els[k]);}}}});o.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:["data-cursor-ref"]});}catch(e){}})();`}
+        </Script>
         <Script
           async
           src="https://www.googletagmanager.com/gtag/js?id=G-BG3PNZVNJW"
@@ -93,6 +97,7 @@ export default async function RootLayout({
         </Script>
       </head>
       <body
+        suppressHydrationWarning
         className={`${notoSansTc.variable} ${geistSans.variable} ${geistMono.variable}`}
         style={{ position: "relative" }}
       >
@@ -103,6 +108,7 @@ export default async function RootLayout({
           <GameFiGlobalMount />
         </StatsProvider>
         <Analytics />
+        <ClarityAnalytics />
       </body>
     </html>
   );

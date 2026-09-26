@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { absoluteUrl } from "@/lib/site-origin";
 import { getPublishedQuick1ExclusivePosts } from "./posts/quick1-exclusive";
 import styles from "../blog/blog.module.css";
 
@@ -8,11 +9,24 @@ const publishedPosts = getPublishedQuick1ExclusivePosts();
 export const metadata: Metadata = {
   title: "小計算機專屬文章｜小計算機專區",
   description: `小計算機專屬文章列表：已公開 ${publishedPosts.length} 篇，涵蓋 quick-1 ~ quick-12 的試算情境與規劃。`,
+  alternates: { canonical: "/mini-blog" },
 };
 
 export default function MiniBlogIndexPage() {
+  const listJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "小計算機專屬文章",
+    description: `已公開 ${publishedPosts.length} 篇試算情境。`,
+    url: absoluteUrl("/mini-blog"),
+    inLanguage: "zh-Hant",
+  };
   return (
     <div className={styles.wrap}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(listJsonLd).replace(/</g, "\\u003c") }}
+      />
       <Link href="/quick-1" className={styles.back} prefetch={false}>
         ← 回到存股複利計算機
       </Link>

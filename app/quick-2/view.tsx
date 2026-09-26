@@ -158,11 +158,12 @@ export default function QuickCalculator2View() {
           </button>
         </div>
 
-        <div
+        <h1
           className="quick2-title-gradient"
           style={{
             fontSize: 30,
             fontWeight: 950,
+            margin: 0,
             marginBottom: 8,
             lineHeight: 1.12,
             whiteSpace: "nowrap",
@@ -171,7 +172,7 @@ export default function QuickCalculator2View() {
           }}
         >
           💣 財富自由倒數計時器
-        </div>
+        </h1>
 
         <section style={{ border: "1px solid rgba(255,255,255,0.12)", borderRadius: 14, padding: 10, background: "rgba(255,255,255,0.05)" }}>
           <div style={{ display: "grid", gap: 12 }}>

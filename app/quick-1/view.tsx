@@ -193,11 +193,12 @@ export default function QuickCalculator1View({ showArticleToggle = true }: Quick
               {shareState === "copied" ? "已複製" : "分享"}
             </button>
           </div>
-          <div
+          <h1
             className="quick1-title-gradient"
             style={{
               fontSize: 30,
               fontWeight: 950,
+              margin: 0,
               marginTop: 10,
               lineHeight: 1.12,
               whiteSpace: "nowrap",
@@ -206,7 +207,7 @@ export default function QuickCalculator1View({ showArticleToggle = true }: Quick
             }}
           >
             📈 存股複利計算機
-          </div>
+          </h1>
         </div>
 
         <section
