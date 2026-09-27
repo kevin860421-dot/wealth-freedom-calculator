@@ -1780,7 +1780,8 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
         <table
           style={{
             tableLayout: "fixed",
-            width: "100%",
+            width: "max-content",
+            minWidth: "100%",
             borderCollapse: "collapse",
           }}
         >
@@ -1812,6 +1813,7 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
                   </th>
                 );
               })}
+              <th aria-hidden="true" style={{ width: "24px", minWidth: "24px", maxWidth: "24px", borderBottom: "1px solid #e7e5e4", padding: 0 }} />
             </tr>
           </thead>
           <tbody>
@@ -1863,6 +1865,7 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
                   </td>
                   <td className="col-freq" style={deskCell("freq", "right")}>{row.freq}</td>
                   <td className="col-lastBuy" style={deskCell("lastBuy", "right")}>{row.lastBuy}</td>
+                  <td aria-hidden="true" style={{ width: "24px", minWidth: "24px", maxWidth: "24px", borderBottom: "1px solid #e7e5e4", padding: 0 }} />
                 </tr>
               );
             })}
@@ -3200,6 +3203,29 @@ export default function AfterTaxDividendReportTemplate() {
 @container rank-desk (max-width: 353px) { .col-cashDiv { display: none !important; } }
 @container rank-desk (max-width: 273px) { .col-stockDiv { display: none !important; } }
 @container rank-desk (max-width: 193px) { .col-ticker { display: none !important; } }
+/* 桌機代號欄鎖 140px，文字只跟內容一樣寬。手機表不在 .rank-desk-fit 裡。 */
+.rank-desk-fit th.col-ticker,
+.rank-desk-fit td.col-ticker {
+  text-align: left !important;
+  width: 140px !important;
+  min-width: 140px !important;
+  max-width: 140px !important;
+  box-sizing: border-box !important;
+}
+.rank-desk-fit .rank-ticker-stack {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  width: max-content !important;
+  max-width: 100% !important;
+}
+.rank-desk-fit .rank-ticker-code,
+.rank-desk-fit .rank-ticker-name {
+  text-align: left !important;
+  width: max-content !important;
+  display: block !important;
+}
 .rank-report-table-shell[data-rank-layout="desktop"] .rank-report-table-scroll {
   display: block;
   width: 100% !important;
