@@ -1561,13 +1561,17 @@ function RankDetailMark({ kind }: { kind: "core" | "div" | "fee" | "rank" }) {
   );
 }
 
-/** 展開只補這一列沒出現的欄。上面看得到的不重複。 */
-function renderRankMediumExpandRow(
-  row: Derived,
-  expanded: boolean,
-  colSpan: number,
-  hiddenCols: ReadonlySet<RankMobileColId>,
-) {
+/** 手機只有一種欄位：表上固定排行、代號、股利、股息、月領；頻率與買進日進展開。 */
+const RANK_MOBILE_ONE_VERSION_IDS = ["rank", "ticker", "stockDiv", "cashDiv", "capital"] as const;
+const RANK_MOBILE_ONE_VERSION_HIDDEN: ReadonlySet<RankMobileColId> = new Set(["freq", "lastBuy"]);
+
+function RankDetailPanels({
+  row,
+  hiddenCols,
+}: {
+  row: Derived;
+  hiddenCols: ReadonlySet<RankMobileColId>;
+}) {
   const yuan = (n: number) => `${money(n)} 元`;
   const empty = (value: string) => value === "—" || value === "首期無";
   const cell = (label: string, value: string, tone?: "net") => (
@@ -1586,13 +1590,6 @@ function renderRankMediumExpandRow(
     hiddenCols.has("lastBuy") ? cell("買進日", mobileDateLabel(row.lastBuy)) : null,
   ].filter((item) => item != null);
   return (
-    <tr
-      key={`${row.ticker}-medium`}
-      id={`rank-detail-${row.ticker}`}
-      className="rank-tablet-expand-row"
-      data-expanded={expanded ? "true" : "false"}
-    >
-      <td colSpan={colSpan}>
         <div className="rank-detail">
           {payoutCells.length > 0 ? (
             <section className="rank-detail-band rank-detail-band-div">
@@ -1626,8 +1623,102 @@ function renderRankMediumExpandRow(
             </div>
           </section>
         </div>
+  );
+}
+
+/** 展開只補這一列沒出現的欄。上面看得到的不重複。 */
+function renderRankMediumExpandRow(
+  row: Derived,
+  expanded: boolean,
+  colSpan: number,
+  hiddenCols: ReadonlySet<RankMobileColId>,
+) {
+  return (
+    <tr
+      key={`${row.ticker}-medium`}
+      id={`rank-detail-${row.ticker}`}
+      className="rank-tablet-expand-row"
+      data-expanded={expanded ? "true" : "false"}
+    >
+      <td colSpan={colSpan}>
+        <RankDetailPanels row={row} hiddenCols={hiddenCols} />
       </td>
     </tr>
+  );
+}
+
+function RankMobileTopCard({ row }: { row: Derived }) {
+  const place = row.rank <= 1 ? "1" : row.rank === 2 ? "2" : "3";
+  const deltaDir = row.prevRank === 0 ? "flat" : row.delta > 0 ? "up" : row.delta < 0 ? "down" : "flat";
+  const deltaText = row.prevRank === 0 ? "首期無" : deltaLabel(row.delta);
+  const prevText = row.prevRank === 0 ? "" : `上期 ${row.prevRank}`;
+  const payout: { label: string; value: string; net?: boolean }[] = [
+    { label: "股利", value: row.stockDivPerUnit.toFixed(2) },
+    { label: "股息", value: row.lastCashPerUnit.toFixed(2) },
+    { label: "頻率", value: row.freq },
+    { label: "買進日", value: mobileDateLabel(row.lastBuy) },
+  ];
+  const costs: { label: string; value: string; net?: boolean }[] = [
+    { label: "實領", value: money(row.net), net: true },
+    { label: "匯費", value: money(row.wireFee) },
+    { label: "二代健保", value: row.nhi > 0 ? money(row.nhi) : "—" },
+    { label: "手續費", value: money(row.fee) },
+  ];
+  const group = (
+    title: string,
+    kind: "div" | "fee",
+    fields: { label: string; value: string; net?: boolean }[],
+  ) => (
+    <section key={kind} className={`rank-top-group rank-top-group-${kind}`}>
+      <span className="rank-top-group-title">{title}</span>
+      <div className="rank-top-group-grid">
+        {fields.map((field) => (
+          <span key={field.label} className="rank-top-field">
+            <span className="rank-top-field-label">{field.label}</span>
+            <span className={`rank-top-field-value${field.net ? " rank-top-field-net" : ""}`}>
+              {field.value}
+            </span>
+          </span>
+        ))}
+      </div>
+    </section>
+  );
+  return (
+    <article key={row.ticker} className="rank-top-card" data-place={place}>
+      <div className="rank-top-card-head">
+        <span className="rank-top-medal" aria-label={`第 ${row.rank} 名`}>{row.rank}</span>
+        <div className="rank-top-id">
+          <div className="rank-top-id-line">
+            <span className="rank-top-code">{row.ticker}</span>
+            <span className={`rank-top-delta rank-top-delta-${deltaDir}`}>{deltaText}</span>
+            {prevText ? <span className="rank-top-prev">{prevText}</span> : null}
+          </div>
+          <span className="rank-top-name">{row.name}</span>
+        </div>
+        <div className="rank-top-hero">
+          <span className="rank-top-hero-label">月領1萬本金</span>
+          <span className="rank-top-hero-num">{money(row.capital)}</span>
+          <span className="rank-top-hero-sub">{lotsLabel(row.lots)} 張</span>
+        </div>
+      </div>
+      <div className="rank-top-card-body">
+        {group("配息", "div", payout)}
+        {group("費用與實領", "fee", costs)}
+      </div>
+    </article>
+  );
+}
+
+function RankSplitNote({ rows }: { rows: Derived[] }) {
+  const top = rows.slice(0, 3);
+  const rest = rows.slice(3);
+  if (top.length === 0 || rest.length === 0) return null;
+  const lead = top.map((row) => row.ticker).join("、");
+  const last = rest[rest.length - 1];
+  return (
+    <p className="rank-split-note">
+      前三名是 {lead}。下面從第 {rest[0].rank} 名 {rest[0].ticker} 接到第 {last.rank} 名，本金需求依序變高。
+    </p>
   );
 }
 
@@ -1739,9 +1830,6 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
     // hiddenCount 在 deps：每收／放一欄後重量一次，讓 0→1→2 能連續走完
   }, [isMobileLayout, mobileTable, hiddenCount]);
 
-  const hiddenCols = rankMobileHiddenCols(hiddenCount);
-  const mobileVisibleIds = RANK_MOBILE_PRIMARY_IDS.filter((id) => !hiddenCols.has(id));
-
   return (
     <div
       ref={layoutShellRef}
@@ -1759,6 +1847,11 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
       }
     >
       {!isMobileLayout ? (
+      <div className="rank-desk-stack">
+      {[rows.slice(0, 3), rows.slice(3)].map((list, blockIndex) =>
+        list.length === 0 ? null : (
+          <div key={blockIndex === 0 ? "top" : "rest"}>
+            {blockIndex === 1 ? <RankSplitNote rows={rows} /> : null}
       <div
         className="rank-desk-fit"
         role="region"
@@ -1817,7 +1910,7 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
             </tr>
           </thead>
           <tbody>
-            {rows.map((row, rowIndex) => {
+            {list.map((row, rowIndex) => {
               const tone = rankRowTone(row);
               const deskCell = (id: string, align: "left" | "right" | "center") => {
                 const colWidth = `${rankDeskBrickPx(id)}px`;
@@ -1872,31 +1965,45 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
           </tbody>
         </table>
       </div>
+          </div>
+        ),
+      )}
+      </div>
       ) : (
+      <div className="rank-mobile-board">
+        <div className="rank-mobile-top-cards">
+          {rows.slice(0, 3).map((row) => RankMobileTopCard({ row }))}
+        </div>
+        {rows.length > 3 ? <RankSplitNote rows={rows} /> : null}
+        {rows.length > 3 ? (
       <div className="rank-report-table-scroll rank-report-mobile-scroll">
         <table
           ref={setMobileTable}
           className="rank-report-data-table rank-report-mobile-table"
-          data-hidden-optional={hiddenCount}
+          data-hidden-optional="0"
         >
           <thead>
             <tr>
-              {RANK_MOBILE_HEADERS.filter((h) => !hiddenCols.has(h.id as RankMobileColId)).map((h) => (
-                <th key={h.id} data-col={h.id} scope="col">
-                  {h.label}
-                </th>
-              ))}
+              {RANK_MOBILE_ONE_VERSION_IDS.map((id) => {
+                const header = RANK_TABLE_HEADERS.find((h) => h.id === id);
+                return (
+                  <th key={id} data-col={id} scope="col">
+                    {header?.label ?? id}
+                  </th>
+                );
+              })}
               <th data-col="expand" scope="col" aria-label="展開明細" />
             </tr>
           </thead>
           <tbody>
-            {rows.flatMap((row, rowIndex) => {
+            {rows.slice(3).flatMap((row, index) => {
               const expanded = expandedTicker === row.ticker;
+              const rowIndex = index + 3;
               const rowClass =
                 rowIndex % 2 === 1 ? "rank-data-row rank-data-row-alt" : "rank-data-row";
               return [
                 <tr key={row.ticker} className={rowClass}>
-                  {mobileVisibleIds.map((col) =>
+                  {RANK_MOBILE_ONE_VERSION_IDS.map((col) =>
                     renderRankMobilePrimaryCell(col, row, expanded, () =>
                       setExpandedTicker(expanded ? "" : row.ticker),
                     ),
@@ -1908,13 +2015,15 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
                 renderRankMediumExpandRow(
                   row,
                   expanded,
-                  mobileVisibleIds.length + 1,
-                  hiddenCols,
+                  RANK_MOBILE_ONE_VERSION_IDS.length + 1,
+                  RANK_MOBILE_ONE_VERSION_HIDDEN,
                 ),
               ];
             })}
           </tbody>
         </table>
+      </div>
+        ) : null}
       </div>
       )}
     </div>
@@ -2944,6 +3053,201 @@ export default function AfterTaxDividendReportTemplate() {
 .rank-report-mobile-table tr.rank-mobile-follow-row td[data-col="lastBuy"] .rank-follow-stack {
   align-items: center;
 }
+.rank-mobile-board {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  min-width: 0;
+}
+.rank-mobile-top-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+}
+.rank-top-card {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  border: 1px solid #eceae6;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(28, 25, 23, 0.04);
+  overflow: hidden;
+}
+.rank-top-card[data-place="1"] {
+  border-color: #ead9b0;
+  background: #fffdf8;
+}
+.rank-top-card[data-place="2"] {
+  background: #fff;
+}
+.rank-top-card[data-place="3"] {
+  border-color: #efe4da;
+  background: #fffcf9;
+}
+.rank-top-card-head {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
+  padding: 8px 14px 4px;
+}
+.rank-top-medal {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+}
+.rank-top-card[data-place="1"] .rank-top-medal {
+  background: #f4e7c3;
+  color: #8a6a1f;
+}
+.rank-top-card[data-place="2"] .rank-top-medal {
+  background: #eeeae6;
+  color: #44403c;
+}
+.rank-top-card[data-place="3"] .rank-top-medal {
+  background: #f3e6dc;
+  color: #7c4a28;
+}
+.rank-top-id {
+  min-width: 0;
+}
+.rank-top-id-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  min-width: 0;
+}
+.rank-top-code {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: #1c1917;
+  line-height: 1.2;
+}
+.rank-top-name {
+  display: block;
+  margin-top: 1px;
+  font-size: 15px;
+  line-height: 1.25;
+  color: #57534e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rank-top-delta {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+.rank-top-delta-up {
+  color: #166534;
+  background: #eaf6ef;
+}
+.rank-top-delta-down {
+  color: #9a3412;
+  background: #fef2e8;
+}
+.rank-top-delta-flat {
+  color: #57534e;
+  background: #f5f5f4;
+}
+.rank-top-prev {
+  flex: 0 0 auto;
+  font-size: 14px;
+  color: #78716c;
+}
+.rank-top-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.rank-top-hero-label,
+.rank-top-hero-sub {
+  font-size: 14px;
+  color: #57534e;
+}
+.rank-top-hero-num {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1c1917;
+  letter-spacing: -0.3px;
+  font-variant-numeric: tabular-nums;
+}
+.rank-top-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 12px 6px;
+  padding-top: 4px;
+  border-top: 1px solid #f0eeec;
+}
+.rank-top-group {
+  border-radius: 10px;
+  padding: 4px 10px 5px;
+}
+.rank-top-group-div {
+  background: #f6f4fb;
+}
+.rank-top-group-fee {
+  background: #f3f8f5;
+}
+.rank-top-group-title {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.25;
+}
+.rank-top-group-div .rank-top-group-title {
+  color: #5c4d96;
+}
+.rank-top-group-fee .rank-top-group-title {
+  color: #2f8a5b;
+}
+.rank-top-group-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px 8px;
+}
+.rank-top-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.rank-top-field-label {
+  font-size: 14px;
+  line-height: 1.25;
+  color: #57534e;
+  white-space: nowrap;
+}
+.rank-top-field-value {
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.3;
+  color: #1c1917;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.rank-top-field-net {
+  color: #16803d;
+}
 .rank-tablet-expand-row {
   display: none;
 }
@@ -3186,6 +3490,18 @@ export default function AfterTaxDividendReportTemplate() {
   max-width: 100% !important;
   min-width: 0 !important;
   overflow: hidden !important;
+}
+.rank-desk-stack {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+}
+.rank-split-note {
+  margin: 6px 0;
+  font-size: 16px;
+  line-height: 1.45;
+  color: #44403c;
 }
 .rank-desk-fit {
   container-type: inline-size;
