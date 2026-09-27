@@ -1301,15 +1301,16 @@ const RANK_TABLE_HEADERS: { id: string; label: string }[] = [
 /** 手機版獨立表：只渲染這 6 欄（與 blog AFTER_TAX_RANK_MOBILE_PRIMARY_COLS 一致） */
 /**
  * 手機欄位（DataTables responsivePriority 概念，但門檻是「量出來」不是寫死 px）：
- * - 一律顯示：排行、代號、月領1萬本金、買進日、▼
- * - 可讓位：頻率 → 股息（依 RANK_MOBILE_OPTIONAL_ORDER，越前面越先收進 ▼ 明細）
- * - 規則：代號欄實際寬度 < RANK_MOBILE_TICKER_MIN_PX 就收一欄；
- *   代號欄寬 ≥ MIN + 該欄寬 + GAP 才放回來（留緩衝避免臨界寬度來回閃）
+ * - 一律留在表上：排行、代號、月領1萬本金、▼（DataTables 的 all / control）
+ * - 收進展開的順序（responsivePriority，數字愈大愈先收）：
+ *   買進日 → 頻率 → 股息＋股利（同一組，一起收）
+ * - 觸發：欄位自然寬加總 > 容器才收一欄；空得出該欄自然寬才放回。
+ *   不拿「表格被拉成 100%」當溢位。
  */
-const RANK_MOBILE_PRIMARY_IDS = ["rank", "ticker", "capital", "cashDiv", "freq", "lastBuy"] as const;
+const RANK_MOBILE_PRIMARY_IDS = ["rank", "ticker", "stockDiv", "cashDiv", "capital", "freq", "lastBuy"] as const;
 type RankMobileColId = (typeof RANK_MOBILE_PRIMARY_IDS)[number];
-/* 買進日排第三：排行（座標）、代號（身分）、本金（主角）永不讓位。 */
-const RANK_MOBILE_OPTIONAL_ORDER: readonly RankMobileColId[] = ["freq", "cashDiv", "lastBuy"];
+/* 買進日優先權最低，最先收。股息與股利同一組，cashDiv 收起時 stockDiv 一起收。 */
+const RANK_MOBILE_OPTIONAL_ORDER: readonly RankMobileColId[] = ["lastBuy", "freq", "cashDiv"];
 /** 代號欄至少要能一行放下「復華台灣科技優息」8 字（11px）＋內距。 */
 const RANK_MOBILE_TICKER_MIN_PX = 112;
 /** 回復緩衝：收欄門檻 112 不動，放回只多要 8px 防臨界閃動（16 會讓欄卡在門檻下放不回來）。 */
@@ -1320,6 +1321,7 @@ const RANK_MOBILE_CELL_PAD_X = 4;
 const RANK_MOBILE_OPTIONAL_FALLBACK_PX: Record<string, number> = {
   freq: 48,
   cashDiv: 56,
+  stockDiv: 48,
   lastBuy: 60,
 };
 
@@ -1338,7 +1340,9 @@ const RANK_MOBILE_HEADERS = RANK_MOBILE_PRIMARY_IDS.map((id) => {
 });
 
 function rankMobileHiddenCols(hiddenCount: number): ReadonlySet<RankMobileColId> {
-  return new Set(RANK_MOBILE_OPTIONAL_ORDER.slice(0, hiddenCount));
+  const hidden = new Set<RankMobileColId>(RANK_MOBILE_OPTIONAL_ORDER.slice(0, hiddenCount));
+  if (hidden.has("cashDiv")) hidden.add("stockDiv");
+  return hidden;
 }
 
 /** 手機日期：同年榜單省略年份，"2026-08-18" → "08/18"；無日期維持 "—"。 */
@@ -1444,6 +1448,8 @@ function renderRankMobilePrimaryCell(
       );
     case "cashDiv":
       return <td data-col="cashDiv">{row.lastCashPerUnit.toFixed(2)}</td>;
+    case "stockDiv":
+      return <td data-col="stockDiv">{row.stockDivPerUnit.toFixed(2)}</td>;
     case "freq":
       return <td data-col="freq">{row.freq}</td>;
     case "lastBuy":
@@ -1513,6 +1519,129 @@ function readRankTableIsMobile(_shell: HTMLElement | null): boolean {
   return window.innerWidth <= RANK_TABLE_NARROW_VIEWPORT_PX;
 }
 
+function RankDetailMark({ kind }: { kind: "core" | "div" | "fee" | "rank" }) {
+  const common = {
+    width: 14,
+    height: 14,
+    viewBox: "0 0 14 14",
+    fill: "none",
+    "aria-hidden": true as const,
+  };
+  if (kind === "core") {
+    return (
+      <svg {...common}>
+        <ellipse cx="7" cy="4.2" rx="4.2" ry="1.6" stroke="currentColor" strokeWidth="1.2" />
+        <path d="M2.8 4.2v2.4c0 .9 1.9 1.6 4.2 1.6s4.2-.7 4.2-1.6V4.2" stroke="currentColor" strokeWidth="1.2" />
+        <path d="M2.8 6.6v2.3c0 .9 1.9 1.6 4.2 1.6s4.2-.7 4.2-1.6V6.6" stroke="currentColor" strokeWidth="1.2" />
+      </svg>
+    );
+  }
+  if (kind === "div") {
+    return (
+      <svg {...common}>
+        <circle cx="7" cy="7" r="5.2" stroke="currentColor" strokeWidth="1.2" />
+        <path d="M7 4.2v5.6M4.6 6.1h3.2a1.5 1.5 0 0 1 0 3H5.2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (kind === "fee") {
+    return (
+      <svg {...common}>
+        <rect x="2.2" y="3.2" width="9.6" height="7.6" rx="1.4" stroke="currentColor" strokeWidth="1.2" />
+        <path d="M2.2 6h9.6" stroke="currentColor" strokeWidth="1.2" />
+      </svg>
+    );
+  }
+  return (
+    <svg {...common}>
+      <path d="M4.2 2.6h5.6v3.1a2.8 2.8 0 0 1-5.6 0V2.6z" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M4.2 3.5H2.7v1a1.5 1.5 0 0 0 1.5 1.5M9.8 3.5h1.5v1a1.5 1.5 0 0 1-1.5 1.5" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M7 8.6v1.3M5.1 11.2h3.8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** 展開只補這一列沒出現的欄。上面看得到的不重複。 */
+function renderRankMediumExpandRow(
+  row: Derived,
+  expanded: boolean,
+  colSpan: number,
+  hiddenCols: ReadonlySet<RankMobileColId>,
+) {
+  const yuan = (n: number) => `${money(n)} 元`;
+  const empty = (value: string) => value === "—" || value === "首期無";
+  const cell = (label: string, value: string, tone?: "net") => (
+    <div key={label} className="rank-detail-cell">
+      <span className="rank-detail-label">{label}</span>
+      <span className={`rank-detail-num${tone === "net" ? " rank-detail-num-net" : ""}${empty(value) ? " rank-detail-num-empty" : ""}`}>
+        {value}
+      </span>
+    </div>
+  );
+  const divPairHidden = hiddenCols.has("cashDiv");
+  const payoutCells = [
+    divPairHidden ? cell("股息", row.lastCashPerUnit.toFixed(2)) : null,
+    divPairHidden ? cell("股利", row.stockDivPerUnit.toFixed(2)) : null,
+    hiddenCols.has("freq") ? cell("頻率", row.freq) : null,
+    hiddenCols.has("lastBuy") ? cell("買進日", mobileDateLabel(row.lastBuy)) : null,
+  ].filter((item) => item != null);
+  return (
+    <tr
+      key={`${row.ticker}-medium`}
+      id={`rank-detail-${row.ticker}`}
+      className="rank-tablet-expand-row"
+      data-expanded={expanded ? "true" : "false"}
+    >
+      <td colSpan={colSpan}>
+        <div className="rank-detail">
+          {payoutCells.length > 0 ? (
+            <section className="rank-detail-band rank-detail-band-div">
+              <div className="rank-detail-head">
+                <span className="rank-detail-mark"><RankDetailMark kind="div" /></span>
+                <span className="rank-detail-title">配息資訊</span>
+              </div>
+              <div className="rank-detail-grid">{payoutCells}</div>
+            </section>
+          ) : null}
+          <section className="rank-detail-band rank-detail-band-fee">
+            <div className="rank-detail-head">
+              <span className="rank-detail-mark"><RankDetailMark kind="fee" /></span>
+              <span className="rank-detail-title">費用與實領</span>
+            </div>
+            <div className="rank-detail-grid">
+              {cell("實領金額", yuan(row.net), "net")}
+              {cell("匯費", yuan(row.wireFee))}
+              {cell("二代健保", row.nhi > 0 ? yuan(row.nhi) : "—")}
+              {cell("手續費", yuan(row.fee))}
+            </div>
+          </section>
+          <section className="rank-detail-band rank-detail-band-rank">
+            <div className="rank-detail-head">
+              <span className="rank-detail-mark"><RankDetailMark kind="rank" /></span>
+              <span className="rank-detail-title">排名變化</span>
+            </div>
+            <div className="rank-detail-grid">
+              {cell("上期排行", row.prevRank === 0 ? "首期無" : String(row.prevRank))}
+              {cell("升降", row.prevRank === 0 ? "—" : deltaLabel(row.delta))}
+            </div>
+          </section>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+/** 桌機欄是固定積木。預設 80；下面這幾欄照指定寬。 */
+function rankDeskBrickPx(id: string): number {
+  if (id === "rank") return 50;
+  if (id === "ticker") return 140;
+  if (id === "capital") return 120;
+  if (id === "net") return 90;
+  if (id === "prevRank") return 90;
+  if (id === "lastBuy") return 120;
+  return 80;
+}
+
 function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
   const [expandedTicker, setExpandedTicker] = useCanvasState(
     "rank-mobile-expand-v1",
@@ -1556,18 +1685,44 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
         optionalWidthRef.current[id] =
           th.getBoundingClientRect().width - padR + RANK_MOBILE_CELL_PAD_X;
       }
+      const stockTh = mobileTable.querySelector<HTMLElement>('thead th[data-col="stockDiv"]');
+      if (stockTh) {
+        const padR = parseFloat(getComputedStyle(stockTh).paddingRight) || RANK_MOBILE_CELL_PAD_X;
+        optionalWidthRef.current.stockDiv =
+          stockTh.getBoundingClientRect().width - padR + RANK_MOBILE_CELL_PAD_X;
+      }
+      const shell = mobileTable.parentElement;
+      const shellW = shell?.clientWidth ?? 0;
+      const prevInlineWidth = mobileTable.style.width;
+      const prevPriority = mobileTable.style.getPropertyPriority("width");
+      mobileTable.style.setProperty("width", "max-content", "important");
+      const contentW = mobileTable.offsetWidth;
+      for (const id of [...RANK_MOBILE_OPTIONAL_ORDER, "stockDiv" as const]) {
+        const th = mobileTable.querySelector<HTMLElement>(`thead th[data-col="${id}"]`);
+        if (!th) continue;
+        optionalWidthRef.current[id] = Math.ceil(th.getBoundingClientRect().width);
+      }
+      if (prevInlineWidth) mobileTable.style.setProperty("width", prevInlineWidth, prevPriority);
+      else mobileTable.style.removeProperty("width");
       const tickerW = tickerTh.getBoundingClientRect().width;
       setHiddenCount((prev) => {
-        if (tickerW < RANK_MOBILE_TICKER_MIN_PX && prev < RANK_MOBILE_OPTIONAL_ORDER.length) {
+        const contentOverflow = shellW > 0 && contentW > shellW + 1;
+        if (
+          (contentOverflow || tickerW < RANK_MOBILE_TICKER_MIN_PX) &&
+          prev < RANK_MOBILE_OPTIONAL_ORDER.length
+        ) {
           return prev + 1;
         }
-        if (prev > 0) {
+        if (prev > 0 && tickerW >= RANK_MOBILE_TICKER_MIN_PX) {
           const next = RANK_MOBILE_OPTIONAL_ORDER[prev - 1];
-          const need =
-            RANK_MOBILE_TICKER_MIN_PX +
-            (optionalWidthRef.current[next] ?? RANK_MOBILE_OPTIONAL_FALLBACK_PX[next] ?? 56) +
-            RANK_MOBILE_RESTORE_GAP_PX;
-          if (tickerW >= need) return prev - 1;
+          let colW =
+            optionalWidthRef.current[next] ?? RANK_MOBILE_OPTIONAL_FALLBACK_PX[next] ?? 56;
+          if (next === "cashDiv") {
+            colW += optionalWidthRef.current.stockDiv ?? RANK_MOBILE_OPTIONAL_FALLBACK_PX.stockDiv ?? 48;
+          }
+          if (shellW > 0 && contentW + colW + RANK_MOBILE_RESTORE_GAP_PX <= shellW) {
+            return prev - 1;
+          }
         }
         return prev;
       });
@@ -1592,53 +1747,122 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
       ref={layoutShellRef}
       className="rank-report-table-shell"
       data-rank-layout={isMobileLayout ? "mobile" : "desktop"}
+      style={
+        isMobileLayout
+          ? undefined
+          : {
+              width: "100%",
+              maxWidth: "100%",
+              minWidth: 0,
+              overflow: "hidden",
+            }
+      }
     >
       {!isMobileLayout ? (
-      <div className="rank-report-table-scroll">
-        <table className="rank-report-data-table">
+      <div
+        className="rank-desk-fit"
+        role="region"
+        aria-label="稅後配息排行"
+        tabIndex={0}
+        style={{
+          display: "block",
+          width: "100%",
+          maxWidth: "100%",
+          minWidth: "0px",
+          overflowX: "hidden",
+          overflowY: "hidden",
+          boxSizing: "border-box",
+          border: "1px solid #e7e5e4",
+          borderRadius: "8px",
+          background: "#fff",
+        }}
+      >
+        <table
+          style={{
+            tableLayout: "fixed",
+            width: "100%",
+            borderCollapse: "collapse",
+          }}
+        >
           <thead>
-            <tr>
-              {RANK_TABLE_HEADERS.map((h) => (
-                <th key={h.id} data-col={h.id} scope="col">
-                  {h.label}
-                </th>
-              ))}
+            <tr style={{ background: "#fafaf9" }}>
+              {RANK_TABLE_HEADERS.map((h) => {
+                const colWidth = `${rankDeskBrickPx(h.id)}px`;
+                return (
+                  <th
+                    key={h.id}
+                    scope="col"
+                    className={`col-${h.id}`}
+                    style={{
+                      width: colWidth,
+                      minWidth: colWidth,
+                      maxWidth: colWidth,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "clip",
+                      padding: "12px 8px",
+                      textAlign: h.id === "ticker" ? "left" : h.id === "rank" ? "center" : "right",
+                      fontSize: "0.9375rem",
+                      borderBottom: "1px solid #e7e5e4",
+                      color: "#1c1917",
+                      boxSizing: "border-box",
+                    }}
+                  >
+                    {h.label}
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
             {rows.map((row, rowIndex) => {
               const tone = rankRowTone(row);
-              const rowClass =
-                rowIndex % 2 === 1 ? "rank-data-row rank-data-row-alt" : "rank-data-row";
+              const deskCell = (id: string, align: "left" | "right" | "center") => {
+                const colWidth = `${rankDeskBrickPx(id)}px`;
+                return {
+                  width: colWidth,
+                  minWidth: colWidth,
+                  maxWidth: colWidth,
+                  whiteSpace: "nowrap" as const,
+                  overflow: "hidden" as const,
+                  textOverflow: "clip" as const,
+                  padding: "12px 8px",
+                  textAlign: align,
+                  fontSize: "0.9375rem",
+                  borderBottom: "1px solid #e7e5e4",
+                  color: "#1c1917",
+                  boxSizing: "border-box" as const,
+                };
+              };
               return (
-                <tr key={row.ticker} className={rowClass}>
-                  <td data-col="rank">
+                <tr key={row.ticker} style={{ background: rowIndex % 2 === 1 ? "#fafaf9" : "#fff" }}>
+                  <td className="col-rank" style={deskCell("rank", "center")}>
                     <span className="rank-row-dot" data-tone={tone} aria-hidden="true" />
                     {row.rank}
                   </td>
-                  <td data-col="ticker" className="rank-ticker-td">
+                  <td className="col-ticker" style={deskCell("ticker", "left")}>
                     <RankTickerCell ticker={row.ticker} name={row.name} />
                   </td>
-                  <td data-col="stockDiv">{row.stockDivPerUnit.toFixed(2)}</td>
-                  <td data-col="cashDiv">{row.lastCashPerUnit.toFixed(2)}</td>
-                  <td data-col="capital" className="rank-capital-td">
+                  <td className="col-stockDiv" style={deskCell("stockDiv", "right")}>{row.stockDivPerUnit.toFixed(2)}</td>
+                  <td className="col-cashDiv" style={deskCell("cashDiv", "right")}>{row.lastCashPerUnit.toFixed(2)}</td>
+                  <td className="col-capital" style={deskCell("capital", "right")}>
                     <div className="rank-capital-stack">
                       <span className="rank-capital-amount">{money(row.capital)}</span>
                       <span className="rank-capital-lots">{lotsLabel(row.lots)} 張</span>
                     </div>
                   </td>
-                  <td data-col="wireFee">{money(row.wireFee)}</td>
-                  <td data-col="nhi">{row.nhi > 0 ? money(row.nhi) : "—"}</td>
-                  <td data-col="fee">{money(row.fee)}</td>
-                  <td data-col="net">{money(row.net)}</td>
-                  <td data-col="prevRank">
+                  <td className="col-wireFee" style={deskCell("wireFee", "right")}>{money(row.wireFee)}</td>
+                  <td className="col-nhi" style={deskCell("nhi", "right")}>{row.nhi > 0 ? money(row.nhi) : "—"}</td>
+                  <td className="col-fee" style={deskCell("fee", "right")}>{money(row.fee)}</td>
+                  <td className="col-net" style={deskCell("net", "right")}>{money(row.net)}</td>
+                  <td className="col-prevRank" style={deskCell("prevRank", "right")}>
                     {row.prevRank === 0 ? "首期無" : String(row.prevRank)}
                   </td>
-                  <td data-col="delta">
+                  <td className="col-delta" style={deskCell("delta", "right")}>
                     {row.prevRank === 0 ? "—" : deltaLabel(row.delta)}
                   </td>
-                  <td data-col="freq">{row.freq}</td>
-                  <td data-col="lastBuy">{row.lastBuy}</td>
+                  <td className="col-freq" style={deskCell("freq", "right")}>{row.freq}</td>
+                  <td className="col-lastBuy" style={deskCell("lastBuy", "right")}>{row.lastBuy}</td>
                 </tr>
               );
             })}
@@ -1678,11 +1902,10 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
                     setExpandedTicker(expanded ? "" : row.ticker),
                   )}
                 </tr>,
-                ...renderRankMobileFollowRows(
+                renderRankMediumExpandRow(
                   row,
                   expanded,
-                  rowClass,
-                  mobileVisibleIds,
+                  mobileVisibleIds.length + 1,
                   hiddenCols,
                 ),
               ];
@@ -1730,13 +1953,27 @@ export default function AfterTaxDividendReportTemplate() {
     [draftYearForMenu],
   );
 
-  const page: { background: string; color: string; padding: number; minHeight: string } =
-    {
-      background: t.bg.editor,
-      color: t.text.primary,
-      padding: 24,
-      minHeight: "100%",
-    };
+  const page: {
+    background: string;
+    color: string;
+    padding: number;
+    minHeight: string;
+    width: string;
+    maxWidth: string;
+    minWidth: number;
+    boxSizing: "border-box";
+    overflowX: "visible";
+  } = {
+    background: t.bg.editor,
+    color: t.text.primary,
+    padding: 24,
+    minHeight: "100%",
+    width: "100%",
+    maxWidth: "100vw",
+    minWidth: 0,
+    boxSizing: "border-box",
+    overflowX: "visible",
+  };
 
   const showBasisTabs =
     section === "total-rank" || section === "stock-rent";
@@ -2080,21 +2317,28 @@ export default function AfterTaxDividendReportTemplate() {
 }
 .rank-report-table-block {
   width: 100%;
+  min-width: 0;
 }
 .rank-report-table-panel {
   display: flex;
+  flex-direction: column;
   justify-content: flex-start;
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  overflow-x: visible;
 }
 .rank-report-table-shell {
-  min-width: 0;
-  max-width: 100%;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  flex-shrink: 1;
 }
 .rank-report-table-shell[data-rank-layout="desktop"] {
-  width: 100%;
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
 }
 .rank-report-table-shell[data-rank-layout="mobile"] {
   width: 100%;
@@ -2226,13 +2470,14 @@ export default function AfterTaxDividendReportTemplate() {
 }
 .rank-report-table-scroll {
   --rank-sticky-w: 3.25rem;
-  /* 9/17 節點 989c1c7：外框 100% 貼齊正文右緣；表 max-content + min-width 100% */
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden;
   border: 1px solid #e7e5e4;
   border-radius: 8px;
   background: #fff;
+  display: block;
   -webkit-overflow-scrolling: touch;
 }
 .rank-report-table-scroll table,
@@ -2258,12 +2503,9 @@ export default function AfterTaxDividendReportTemplate() {
 }
 .rank-report-table-scroll th,
 .rank-report-table-scroll td {
-  padding-top: 12px;
-  padding-bottom: 12px;
-  padding-left: 8px;
-  padding-right: 8px;
+  padding: 12px 8px;
   border-bottom: 1px solid #e7e5e4;
-  white-space: nowrap;
+  white-space: nowrap !important;
   text-align: right;
 }
 .rank-report-table-scroll th:nth-child(1),
@@ -2504,7 +2746,8 @@ export default function AfterTaxDividendReportTemplate() {
 /*
  * 手機表 = 同一張桌機表（同 class：rank-report-table-scroll / rank-report-data-table），
  * 表頭灰、斑馬紋、邊線、sticky 全部沿用；這裡只覆寫「欄寬與裁切」。
- * 欄寬策略：排行／本金／買進日／▼ 貼內容（width:1% + nowrap），代號欄吸收全部剩餘寬。
+ * 欄寬策略：排行／本金／買進日／▼ 貼內容（width:1% + nowrap）。
+ * 窄表時代號欄吸收剩餘寬；容器 ≥480px 且欄都還在時，代號改貼名稱，剩餘寬分給股息／頻率／買進日。
  */
 .rank-report-mobile-table th,
 .rank-report-mobile-table td {
@@ -2526,6 +2769,7 @@ export default function AfterTaxDividendReportTemplate() {
 /* 手機：排行欄「●1」只需 40px，比桌機 sticky 寬（52px）省 12px 給代號；ticker 的 left 跟著變數走 */
 .rank-report-mobile-scroll {
   --rank-sticky-w: 2.5rem;
+  container-type: inline-size;
 }
 .rank-report-mobile-table th[data-col="rank"],
 .rank-report-mobile-table td[data-col="rank"] {
@@ -2591,7 +2835,9 @@ export default function AfterTaxDividendReportTemplate() {
 }
 /* 桌機 nth-child(5)（本金欄）有 vertical-align:top，手機第 5 欄是頻率 → 這裡明確壓回 middle */
 .rank-report-mobile-table th[data-col="cashDiv"],
-.rank-report-mobile-table td[data-col="cashDiv"] {
+.rank-report-mobile-table td[data-col="cashDiv"],
+.rank-report-mobile-table th[data-col="stockDiv"],
+.rank-report-mobile-table td[data-col="stockDiv"] {
   width: 1%;
   text-align: right;
   white-space: nowrap;
@@ -2607,15 +2853,45 @@ export default function AfterTaxDividendReportTemplate() {
   padding-left: 8px;
   padding-right: 8px;
 }
-/* 頻率／股息是否進表列由 JS 量代號欄寬度決定（RANK_MOBILE_OPTIONAL_ORDER），不用 @media。 */
+/* 股息、股利還在表上時，代號不要撐開，這兩欄才不會被推到月領右邊。 */
+.rank-report-mobile-table[data-hidden-optional="0"] th[data-col="ticker"],
+.rank-report-mobile-table[data-hidden-optional="0"] td[data-col="ticker"],
+.rank-report-mobile-table[data-hidden-optional="1"] th[data-col="ticker"],
+.rank-report-mobile-table[data-hidden-optional="1"] td[data-col="ticker"] {
+  width: 1%;
+  max-width: none;
+  min-width: 7.5rem;
+  white-space: nowrap;
+}
+.rank-report-mobile-table[data-hidden-optional="0"] td[data-col="ticker"] .rank-ticker-name,
+.rank-report-mobile-table[data-hidden-optional="1"] td[data-col="ticker"] .rank-ticker-name {
+  display: block;
+  white-space: nowrap;
+  word-break: normal;
+  -webkit-line-clamp: unset;
+}
 .rank-report-mobile-table th[data-col="expand"],
 .rank-report-mobile-table td[data-col="expand"] {
+  position: sticky;
+  right: 0;
+  z-index: 3;
   width: 1%;
   text-align: right;
   padding-left: 0;
   padding-right: 4px;
   white-space: nowrap;
   vertical-align: middle;
+  background: #fff;
+}
+.rank-report-mobile-table thead th[data-col="expand"] {
+  z-index: 4;
+  background: #f9fafb;
+}
+.rank-report-mobile-table tbody tr.rank-data-row td[data-col="expand"] {
+  background: #fff !important;
+}
+.rank-report-mobile-table tbody tr.rank-data-row-alt td[data-col="expand"] {
+  background: #fafaf9 !important;
 }
 /* ▼ 前面那一欄（寬時是買進日、最窄時是本金）多 12px 右內距，數字不貼按鈕 */
 .rank-report-mobile-table th:nth-last-child(2),
@@ -2664,6 +2940,158 @@ export default function AfterTaxDividendReportTemplate() {
 .rank-report-mobile-table tr.rank-mobile-follow-row td[data-col="freq"] .rank-follow-stack,
 .rank-report-mobile-table tr.rank-mobile-follow-row td[data-col="lastBuy"] .rank-follow-stack {
   align-items: center;
+}
+.rank-tablet-expand-row {
+  display: none;
+}
+.rank-tablet-expand-row[data-expanded="true"] {
+  display: table-row;
+}
+.rank-report-table-scroll tr.rank-tablet-expand-row > td {
+  position: static !important;
+  left: auto !important;
+  z-index: auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  padding: 0 !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left !important;
+  white-space: normal !important;
+  overflow: hidden;
+  vertical-align: top;
+}
+.rank-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px 8px;
+  background: #fff;
+  overflow: hidden;
+  text-align: left;
+}
+.rank-detail-band {
+  border-radius: 8px;
+  padding: 5px 8px 4px;
+  text-align: left;
+}
+.rank-detail-band-core {
+  background: #fbf3e4;
+  color: #9a6b12;
+}
+.rank-detail-band-div {
+  background: #f3f0fb;
+  color: #6d5aa8;
+}
+.rank-detail-band-fee {
+  background: #eaf6ef;
+  color: #2f8a5b;
+}
+.rank-detail-band-rank {
+  background: #eef4fc;
+  color: #3d6eaf;
+}
+.rank-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.rank-detail-mark {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: inherit;
+}
+.rank-detail-title {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: inherit;
+  white-space: nowrap;
+}
+.rank-detail-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.7fr);
+  align-items: center;
+  min-width: 0;
+}
+.rank-detail-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.rank-detail-core-value {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #1c1917;
+  font-variant-numeric: tabular-nums;
+}
+.rank-detail-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  margin-left: 8px;
+  padding-left: 8px;
+  border-left: 1px solid rgba(154, 107, 18, 0.22);
+}
+.rank-detail-side-value {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #1c1917;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.rank-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  margin-top: 2px;
+}
+.rank-detail-cell {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+  padding: 3px 8px 3px 0;
+}
+.rank-detail-cell:nth-child(even) {
+  padding: 3px 0 3px 8px;
+  border-left: 1px solid rgba(28, 25, 23, 0.08);
+}
+.rank-detail-cell:nth-child(n + 3) {
+  border-top: 1px solid rgba(28, 25, 23, 0.08);
+}
+.rank-detail-label {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.25;
+  color: #78716c;
+  white-space: nowrap;
+}
+.rank-detail-num {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #1c1917;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+.rank-detail-num-net {
+  color: #16803d;
+}
+.rank-detail-num-empty {
+  color: #a8a29e;
+  font-weight: 600;
 }
 .rank-report-table-shell[data-rank-layout="mobile"] .rank-report-mobile-scroll {
   width: 100%;
@@ -2744,9 +3172,56 @@ export default function AfterTaxDividendReportTemplate() {
     line-height: 1.7;
   }
 }
+/*
+ * 非手機：不開拉條。欄位是固定寬積木。
+ * 容器寬度放不下下一欄時，整欄 display:none，不在右緣留半個字。
+ * 手機表不走這段。
+ */
+.rank-report-table-shell[data-rank-layout="desktop"] {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+.rank-desk-fit {
+  container-type: inline-size;
+  container-name: rank-desk;
+}
+@container rank-desk (max-width: 1173px) { .col-lastBuy { display: none !important; } }
+@container rank-desk (max-width: 1053px) { .col-freq { display: none !important; } }
+@container rank-desk (max-width: 973px) { .col-delta { display: none !important; } }
+@container rank-desk (max-width: 893px) { .col-prevRank { display: none !important; } }
+@container rank-desk (max-width: 803px) { .col-net { display: none !important; } }
+@container rank-desk (max-width: 713px) { .col-fee { display: none !important; } }
+@container rank-desk (max-width: 633px) { .col-nhi { display: none !important; } }
+@container rank-desk (max-width: 553px) { .col-wireFee { display: none !important; } }
+@container rank-desk (max-width: 473px) { .col-capital { display: none !important; } }
+@container rank-desk (max-width: 353px) { .col-cashDiv { display: none !important; } }
+@container rank-desk (max-width: 273px) { .col-stockDiv { display: none !important; } }
+@container rank-desk (max-width: 193px) { .col-ticker { display: none !important; } }
+.rank-report-table-shell[data-rank-layout="desktop"] .rank-report-table-scroll {
+  display: block;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden;
+}
+.rank-report-table-shell[data-rank-layout="desktop"] .rank-report-data-table {
+  width: max-content !important;
+  min-width: 100% !important;
+  max-width: none !important;
+}
+.rank-report-table-shell[data-rank-layout="desktop"] .rank-report-data-table th,
+.rank-report-table-shell[data-rank-layout="desktop"] .rank-report-data-table td {
+  white-space: nowrap !important;
+  overflow: visible;
+  text-overflow: clip;
+  max-width: none;
+}
 `}
       </style>
-      <Stack gap={22}>
+      <Stack gap={22} style={{ width: "100%", maxWidth: "100%", minWidth: 0 }}>
         <Stack gap={16}>
           <Row gap={8} align="center" justify="space-between" wrap>
             <Text size="small" style={{ color: t.text.tertiary, fontSize: 13 }}>
