@@ -4,8 +4,10 @@ import {
   H3,
   Row,
   Stack,
+  Stat,
   Table,
   Text,
+  TextInput,
   canvasTokensLight,
   useCanvasState,
   useMemo,
@@ -54,11 +56,41 @@ const REPORT_SECTION_TABS: {
   },
   {
     id: "ex-div-preview",
-    label: "搶先除息｜下月買進日",
+    label: "搶先除息｜最後買進日",
     shortLabel: "搶先除息",
-    ariaLabel: "搶先除息：下月除息看盤與最後買進日",
+    ariaLabel: "搶先除息：下月已公告的最後買進日",
   },
 ];
+
+/** 當月 1 日總排行，8 日 ETF，15 日個股，22 日搶先除息。與部落格同為台北 09:30。 */
+const SECTION_PUBLISH_DAY: Record<ReportSection, number> = {
+  "total-rank": 1,
+  "etf-focus-pk": 8,
+  "stock-rent": 15,
+  "ex-div-preview": 22,
+};
+
+/** 預覽時鐘：假設 2026-08-01 12:00（台北）。總排行已公開，後三格未到。 */
+const RANK_SECTION_PREVIEW_NOW = new Date("2026-08-01T12:00:00+08:00");
+
+function sectionPublishAt(year: number, month: number, id: ReportSection): Date {
+  const day = String(SECTION_PUBLISH_DAY[id]).padStart(2, "0");
+  const mm = String(month).padStart(2, "0");
+  return new Date(`${year}-${mm}-${day}T09:30:00+08:00`);
+}
+
+function formatSectionPublishLabel(when: Date): string {
+  return when.toLocaleString("zh-TW", {
+    timeZone: "Asia/Taipei",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
 
 function afterTaxLastBasisTabLabel(_month: number): string {
   return "近一個月排行";
@@ -1718,16 +1750,105 @@ function RankMobileTopCard({ row }: { row: Derived }) {
   );
 }
 
+function dividendMonthsForFreq(freq: Freq): number[] {
+  if (freq === "月") return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  if (freq === "季") return [3, 6, 9, 12];
+  if (freq === "半年") return [6, 12];
+  return [6];
+}
+
+function quick4BuyFee(amount: number): number {
+  if (amount <= 0) return 0;
+  return Math.max(20, Math.round(amount * 0.001425));
+}
+
+/** 與第 4 台相同口徑：20% 級距、54C 全計、8.5% 抵減、單筆 2 萬才扣二代健保。 */
+function quick4AfterTaxNet(gross: number, periodsPerYear: number): number {
+  if (gross <= 0) return 0;
+  if (gross < 20000) return gross;
+  const credit = Math.min(gross * 0.085, 80000 / Math.max(1, periodsPerYear));
+  const tax = Math.max(0, gross * 0.2 - credit);
+  const nhi2 = gross * 0.0211;
+  return Math.max(0, gross - tax - nhi2);
+}
+
+function projectQuick4(row: Derived, basis: RankBasis, monthly: number, years: number) {
+  const annualCash =
+    basis === "ttm" && row.ttmCashPerUnit > 0
+      ? row.ttmCashPerUnit
+      : row.lastCashPerUnit * payoutsPerYear(row.freq);
+  const annualPct = row.price > 0 ? (annualCash / row.price) * 100 : 0;
+  const months = dividendMonthsForFreq(row.freq);
+  const annualRate = Math.min(99, Math.max(0, annualPct)) / 100;
+  const add = Math.max(0, monthly - quick4BuyFee(monthly));
+  let balance = 0;
+  let lastDividendMonth = -1;
+  const totalMonths = Math.max(1, Math.round(years) * 12);
+  let lastNet = 0;
+  for (let monthIndex = 0; monthIndex < totalMonths; monthIndex++) {
+    const calMonth = (monthIndex % 12) + 1;
+    balance += add;
+    if (months.includes(calMonth)) {
+      const since = lastDividendMonth < 0 ? monthIndex + 1 : monthIndex - lastDividendMonth;
+      const gross = balance * annualRate * (since / 12);
+      lastNet = quick4AfterTaxNet(gross, months.length);
+      lastDividendMonth = monthIndex;
+    }
+  }
+  const periodGross = balance * annualRate * (12 / months.length / 12);
+  let afterTaxAnnual = 0;
+  for (let i = 0; i < months.length; i++) afterTaxAnnual += quick4AfterTaxNet(periodGross, months.length);
+  return {
+    balanceEnd: Math.round(balance),
+    lastNet: Math.round(lastNet),
+    avgMonthly: Math.round(afterTaxAnnual / 12),
+  };
+}
+
+function RankQuick4Panel({ row, basis }: { row: Derived; basis: RankBasis }) {
+  const [monthlyText, setMonthlyText] = useCanvasState(`quick4-monthly-${row.ticker}`, "20000");
+  const [yearsText, setYearsText] = useCanvasState(`quick4-years-${row.ticker}`, "20");
+  const monthly = Math.max(0, Math.round(Number(monthlyText.replace(/,/g, "")) || 0));
+  const years = Math.min(40, Math.max(1, Math.round(Number(yearsText) || 1)));
+  const result = projectQuick4(row, basis, monthly, years);
+  return (
+    <div className="rank-quick4-panel" data-quick4-code={row.ticker}>
+      <div className="rank-quick4-fields">
+        <label>
+          <span>代號</span>
+          <TextInput value={row.ticker} disabled />
+        </label>
+        <label>
+          <span>每月投入</span>
+          <TextInput value={monthlyText} onChange={setMonthlyText} />
+        </label>
+        <label>
+          <span>年數</span>
+          <TextInput value={yearsText} onChange={setYearsText} />
+        </label>
+      </div>
+      <div className="rank-quick4-stats">
+        <Stat value={money(result.balanceEnd)} label="期末資產（元）" />
+        <Stat value={money(result.avgMonthly)} label="平均每月稅後（元）" />
+        <Stat value={money(result.lastNet)} label="最後一期稅後（元）" />
+      </div>
+    </div>
+  );
+}
+
 function RankSplitNote({ rows }: { rows: Derived[] }) {
   const top = rows.slice(0, 3);
-  const rest = rows.slice(3);
-  if (top.length === 0 || rest.length === 0) return null;
-  const lead = top.map((row) => row.ticker).join("、");
-  const last = rest[rest.length - 1];
+  if (top.length === 0 || rows.length <= 3) return null;
+  if (top[0].ticker === "00929") {
+    return (
+      <p className="rank-split-note">
+        這一期 00929 復華台灣科技優息排最前面，是因為 6 月 29 日換股之後，8 月仍配 0.38 元。當時買進鴻海、廣達、緯創，以及中華電、台灣大、遠傳，並賣出台積電、聯發科。
+      </p>
+    );
+  }
+  const lead = top.map((row) => `${row.ticker} ${row.name}`).join("、");
   return (
-    <p className="rank-split-note">
-      前三名是 {lead}。下面從第 {rest[0].rank} 名 {rest[0].ticker} 接到第 {last.rank} 名，本金需求依序變高。
-    </p>
+    <p className="rank-split-note">這一期第 1 名到第 3 名是 {lead}。</p>
   );
 }
 
@@ -2063,6 +2184,9 @@ export default function AfterTaxDividendReportTemplate() {
   const [openMenu, setOpenMenu] = useCanvasState<"year" | "month" | "">("rank-open-v8", "");
 
   const publishedIssue = getPublishedIssue(viewYear, viewMonth);
+  const sectionRelease = sectionPublishAt(viewYear, viewMonth, section);
+  const sectionOpen = RANK_SECTION_PREVIEW_NOW.getTime() >= sectionRelease.getTime();
+  const sectionReleaseLabel = formatSectionPublishLabel(sectionRelease);
 
   const draftYearForMenu = useMemo(() => {
     const v = evaluateNumericCell(yearInput);
@@ -2122,6 +2246,9 @@ export default function AfterTaxDividendReportTemplate() {
     }
     return ranked;
   }, [section, basis, monthEtfRank]);
+
+  const quick4Lead =
+    section === "ex-div-preview" ? (deriveAll(ETF_SNAPSHOT, basis)[0] ?? null) : (rows[0] ?? null);
 
   const conclusionLead = monthEtfRank[0];
   const nhiHits = monthEtfRank.filter((r) => r.nhi > 0).length;
@@ -3537,10 +3664,82 @@ export default function AfterTaxDividendReportTemplate() {
   width: 100%;
   min-width: 0;
 }
-.rank-split-note {
-  margin: 6px 0;
+.rank-section-locked {
+  position: relative;
+  min-height: 280px;
+  margin-top: 8px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fafaf9;
+}
+.rank-section-locked-ghost {
+  padding: 28px 20px 36px;
+  filter: blur(7px);
+  pointer-events: none;
+  user-select: none;
+}
+.rank-section-locked-ghost span {
+  display: block;
+  height: 14px;
+  margin: 14px 0;
+  border-radius: 7px;
+  background: #e7e5e4;
+}
+.rank-section-locked-card {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform: translate(-50%, -50%);
+  width: min(440px, calc(100% - 32px));
+  padding: 22px 20px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #e7e5e4;
+  box-shadow: 0 8px 28px rgba(28, 25, 23, 0.08);
+  text-align: center;
+}
+.rank-section-locked-card h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1c1917;
+}
+.rank-section-locked-card p {
+  margin: 0;
   font-size: 16px;
-  line-height: 1.45;
+  line-height: 1.7;
+  color: #44403c;
+}
+.rank-quick4-panel {
+  margin: 14px 0 4px;
+  padding: 12px 14px;
+  border: 1px solid #e7e5e4;
+  border-radius: 16px;
+  background: #fff;
+}
+.rank-quick4-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.rank-quick4-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+  color: #57534e;
+}
+.rank-quick4-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.rank-split-note {
+  margin: 22px 0;
+  font-size: 16px;
+  line-height: 1.8;
+  letter-spacing: 0.03em;
   color: #44403c;
 }
 .rank-desk-fit {
@@ -3833,7 +4032,7 @@ export default function AfterTaxDividendReportTemplate() {
               <h2 className="conclusion-title">本期結論</h2>
               <p className="conclusion-body">
                 {conclusionLead
-                  ? `主榜第一是 ${conclusionLead.ticker}（${conclusionLead.name}）。依該期實領目標逆推，達平均月領 1 萬約需本金 ${money(conclusionLead.capital)} 元、${lotsLabel(conclusionLead.lots)} 張。本系列第一期，沒有上期名次可比較。`
+                  ? `這期第一名是 ${conclusionLead.ticker}（${conclusionLead.name}）。依該期實領目標逆推，達平均月領 1 萬約需本金 ${money(conclusionLead.capital)} 元、${lotsLabel(conclusionLead.lots)} 張。本系列第一期，沒有上期名次可比較。`
                   : "本期快照尚無排行資料。"}
               </p>
               <p className="conclusion-body">
@@ -3852,6 +4051,8 @@ export default function AfterTaxDividendReportTemplate() {
             >
               {REPORT_SECTION_TABS.map(({ id, label, shortLabel, ariaLabel }) => {
                 const active = section === id;
+                const releaseLabel = formatSectionPublishLabel(sectionPublishAt(viewYear, viewMonth, id));
+                const open = RANK_SECTION_PREVIEW_NOW.getTime() >= sectionPublishAt(viewYear, viewMonth, id).getTime();
                 return (
                   <button
                     key={id}
@@ -3859,8 +4060,9 @@ export default function AfterTaxDividendReportTemplate() {
                     role="tab"
                     className="tab-btn"
                     aria-selected={active}
-                    aria-label={ariaLabel}
+                    aria-label={open ? ariaLabel : `${ariaLabel}，預計 ${releaseLabel} 公開`}
                     data-active={active ? "true" : "false"}
+                    data-scheduled={open ? "false" : "true"}
                     onClick={() => setSection(id)}
                   >
                     <span className="tab-label-full">{label}</span>
@@ -3870,7 +4072,26 @@ export default function AfterTaxDividendReportTemplate() {
               })}
             </div>
           </div>
-          {showBasisTabs ? (
+          {sectionOpen ? null : (
+            <div className="rank-section-locked">
+              <div className="rank-section-locked-ghost" aria-hidden="true">
+                <span style={{ width: "42%" }} />
+                <span style={{ width: "88%" }} />
+                <span style={{ width: "76%" }} />
+                <span style={{ width: "91%" }} />
+                <span style={{ width: "63%" }} />
+                <span style={{ width: "84%" }} />
+              </div>
+              <div className="rank-section-locked-card" role="status">
+                <h2>文章準備中</h2>
+                <p>
+                  本篇預計於 <strong>{sectionReleaseLabel}</strong> 公開，敬請期待。
+                </p>
+                <p>時間到之後重新整理頁面即可閱讀全文。</p>
+              </div>
+            </div>
+          )}
+          {sectionOpen && showBasisTabs ? (
             <div className="second-row-wrapper">
               <div className="data-mode-toggle" role="tablist" aria-label="排行基準">
                 {BASIS_TABS.flatMap(({ id, label, ariaLabel }, index) => {
@@ -3900,7 +4121,7 @@ export default function AfterTaxDividendReportTemplate() {
               </div>
             </div>
           ) : null}
-          {section === "etf-focus-pk" ? (
+          {sectionOpen && section === "etf-focus-pk" ? (
             <Stack gap={10} style={{ marginBottom: 12, marginTop: 10 }}>
               <Text size="small" style={lightText(t.text.secondary)}>
                 不用整張大表：從月報快照抽出 00919、00929、00878，對照「月領稅後 1
@@ -3908,15 +4129,14 @@ export default function AfterTaxDividendReportTemplate() {
               </Text>
             </Stack>
           ) : null}
-          {section === "ex-div-preview" ? (
+          {sectionOpen && section === "ex-div-preview" ? (
             <Stack gap={10} style={{ marginBottom: 12, marginTop: 10 }}>
               <Text size="small" style={lightText(t.text.secondary)}>
-                下月除息與最後買進日（示意）：00919 公告 1.10、除息 9/16、最後買進
-                9/15。正式文從同一快照篩選「下個自然月除息」清單，不另開算法。
+                下月已公告的最後買進日（示意）：00919 除息 9/16、最後買進 9/15。只列截止日前已公告的，之後還可能再公告。
               </Text>
             </Stack>
           ) : null}
-          {section !== "ex-div-preview" ? (
+          {sectionOpen && section !== "ex-div-preview" ? (
             <div className="rank-report-table-block">
               <div className="rank-report-table-panel">
                 <RankReportResponsiveTable rows={rows} />
@@ -3925,6 +4145,9 @@ export default function AfterTaxDividendReportTemplate() {
                 資料截止 {PERIOD.asOf}。{PERIOD.sourceDates}。
               </Text>
             </div>
+          ) : null}
+          {sectionOpen && quick4Lead ? (
+            <RankQuick4Panel row={quick4Lead} basis={basis} />
           ) : null}
         </div>
 
@@ -4029,23 +4252,17 @@ export default function AfterTaxDividendReportTemplate() {
                 "傳統高股息個股定存單補帖：除息進度、稅與二代健保後誰划算",
               ],
               [
-                "ETF PK 股票",
+                "週4 最後買進日",
                 "是",
-                "同一目標月領一萬，本金／稅／健保／集中度對決",
-              ],
-              [
-                "週4 方案 B：降息／加息黑馬",
-                "是（個股子集）",
-                "本月財報後獲利大成長、明年配息「可能」變多的候選打包；服務高成長＋高股息雙贏搜尋意圖",
+                "下月已公告的除息，最後一天要在哪一天前買到；不是再做一張排行",
               ],
             ]}
             style={{ background: t.bg.elevated, color: t.text.primary }}
           />
           <Text size="small" style={lightText(t.text.secondary)}>
-            第 4 格預設走方案 B（見 repo{" "}
+            第 4 格是最後買進日（見 repo{" "}
             <code style={{ fontSize: 13 }}>lib/blog/after-tax-weekly-slots.ts</code>
-            ）。做法：用 MOPS 鎖「剛公布財報」個股 → 人審 YoY／配息政策 → 表上只算月報同一套稅後欄（不另發明公式）→
-            開頭用降息／加息一句帶情境，結論只引用表。當月無合格標的則跳過或改發方案 A（ETF PK 股票）。
+            ）。從同一份快照挑出下個自然月已公告的除息，寫最後買進日。截止日之後才公告的不補進這一期。
           </Text>
         </Stack>
 
