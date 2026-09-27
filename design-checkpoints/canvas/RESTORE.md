@@ -4,7 +4,17 @@ Cursor 預覽用路徑：
 
 `%USERPROFILE%\.cursor\projects\d-73-Wealth-Freedom-Calculator\canvases\after-tax-dividend-report-template.canvas.tsx`
 
-目前可回溯的預覽（手機前三名卡片、第 3 與第 4 名之間小結論、桌機拆成兩段表、卡片間距 4px）：
+目前可回溯的預覽（前三名卡片：代碼 20px、本金帶「元」、色塊置中、無區塊標題、右上本金左對齊、卡片內距稍鬆）：
+
+Git tag：`checkpoint/canvas-top3-card-ok-2026-09-27`
+
+```powershell
+cd "d:\吳鎧全的資料\73_Wealth Freedom Calculator"
+git checkout checkpoint/canvas-top3-card-ok-2026-09-27 -- "design-checkpoints/canvas/after-tax-dividend-report-template.canvas.tsx" "design-checkpoints/canvas/RESTORE.md"
+Copy-Item -Force "design-checkpoints\canvas\after-tax-dividend-report-template.canvas.tsx" "$env:USERPROFILE\.cursor\projects\d-73-Wealth-Freedom-Calculator\canvases\after-tax-dividend-report-template.canvas.tsx"
+```
+
+上一個節點（手機前三名卡片、第 3 與第 4 名之間小結論、桌機拆成兩段表、卡片間距 4px）：
 
 Git tag：`checkpoint/canvas-top3-split-note-2026-09-27`
 
@@ -14,7 +24,7 @@ git checkout checkpoint/canvas-top3-split-note-2026-09-27 -- "design-checkpoints
 Copy-Item -Force "design-checkpoints\canvas\after-tax-dividend-report-template.canvas.tsx" "$env:USERPROFILE\.cursor\projects\d-73-Wealth-Freedom-Calculator\canvases\after-tax-dividend-report-template.canvas.tsx"
 ```
 
-上一個節點（桌機表格 `width: max-content`、`minWidth: 100%`、右側 24px 白邊、整欄隱藏、代號標題靠左）：
+再上一個節點（桌機表格 `width: max-content`、`minWidth: 100%`、右側 24px 白邊、整欄隱藏、代號標題靠左）：
 
 Git tag：`checkpoint/canvas-desktop-max-content-tail-2026-09-27`
 

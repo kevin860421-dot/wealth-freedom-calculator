@@ -1268,6 +1268,15 @@ function money(n: number): string {
   return Math.round(n).toLocaleString("zh-TW");
 }
 
+function MoneyYuan({ amount, className }: { amount: number; className: string }) {
+  return (
+    <span className={className}>
+      <span className="rank-money-digits">{money(amount)}</span>
+      <span className="rank-money-unit">元</span>
+    </span>
+  );
+}
+
 function lotsLabel(n: number): string {
   return n.toFixed(1);
 }
@@ -1441,7 +1450,7 @@ function renderRankMobilePrimaryCell(
       return (
         <td data-col="capital" className="rank-capital-td">
           <div className="rank-capital-stack">
-            <span className="rank-capital-amount">{money(row.capital)}</span>
+            <MoneyYuan amount={row.capital} className="rank-capital-amount" />
             <span className="rank-capital-lots">{lotsLabel(row.lots)} 張</span>
           </div>
         </td>
@@ -1665,12 +1674,10 @@ function RankMobileTopCard({ row }: { row: Derived }) {
     { label: "手續費", value: money(row.fee) },
   ];
   const group = (
-    title: string,
     kind: "div" | "fee",
     fields: { label: string; value: string; net?: boolean }[],
   ) => (
     <section key={kind} className={`rank-top-group rank-top-group-${kind}`}>
-      <span className="rank-top-group-title">{title}</span>
       <div className="rank-top-group-grid">
         {fields.map((field) => (
           <span key={field.label} className="rank-top-field">
@@ -1697,13 +1704,15 @@ function RankMobileTopCard({ row }: { row: Derived }) {
         </div>
         <div className="rank-top-hero">
           <span className="rank-top-hero-label">月領1萬本金</span>
-          <span className="rank-top-hero-num">{money(row.capital)}</span>
-          <span className="rank-top-hero-sub">{lotsLabel(row.lots)} 張</span>
+          <span className="rank-top-hero-line">
+            <MoneyYuan amount={row.capital} className="rank-top-hero-num" />
+            <span className="rank-top-hero-sub">{lotsLabel(row.lots)} 張</span>
+          </span>
         </div>
       </div>
       <div className="rank-top-card-body">
-        {group("配息", "div", payout)}
-        {group("費用與實領", "fee", costs)}
+        {group("div", payout)}
+        {group("fee", costs)}
       </div>
     </article>
   );
@@ -1726,7 +1735,7 @@ function RankSplitNote({ rows }: { rows: Derived[] }) {
 function rankDeskBrickPx(id: string): number {
   if (id === "rank") return 50;
   if (id === "ticker") return 140;
-  if (id === "capital") return 120;
+  if (id === "capital") return 136;
   if (id === "net") return 90;
   if (id === "prevRank") return 90;
   if (id === "lastBuy") return 120;
@@ -1942,7 +1951,7 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
                   <td className="col-cashDiv" style={deskCell("cashDiv", "right")}>{row.lastCashPerUnit.toFixed(2)}</td>
                   <td className="col-capital" style={deskCell("capital", "right")}>
                     <div className="rank-capital-stack">
-                      <span className="rank-capital-amount">{money(row.capital)}</span>
+                      <MoneyYuan amount={row.capital} className="rank-capital-amount" />
                       <span className="rank-capital-lots">{lotsLabel(row.lots)} 張</span>
                     </div>
                   </td>
@@ -2830,10 +2839,31 @@ export default function AfterTaxDividendReportTemplate() {
   line-height: 1.4;
   text-align: right;
 }
+.rank-capital-amount,
+.rank-top-hero-num {
+  font-family: "Microsoft JhengHei UI", "PingFang TC", "Noto Sans TC", sans-serif;
+}
 .rank-capital-amount {
   font-size: 15px;
   font-weight: 600;
   color: #111827;
+}
+.rank-money-digits,
+.rank-money-unit {
+  font-family: inherit;
+  font-size: 1em;
+  font-weight: inherit;
+  font-style: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+.rank-money-digits {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: inherit;
+}
+.rank-money-unit {
+  margin-left: 0.2em;
+  letter-spacing: 0;
 }
 .rank-capital-lots {
   margin-top: 2px;
@@ -3063,7 +3093,7 @@ export default function AfterTaxDividendReportTemplate() {
 .rank-mobile-top-cards {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
   width: 100%;
   min-width: 0;
 }
@@ -3091,13 +3121,14 @@ export default function AfterTaxDividendReportTemplate() {
 .rank-top-card-head {
   display: grid;
   grid-template-columns: 36px minmax(0, 1fr) auto;
-  align-items: center;
+  align-items: start;
   column-gap: 12px;
-  padding: 8px 14px 4px;
+  padding: 10px 14px 8px;
 }
 .rank-top-medal {
   width: 36px;
   height: 36px;
+  margin-top: 1px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
@@ -3129,7 +3160,7 @@ export default function AfterTaxDividendReportTemplate() {
   min-width: 0;
 }
 .rank-top-code {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: 0.2px;
   color: #1c1917;
@@ -3173,52 +3204,57 @@ export default function AfterTaxDividendReportTemplate() {
 .rank-top-hero {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: stretch;
+  gap: 1px;
   line-height: 1.2;
+  text-align: left;
   white-space: nowrap;
 }
-.rank-top-hero-label,
-.rank-top-hero-sub {
-  font-size: 14px;
+.rank-top-hero-label {
+  width: 100%;
+  font-size: 15px;
+  line-height: 1.25;
   color: #57534e;
+  text-align: left;
+}
+.rank-top-hero-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  width: 100%;
 }
 .rank-top-hero-num {
   font-size: 22px;
   font-weight: 700;
   color: #1c1917;
   letter-spacing: -0.3px;
+}
+.rank-top-hero-sub {
+  margin-left: 8px;
+  padding-left: 8px;
+  border-left: 1px solid #e7e5e4;
+  font-size: 15px;
+  font-weight: 600;
+  color: #57534e;
   font-variant-numeric: tabular-nums;
 }
 .rank-top-card-body {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin: 0 12px 6px;
-  padding-top: 4px;
+  gap: 8px;
+  margin: 0 12px 10px;
+  padding-top: 8px;
   border-top: 1px solid #f0eeec;
 }
 .rank-top-group {
   border-radius: 10px;
-  padding: 4px 10px 5px;
+  padding: 8px 10px;
 }
 .rank-top-group-div {
   background: #f6f4fb;
 }
 .rank-top-group-fee {
   background: #f3f8f5;
-}
-.rank-top-group-title {
-  display: block;
-  margin-bottom: 4px;
-  font-size: 15px;
-  font-weight: 650;
-  line-height: 1.25;
-}
-.rank-top-group-div .rank-top-group-title {
-  color: #5c4d96;
-}
-.rank-top-group-fee .rank-top-group-title {
-  color: #2f8a5b;
 }
 .rank-top-group-grid {
   display: grid;
@@ -3228,14 +3264,17 @@ export default function AfterTaxDividendReportTemplate() {
 .rank-top-field {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 3px;
   min-width: 0;
+  text-align: center;
 }
 .rank-top-field-label {
   font-size: 14px;
   line-height: 1.25;
   color: #57534e;
   white-space: nowrap;
+  text-align: center;
 }
 .rank-top-field-value {
   font-size: 16px;
@@ -3243,6 +3282,7 @@ export default function AfterTaxDividendReportTemplate() {
   line-height: 1.3;
   color: #1c1917;
   white-space: nowrap;
+  text-align: center;
   font-variant-numeric: tabular-nums;
 }
 .rank-top-field-net {
@@ -3507,15 +3547,15 @@ export default function AfterTaxDividendReportTemplate() {
   container-type: inline-size;
   container-name: rank-desk;
 }
-@container rank-desk (max-width: 1173px) { .col-lastBuy { display: none !important; } }
-@container rank-desk (max-width: 1053px) { .col-freq { display: none !important; } }
-@container rank-desk (max-width: 973px) { .col-delta { display: none !important; } }
-@container rank-desk (max-width: 893px) { .col-prevRank { display: none !important; } }
-@container rank-desk (max-width: 803px) { .col-net { display: none !important; } }
-@container rank-desk (max-width: 713px) { .col-fee { display: none !important; } }
-@container rank-desk (max-width: 633px) { .col-nhi { display: none !important; } }
-@container rank-desk (max-width: 553px) { .col-wireFee { display: none !important; } }
-@container rank-desk (max-width: 473px) { .col-capital { display: none !important; } }
+@container rank-desk (max-width: 1189px) { .col-lastBuy { display: none !important; } }
+@container rank-desk (max-width: 1069px) { .col-freq { display: none !important; } }
+@container rank-desk (max-width: 989px) { .col-delta { display: none !important; } }
+@container rank-desk (max-width: 909px) { .col-prevRank { display: none !important; } }
+@container rank-desk (max-width: 819px) { .col-net { display: none !important; } }
+@container rank-desk (max-width: 729px) { .col-fee { display: none !important; } }
+@container rank-desk (max-width: 649px) { .col-nhi { display: none !important; } }
+@container rank-desk (max-width: 569px) { .col-wireFee { display: none !important; } }
+@container rank-desk (max-width: 489px) { .col-capital { display: none !important; } }
 @container rank-desk (max-width: 353px) { .col-cashDiv { display: none !important; } }
 @container rank-desk (max-width: 273px) { .col-stockDiv { display: none !important; } }
 @container rank-desk (max-width: 193px) { .col-ticker { display: none !important; } }
