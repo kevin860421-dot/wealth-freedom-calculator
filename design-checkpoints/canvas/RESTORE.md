@@ -4,7 +4,19 @@ Cursor 預覽用路徑：
 
 `%USERPROFILE%\.cursor\projects\d-73-Wealth-Freedom-Calculator\canvases\after-tax-dividend-report-template.canvas.tsx`
 
-目前可回溯的預覽（加「調整本金」之前：內嵌試算、分頁準備中、這期第一名、00929 換股說明、前三名卡片）：
+目前可回溯的預覽（月領輸入在基準列、四則運算按 Enter 或點空白計算、股利／股息 64px、月領欄 124px、桌機表任何寬度輸入對齊月領欄、從右邊收欄、內嵌試算、前三名卡片）：
+
+Git tag：`checkpoint/canvas-monthly-target-align-2026-09-28`
+
+SHA256：`D19629ACA28E8BABCAC1C88C45B7AEE7B89FA061D09AE242F923417C9DC6C0E5`
+
+```powershell
+cd "d:\吳鎧全的資料\73_Wealth Freedom Calculator"
+git checkout checkpoint/canvas-monthly-target-align-2026-09-28 -- "design-checkpoints/canvas/after-tax-dividend-report-template.canvas.tsx" "design-checkpoints/canvas/RESTORE.md"
+Copy-Item -Force "design-checkpoints\canvas\after-tax-dividend-report-template.canvas.tsx" "$env:USERPROFILE\.cursor\projects\d-73-Wealth-Freedom-Calculator\canvases\after-tax-dividend-report-template.canvas.tsx"
+```
+
+上一個節點（加「調整本金」之前：內嵌試算、分頁準備中、這期第一名、00929 換股說明、前三名卡片）：
 
 Git tag：`checkpoint/canvas-before-capital-adjust-2026-09-27`
 

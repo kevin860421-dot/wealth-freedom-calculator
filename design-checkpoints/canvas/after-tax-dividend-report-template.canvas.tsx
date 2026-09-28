@@ -1176,17 +1176,44 @@ function payoutsPerYear(freq: Freq): number {
   }
 }
 
+const DEFAULT_MONTHLY_NET = 10_000;
+
 function perPeriodNetTarget(freq: Freq): number {
-  switch (freq) {
-    case "月":
-      return 10_000;
-    case "季":
-      return 30_000;
-    case "半年":
-      return 60_000;
-    case "年":
-      return 120_000;
-  }
+  return periodNetForMonthly(freq, DEFAULT_MONTHLY_NET);
+}
+
+function periodNetForMonthly(freq: Freq, monthlyNet: number): number {
+  return monthlyNet * (12 / payoutsPerYear(freq));
+}
+
+/** 名次維持月領 1 萬的排序，只重算本金、張數與該目標下的費用、實領。 */
+function withMonthlyTarget(ranked: Derived[], basis: RankBasis, monthlyNet: number): Derived[] {
+  if (monthlyNet === DEFAULT_MONTHLY_NET) return ranked;
+  return ranked.map((row) => {
+    const targetNet = periodNetForMonthly(row.freq, monthlyNet);
+    const div = dividendPerShareForPeriod(row, basis);
+    const solved = solveLotsForPeriodNet(div, targetNet);
+    const capital = row.price * solved.lots * 1000;
+    return {
+      ...row,
+      lots: solved.lots,
+      capital,
+      grossDividend: solved.grossDividend,
+      nhi: solved.nhi,
+      fee: solved.fee,
+      net: targetNet,
+    };
+  });
+}
+
+function monthlyWanLabel(n: number): string {
+  if (n > 0 && n % 10_000 === 0) return `${n / 10_000}萬`;
+  if (n > 0 && n % 1_000 === 0) return `${n / 1_000}千`;
+  return money(n);
+}
+
+function capitalColumnLabel(monthlyNet: number): string {
+  return `月領${monthlyWanLabel(monthlyNet)}本金`;
 }
 
 function getMedian(values: number[]): number {
@@ -1688,7 +1715,7 @@ function renderRankMediumExpandRow(
   );
 }
 
-function RankMobileTopCard({ row }: { row: Derived }) {
+function RankMobileTopCard({ row, capitalLabel }: { row: Derived; capitalLabel: string }) {
   const place = row.rank <= 1 ? "1" : row.rank === 2 ? "2" : "3";
   const deltaDir = row.prevRank === 0 ? "flat" : row.delta > 0 ? "up" : row.delta < 0 ? "down" : "flat";
   const deltaText = row.prevRank === 0 ? "首期無" : deltaLabel(row.delta);
@@ -1735,7 +1762,7 @@ function RankMobileTopCard({ row }: { row: Derived }) {
           <span className="rank-top-name">{row.name}</span>
         </div>
         <div className="rank-top-hero">
-          <span className="rank-top-hero-label">月領1萬本金</span>
+          <span className="rank-top-hero-label">{capitalLabel}</span>
           <span className="rank-top-hero-line">
             <MoneyYuan amount={row.capital} className="rank-top-hero-num" />
             <span className="rank-top-hero-sub">{lotsLabel(row.lots)} 張</span>
@@ -1856,14 +1883,25 @@ function RankSplitNote({ rows }: { rows: Derived[] }) {
 function rankDeskBrickPx(id: string): number {
   if (id === "rank") return 50;
   if (id === "ticker") return 140;
-  if (id === "capital") return 136;
+  if (id === "stockDiv" || id === "cashDiv") return 64;
+  if (id === "capital") return 124;
   if (id === "net") return 90;
   if (id === "prevRank") return 90;
   if (id === "lastBuy") return 120;
   return 80;
 }
 
-function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
+function RankReportResponsiveTable({
+  rows,
+  capitalLabel,
+  monthlyText,
+  onMonthlyText,
+}: {
+  rows: Derived[];
+  capitalLabel: string;
+  monthlyText: string;
+  onMonthlyText: (value: string) => void;
+}) {
   const [expandedTicker, setExpandedTicker] = useCanvasState(
     "rank-mobile-expand-v1",
     "",
@@ -2032,7 +2070,7 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
                       boxSizing: "border-box",
                     }}
                   >
-                    {h.label}
+                    {h.id === "capital" ? capitalLabel : h.label}
                   </th>
                 );
               })}
@@ -2102,7 +2140,7 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
       ) : (
       <div className="rank-mobile-board">
         <div className="rank-mobile-top-cards">
-          {rows.slice(0, 3).map((row) => RankMobileTopCard({ row }))}
+          {rows.slice(0, 3).map((row) => RankMobileTopCard({ row, capitalLabel }))}
         </div>
         {rows.length > 3 ? <RankSplitNote rows={rows} /> : null}
         {rows.length > 3 ? (
@@ -2118,7 +2156,7 @@ function RankReportResponsiveTable({ rows }: { rows: Derived[] }) {
                 const header = RANK_TABLE_HEADERS.find((h) => h.id === id);
                 return (
                   <th key={id} data-col={id} scope="col">
-                    {header?.label ?? id}
+                    {id === "capital" ? capitalLabel : (header?.label ?? id)}
                   </th>
                 );
               })}
@@ -2177,6 +2215,8 @@ export default function AfterTaxDividendReportTemplate() {
     "total-rank",
   );
   const [basis, setBasis] = useCanvasState<RankBasis>("report-basis", "ttm");
+  const [monthlyText, setMonthlyText] = useCanvasState("rank-monthly-target-text", "10000");
+  const [monthlyTarget, setMonthlyTarget] = useCanvasState("rank-monthly-target", DEFAULT_MONTHLY_NET);
   const [yearInput, setYearInput] = useCanvasState("rank-year-v6", "2026");
   const [monthInput, setMonthInput] = useCanvasState("rank-month-v6", "8");
   const [viewYear, setViewYear] = useCanvasState("rank-view-year-v7", 2026);
@@ -2246,6 +2286,35 @@ export default function AfterTaxDividendReportTemplate() {
     }
     return ranked;
   }, [section, basis, monthEtfRank]);
+
+  const shownRows = useMemo(
+    () => withMonthlyTarget(rows, basis, monthlyTarget),
+    [rows, basis, monthlyTarget],
+  );
+  const capitalLabel = capitalColumnLabel(monthlyTarget);
+
+  function onMonthlyText(next: string) {
+    setMonthlyText(next);
+    const plain = next.replace(/[,，]/g, "").trim();
+    if (!/^\d+$/.test(plain)) return;
+    const n = Math.round(Number(plain));
+    if (n >= 1000 && n <= 500_000) setMonthlyTarget(n);
+  }
+
+  function commitMonthlyText(raw: string) {
+    const value = evaluateNumericCell(raw.replace(/[,，]/g, ""));
+    if (value === null) {
+      setMonthlyText(String(monthlyTarget));
+      return;
+    }
+    const n = Math.round(value);
+    if (n >= 1000 && n <= 500_000) {
+      setMonthlyText(String(n));
+      setMonthlyTarget(n);
+      return;
+    }
+    setMonthlyText(String(monthlyTarget));
+  }
 
   const quick4Lead =
     section === "ex-div-preview" ? (deriveAll(ETF_SNAPSHOT, basis)[0] ?? null) : (rows[0] ?? null);
@@ -2557,11 +2626,63 @@ export default function AfterTaxDividendReportTemplate() {
   display: flex;
   justify-content: flex-start;
   align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
   width: 100%;
   margin-bottom: 12px;
   /* 與主分頁灰底 6px + .tab-btn 左 8px 對齊「總排行」文字起點 */
   padding-left: 14px;
   box-sizing: border-box;
+}
+.rank-top-hero-one-line {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.rank-top-hero-one-line .rank-top-hero-line {
+  width: auto;
+}
+.rank-monthly-target {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 0 auto;
+  font-size: 15px;
+  line-height: 1.25;
+  color: #57534e;
+  white-space: nowrap;
+}
+/* 桌機表才對齊月領欄。769 以下若仍是桌機表（視窗窄、螢幕寬），不要把輸入貼到最右。 */
+.finance-dashboard-container:has([data-rank-layout="desktop"]) .second-row-wrapper {
+  display: grid;
+  grid-template-columns: 319px 124px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 0;
+  padding-left: 0;
+}
+.finance-dashboard-container:has([data-rank-layout="desktop"]) .second-row-wrapper .data-mode-toggle {
+  grid-column: 1;
+  padding-left: 14px;
+}
+.finance-dashboard-container:has([data-rank-layout="desktop"]) .second-row-wrapper .rank-monthly-target {
+  grid-column: 2;
+  margin: 0;
+  justify-self: start;
+  padding-left: 26px;
+}
+.rank-monthly-target-input {
+  width: 92px;
+  height: 26px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0 6px;
+  border: 1px solid #d6d3d1;
+  border-radius: 6px;
+  background: #fff;
+  color: #1c1917;
+  font-size: 14px;
+  line-height: 24px;
+  font-variant-numeric: tabular-nums;
 }
 .rank-report-table-block {
   width: 100%;
@@ -3746,17 +3867,17 @@ export default function AfterTaxDividendReportTemplate() {
   container-type: inline-size;
   container-name: rank-desk;
 }
-@container rank-desk (max-width: 1189px) { .col-lastBuy { display: none !important; } }
-@container rank-desk (max-width: 1069px) { .col-freq { display: none !important; } }
-@container rank-desk (max-width: 989px) { .col-delta { display: none !important; } }
-@container rank-desk (max-width: 909px) { .col-prevRank { display: none !important; } }
-@container rank-desk (max-width: 819px) { .col-net { display: none !important; } }
-@container rank-desk (max-width: 729px) { .col-fee { display: none !important; } }
-@container rank-desk (max-width: 649px) { .col-nhi { display: none !important; } }
-@container rank-desk (max-width: 569px) { .col-wireFee { display: none !important; } }
-@container rank-desk (max-width: 489px) { .col-capital { display: none !important; } }
-@container rank-desk (max-width: 353px) { .col-cashDiv { display: none !important; } }
-@container rank-desk (max-width: 273px) { .col-stockDiv { display: none !important; } }
+@container rank-desk (max-width: 1145px) { .col-lastBuy { display: none !important; } }
+@container rank-desk (max-width: 1025px) { .col-freq { display: none !important; } }
+@container rank-desk (max-width: 945px) { .col-delta { display: none !important; } }
+@container rank-desk (max-width: 865px) { .col-prevRank { display: none !important; } }
+@container rank-desk (max-width: 775px) { .col-net { display: none !important; } }
+@container rank-desk (max-width: 685px) { .col-fee { display: none !important; } }
+@container rank-desk (max-width: 605px) { .col-nhi { display: none !important; } }
+@container rank-desk (max-width: 525px) { .col-wireFee { display: none !important; } }
+@container rank-desk (max-width: 445px) { .col-capital { display: none !important; } }
+@container rank-desk (max-width: 321px) { .col-cashDiv { display: none !important; } }
+@container rank-desk (max-width: 257px) { .col-stockDiv { display: none !important; } }
 @container rank-desk (max-width: 193px) { .col-ticker { display: none !important; } }
 /* 桌機代號欄鎖 140px，文字只跟內容一樣寬。手機表不在 .rank-desk-fit 裡。 */
 .rank-desk-fit th.col-ticker,
@@ -4091,34 +4212,62 @@ export default function AfterTaxDividendReportTemplate() {
               </div>
             </div>
           )}
-          {sectionOpen && showBasisTabs ? (
+          {sectionOpen && section !== "ex-div-preview" ? (
             <div className="second-row-wrapper">
-              <div className="data-mode-toggle" role="tablist" aria-label="排行基準">
-                {BASIS_TABS.flatMap(({ id, label, ariaLabel }, index) => {
-                  const active = basis === id;
-                  const tab = (
-                    <button
-                      key={id}
-                      type="button"
-                      role="tab"
-                      className="mode-item"
-                      aria-selected={active}
-                      aria-label={ariaLabel}
-                      data-active={active ? "true" : "false"}
-                      onClick={() => setBasis(id)}
-                    >
-                      {label}
-                    </button>
-                  );
-                  if (index === 0) return [tab];
-                  return [
-                    <span key={`sep-${id}`} className="data-mode-sep" aria-hidden="true">
-                      |
-                    </span>,
-                    tab,
-                  ];
-                })}
-              </div>
+              {showBasisTabs ? (
+                <div className="data-mode-toggle" role="tablist" aria-label="排行基準">
+                  {BASIS_TABS.flatMap(({ id, label, ariaLabel }, index) => {
+                    const active = basis === id;
+                    const tab = (
+                      <button
+                        key={id}
+                        type="button"
+                        role="tab"
+                        className="mode-item"
+                        aria-selected={active}
+                        aria-label={ariaLabel}
+                        data-active={active ? "true" : "false"}
+                        onClick={() => setBasis(id)}
+                      >
+                        {label}
+                      </button>
+                    );
+                    if (index === 0) return [tab];
+                    return [
+                      <span key={`sep-${id}`} className="data-mode-sep" aria-hidden="true">
+                        |
+                      </span>,
+                      tab,
+                    ];
+                  })}
+                </div>
+              ) : null}
+              <label className="rank-monthly-target">
+                <span>月領</span>
+                <input
+                  className="rank-monthly-target-input"
+                  value={monthlyText}
+                  onChange={(event: { currentTarget: { value: string } }) =>
+                    onMonthlyText(event.currentTarget.value)
+                  }
+                  onBlur={(event: { currentTarget: { value: string } }) =>
+                    commitMonthlyText(event.currentTarget.value)
+                  }
+                  onKeyDown={(event: {
+                    key: string;
+                    preventDefault: () => void;
+                    currentTarget: { value: string };
+                  }) => {
+                    if (event.key !== "Enter") return;
+                    event.preventDefault();
+                    commitMonthlyText(event.currentTarget.value);
+                  }}
+                  inputMode="text"
+                  spellCheck={false}
+                  aria-label="月領目標，單位元，可輸入四則運算"
+                />
+                <span>本金</span>
+              </label>
             </div>
           ) : null}
           {sectionOpen && section === "etf-focus-pk" ? (
@@ -4139,7 +4288,12 @@ export default function AfterTaxDividendReportTemplate() {
           {sectionOpen && section !== "ex-div-preview" ? (
             <div className="rank-report-table-block">
               <div className="rank-report-table-panel">
-                <RankReportResponsiveTable rows={rows} />
+                <RankReportResponsiveTable
+                  rows={shownRows}
+                  capitalLabel={capitalLabel}
+                  monthlyText={monthlyText}
+                  onMonthlyText={onMonthlyText}
+                />
               </div>
               <Text size="small" style={lightText(t.text.tertiary)}>
                 資料截止 {PERIOD.asOf}。{PERIOD.sourceDates}。
