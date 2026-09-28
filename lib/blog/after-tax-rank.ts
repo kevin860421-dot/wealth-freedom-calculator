@@ -51,18 +51,45 @@ export function payoutsPerYear(freq: AfterTaxRankFreq): number {
   }
 }
 
+export const AFTER_TAX_DEFAULT_MONTHLY_NET = 10_000;
+
 /** 依頻率鎖定「該期」實領目標（平均月領 1 萬）。 */
 export function perPeriodNetTarget(freq: AfterTaxRankFreq): number {
-  switch (freq) {
-    case "月":
-      return 10_000;
-    case "季":
-      return 30_000;
-    case "半年":
-      return 60_000;
-    case "年":
-      return 120_000;
-  }
+  return periodNetForMonthly(freq, AFTER_TAX_DEFAULT_MONTHLY_NET);
+}
+
+export function periodNetForMonthly(freq: AfterTaxRankFreq, monthlyNet: number): number {
+  return monthlyNet * (12 / payoutsPerYear(freq));
+}
+
+/** 名次維持月領 1 萬的排序，只重算本金、張數與該目標下的費用、實領。 */
+export function withMonthlyTarget(
+  ranked: AfterTaxRankDerived[],
+  basis: "ttm" | "last",
+  monthlyNet: number,
+): AfterTaxRankDerived[] {
+  if (monthlyNet === AFTER_TAX_DEFAULT_MONTHLY_NET) return ranked;
+  return ranked.map((row) => {
+    const targetNet = periodNetForMonthly(row.freq, monthlyNet);
+    const div = dividendPerShareForPeriod(row, basis);
+    const solved = solveLotsForPeriodNet(div, targetNet);
+    return {
+      ...row,
+      lots: solved.lots,
+      capital: row.price * solved.lots * 1000,
+      grossDividend: solved.grossDividend,
+      nhi: solved.nhi,
+      fee: solved.fee,
+      net: targetNet,
+    };
+  });
+}
+
+export function capitalColumnLabel(monthlyNet: number): string {
+  let amount = formatRankMoney(monthlyNet);
+  if (monthlyNet > 0 && monthlyNet % 10_000 === 0) amount = `${monthlyNet / 10_000}萬`;
+  else if (monthlyNet > 0 && monthlyNet % 1_000 === 0) amount = `${monthlyNet / 1_000}千`;
+  return `月領${amount}本金`;
 }
 
 export function getMedian(values: number[]): number {

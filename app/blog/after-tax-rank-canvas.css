@@ -1,0 +1,1362 @@
+.finance-dashboard-container {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  max-width: none;
+  margin: 0 auto;
+  padding-left: 0;
+  padding-right: 0;
+}
+@media (min-width: 1201px) {
+  .finance-dashboard-container {
+    max-width: 1250px !important;
+    margin: 40px auto !important;
+    padding-left: 60px !important;
+    padding-right: 60px !important;
+  }
+}
+@media (max-width: 1200px) and (min-width: 1025px) {
+  .finance-dashboard-container {
+    margin: 30px auto !important;
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+}
+@media (max-width: 1024px) {
+  .finance-dashboard-container {
+    margin: 20px auto !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}
+@media (max-width: 768px) {
+  .finance-dashboard-container {
+    margin: 10px auto !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+}
+.first-row-wrapper {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  width: 100%;
+  margin-bottom: 20px;
+}
+.second-row-wrapper {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 12px;
+  /* 與主分頁灰底 6px + .tab-btn 左 8px 對齊「總排行」文字起點 */
+  padding-left: 14px;
+  box-sizing: border-box;
+}
+.rank-top-hero-one-line {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.rank-top-hero-one-line .rank-top-hero-line {
+  width: auto;
+}
+.rank-monthly-target {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 0 auto;
+  font-size: 15px;
+  line-height: 1.25;
+  color: #57534e;
+  white-space: nowrap;
+}
+/* 桌機表才對齊月領欄。769 以下若仍是桌機表（視窗窄、螢幕寬），不要把輸入貼到最右。 */
+.finance-dashboard-container:has([data-rank-layout="desktop"]) .second-row-wrapper {
+  display: grid;
+  grid-template-columns: 319px 124px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 0;
+  padding-left: 0;
+}
+.finance-dashboard-container:has([data-rank-layout="desktop"]) .second-row-wrapper .data-mode-toggle {
+  grid-column: 1;
+  padding-left: 14px;
+}
+.finance-dashboard-container:has([data-rank-layout="desktop"]) .second-row-wrapper .rank-monthly-target {
+  grid-column: 2;
+  margin: 0;
+  justify-self: start;
+  padding-left: 26px;
+}
+.rank-monthly-target-input {
+  width: 92px;
+  height: 26px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0 6px;
+  border: 1px solid #d6d3d1;
+  border-radius: 6px;
+  background: #fff;
+  color: #1c1917;
+  font-size: 14px;
+  line-height: 24px;
+  font-variant-numeric: tabular-nums;
+}
+.rank-report-table-block {
+  width: 100%;
+  min-width: 0;
+}
+.rank-report-table-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+.rank-report-table-shell {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  flex-shrink: 1;
+}
+.rank-report-table-shell[data-rank-layout="desktop"] {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+.rank-report-table-shell[data-rank-layout="mobile"] {
+  width: 100%;
+}
+.data-mode-toggle {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.data-mode-toggle::-webkit-scrollbar {
+  display: none;
+}
+.data-mode-sep {
+  color: #d1d5db;
+  user-select: none;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.data-mode-toggle .mode-item {
+  flex: 0 0 auto;
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 400;
+  color: #6b7280;
+  line-height: 1.45;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+.data-mode-toggle .mode-item:hover {
+  color: #374151;
+}
+.data-mode-toggle .mode-item[data-active="true"] {
+  color: #111827;
+  font-weight: 600;
+}
+.finance-dashboard-container .tabs-container {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+.finance-dashboard-container .tabs-container::-webkit-scrollbar {
+  display: none;
+}
+.finance-dashboard-container .first-level-tabs {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-self: flex-start;
+  width: auto;
+  max-width: 100%;
+  background-color: #f3f4f6;
+  padding: 6px;
+  border-radius: 30px;
+  gap: 6px;
+  border: none;
+  align-items: center;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+.finance-dashboard-container .first-level-tabs::-webkit-scrollbar {
+  display: none;
+}
+.finance-dashboard-container .first-level-tabs .tab-btn {
+  flex: 0 0 auto;
+  appearance: none;
+  margin: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  white-space: nowrap;
+  padding: 8px 18px;
+  border-radius: 30px;
+  color: #4b5563;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.45;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.finance-dashboard-container .first-level-tabs .tab-btn:not([data-active="true"]):hover {
+  background-color: rgba(0, 0, 0, 0.04);
+  color: #111827;
+}
+.finance-dashboard-container .first-level-tabs .tab-btn[data-active="true"] {
+  background-color: #ffffff;
+  color: #111827;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+.finance-dashboard-container .first-level-tabs .tab-btn[data-active="true"]:hover {
+  background-color: #ffffff;
+  color: #111827;
+}
+.finance-dashboard-container .first-level-tabs .tab-btn[data-active="true"]::after {
+  content: none;
+  display: none;
+}
+.rank-report-conclusion {
+  margin: 4px 0 20px;
+}
+.rank-report-conclusion .conclusion-title {
+  margin: 0;
+  font-size: 1.625rem;
+  line-height: 1.38;
+  font-weight: 700;
+  color: #1c1917;
+}
+.rank-report-conclusion .conclusion-body {
+  margin: 0;
+  font-size: 1.125rem;
+  line-height: 1.72;
+  color: #292524;
+}
+.rank-report-table-scroll {
+  --rank-sticky-w: 3.25rem;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden;
+  border: 1px solid #e7e5e4;
+  border-radius: 8px;
+  background: #fff;
+  display: block;
+  -webkit-overflow-scrolling: touch;
+}
+.rank-report-table-scroll table,
+.rank-report-table-scroll [role="table"],
+.rank-report-table-scroll .rank-report-data-table {
+  width: max-content !important;
+  min-width: 100% !important;
+  max-width: none !important;
+  table-layout: auto;
+  border-collapse: collapse;
+  white-space: nowrap;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: #1c1917;
+}
+.rank-report-mobile-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e7e5e4;
+  border-radius: 8px;
+  background: #fff;
+}
+.rank-report-table-scroll th,
+.rank-report-table-scroll td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #e7e5e4;
+  white-space: nowrap !important;
+  text-align: right;
+}
+.rank-report-table-scroll th:nth-child(1),
+.rank-report-table-scroll td:nth-child(1) {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  min-width: var(--rank-sticky-w);
+  width: var(--rank-sticky-w);
+  text-align: center;
+  background: #fff;
+  box-shadow: 1px 0 0 #e7e5e4;
+}
+.rank-report-table-scroll th:nth-child(2),
+.rank-report-table-scroll td:nth-child(2) {
+  position: sticky;
+  left: var(--rank-sticky-w);
+  z-index: 2;
+  width: auto;
+  min-width: max-content;
+  text-align: left;
+  background: #fff;
+  box-shadow: 4px 0 10px -6px rgba(28, 25, 23, 0.12);
+  white-space: nowrap;
+  line-height: 1.3;
+  vertical-align: top;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+.rank-ticker-stack {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.3;
+  text-align: left;
+  width: auto;
+  max-width: none;
+}
+.rank-ticker-code {
+  font-weight: 700;
+  color: #111827;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  line-height: 1.3;
+}
+.rank-ticker-name {
+  margin-top: 2px;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.rank-report-table-scroll th:nth-child(3),
+.rank-report-table-scroll td:nth-child(3),
+.rank-report-table-scroll th:nth-child(4),
+.rank-report-table-scroll td:nth-child(4),
+.rank-report-table-scroll th:nth-child(6),
+.rank-report-table-scroll td:nth-child(6),
+.rank-report-table-scroll th:nth-child(7),
+.rank-report-table-scroll td:nth-child(7),
+.rank-report-table-scroll th:nth-child(8),
+.rank-report-table-scroll td:nth-child(8),
+.rank-report-table-scroll th:nth-child(9),
+.rank-report-table-scroll td:nth-child(9) {
+  text-align: right;
+  padding-left: 6px;
+  padding-right: 8px;
+}
+.rank-report-table-scroll th:nth-child(10),
+.rank-report-table-scroll td:nth-child(10),
+.rank-report-table-scroll th:nth-child(11),
+.rank-report-table-scroll td:nth-child(11),
+.rank-report-table-scroll th:nth-child(12),
+.rank-report-table-scroll td:nth-child(12),
+.rank-report-table-scroll th:nth-child(13),
+.rank-report-table-scroll td:nth-child(13) {
+  text-align: center;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+.rank-report-table-scroll th:nth-child(5),
+.rank-report-table-scroll td:nth-child(5) {
+  text-align: right;
+  padding-left: 6px;
+  padding-right: 8px;
+}
+.rank-report-table-scroll thead th:nth-child(5) {
+  white-space: nowrap !important;
+}
+.rank-report-table-scroll td:nth-child(5) {
+  white-space: normal;
+  vertical-align: top;
+}
+.rank-report-table-scroll thead th {
+  vertical-align: middle !important;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  background-color: #f9fafb !important;
+}
+.rank-report-table-scroll thead th:nth-child(1) {
+  position: sticky !important;
+  left: 0;
+  z-index: 5;
+  background-color: #f9fafb !important;
+  box-shadow: 1px 0 0 #e7e5e4;
+}
+.rank-report-table-scroll thead th:nth-child(2) {
+  position: sticky !important;
+  left: var(--rank-sticky-w);
+  z-index: 5;
+  background-color: #f9fafb !important;
+  box-shadow: 4px 0 10px -6px rgba(28, 25, 23, 0.12);
+}
+.rank-report-table-scroll tbody tr:nth-child(even) td {
+  background: #fafaf9;
+}
+.rank-report-table-scroll tbody tr:nth-child(odd) td:nth-child(1),
+.rank-report-table-scroll tbody tr:nth-child(odd) td:nth-child(2) {
+  background: #fff;
+}
+.rank-report-table-scroll tbody tr:nth-child(even) td:nth-child(1),
+.rank-report-table-scroll tbody tr:nth-child(even) td:nth-child(2) {
+  background: #fafaf9;
+}
+.rank-data-row-alt td[data-col="rank"],
+.rank-data-row-alt td[data-col="ticker"] {
+  background: #fafaf9;
+}
+.rank-row-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  margin-right: 4px;
+  vertical-align: 1px;
+}
+.rank-row-dot[data-tone="success"] {
+  background: #16a34a;
+}
+.rank-row-dot[data-tone="warning"] {
+  background: #d97706;
+}
+.rank-row-dot[data-tone="neutral"] {
+  background: #a8a29e;
+}
+.rank-ticker-td-inner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+.rank-layout-desktop {
+  display: block;
+  width: 100%;
+}
+.rank-layout-mobile {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+.rank-row-expand-btn {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #e7e5e4;
+  border-radius: 6px;
+  background: #fafaf9;
+  color: #57534e;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+.rank-row-expand-btn:hover {
+  background: #f5f5f4;
+  color: #1c1917;
+}
+.rank-mobile-follow-row {
+  display: none;
+}
+.rank-follow-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  line-height: 1.3;
+}
+.rank-follow-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: #78716c;
+}
+.rank-follow-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1c1917;
+}
+.rank-capital-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.4;
+  text-align: right;
+}
+.rank-capital-amount,
+.rank-top-hero-num {
+  font-family: "Microsoft JhengHei UI", "PingFang TC", "Noto Sans TC", sans-serif;
+}
+.rank-capital-amount {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+.rank-money-digits,
+.rank-money-unit {
+  font-family: inherit;
+  font-size: 1em;
+  font-weight: inherit;
+  font-style: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+.rank-money-digits {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: inherit;
+}
+.rank-money-unit {
+  margin-left: 0.2em;
+  letter-spacing: 0;
+}
+.rank-capital-lots {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #6b7280;
+}
+.rank-report-data-table td[data-col="capital"],
+.rank-report-data-table thead th[data-col="capital"] {
+  text-align: right;
+}
+.rank-report-data-table thead th[data-col="capital"] {
+  white-space: nowrap !important;
+}
+.rank-report-mobile-scroll .rank-report-mobile-table {
+  width: 100% !important;
+  max-width: 100% !important;
+  table-layout: auto;
+  font-size: 14px;
+  white-space: nowrap;
+}
+/*
+ * 手機表 = 同一張桌機表（同 class：rank-report-table-scroll / rank-report-data-table），
+ * 表頭灰、斑馬紋、邊線、sticky 全部沿用；這裡只覆寫「欄寬與裁切」。
+ * 欄寬策略：排行／本金／買進日／▼ 貼內容（width:1% + nowrap）。
+ * 窄表時代號欄吸收剩餘寬；容器 ≥480px 且欄都還在時，代號改貼名稱，剩餘寬分給股息／頻率／買進日。
+ */
+.rank-report-mobile-table th,
+.rank-report-mobile-table td {
+  padding: 8px 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+.rank-report-mobile-table thead th {
+  padding: 10px 4px;
+}
+/* tbody 夾了明細列，桌機的 nth-child(even) 斑馬紋對不上 → 用 rank-data-row-alt 上色 */
+.rank-report-mobile-table tbody tr.rank-data-row td {
+  background: #fff !important;
+}
+.rank-report-mobile-table tbody tr.rank-data-row-alt td {
+  background: #fafaf9 !important;
+}
+/* 手機：排行欄「●1」只需 40px，比桌機 sticky 寬（52px）省 12px 給代號；ticker 的 left 跟著變數走 */
+.rank-report-mobile-scroll {
+  --rank-sticky-w: 2.5rem;
+  container-type: inline-size;
+  container-name: rank-mobile;
+}
+/* 最窄、月領被擠到時直接小一階。稍寬容器放得下就回到下面的 14 / 11。 */
+@container rank-mobile (max-width: 460px) {
+  .rank-report-mobile-table th[data-col="capital"],
+  .rank-report-mobile-table .rank-capital-amount {
+    font-size: 12px !important;
+  }
+  .rank-report-mobile-table .rank-capital-lots {
+    font-size: 10px !important;
+  }
+}
+.rank-report-mobile-table th[data-col="rank"],
+.rank-report-mobile-table td[data-col="rank"] {
+  width: var(--rank-sticky-w);
+  min-width: var(--rank-sticky-w);
+  max-width: var(--rank-sticky-w);
+  text-align: center;
+  white-space: nowrap;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+.rank-report-mobile-table .rank-row-dot {
+  margin-right: 3px;
+}
+.rank-report-mobile-table th[data-col="ticker"],
+.rank-report-mobile-table td[data-col="ticker"] {
+  left: var(--rank-sticky-w);
+  width: 100%;
+  max-width: 0;
+  min-width: 0;
+  text-align: left;
+  white-space: normal;
+  padding-left: 6px;
+}
+.rank-report-mobile-table td[data-col="ticker"] .rank-ticker-stack {
+  display: flex;
+  max-width: 100%;
+  min-width: 0;
+}
+.rank-report-mobile-table td[data-col="ticker"] .rank-ticker-code {
+  display: block;
+  white-space: nowrap;
+}
+/* 名稱：最多兩行才截，不在一行就砍字 */
+.rank-report-mobile-table td[data-col="ticker"] .rank-ticker-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: normal;
+  word-break: break-all;
+  line-height: 1.3;
+}
+.rank-report-mobile-table th[data-col="capital"],
+.rank-report-mobile-table td[data-col="capital"] {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+}
+.rank-report-mobile-table th[data-col="lastBuy"],
+.rank-report-mobile-table td[data-col="lastBuy"] {
+  width: 1%;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  font-variant-numeric: tabular-nums;
+  color: #57534e;
+}
+.rank-report-mobile-table th[data-col="capital"],
+.rank-report-mobile-table td[data-col="capital"] {
+  vertical-align: middle;
+}
+/* 桌機 nth-child(5)（本金欄）有 vertical-align:top，手機第 5 欄是頻率 → 這裡明確壓回 middle */
+.rank-report-mobile-table th[data-col="cashDiv"],
+.rank-report-mobile-table td[data-col="cashDiv"],
+.rank-report-mobile-table th[data-col="stockDiv"],
+.rank-report-mobile-table td[data-col="stockDiv"] {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+  vertical-align: middle;
+  font-variant-numeric: tabular-nums;
+}
+.rank-report-mobile-table th[data-col="freq"],
+.rank-report-mobile-table td[data-col="freq"] {
+  width: 1%;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+/* 股息、股利還在表上時，代號不要撐開，這兩欄才不會被推到月領右邊。 */
+.rank-report-mobile-table[data-hidden-optional="0"] th[data-col="ticker"],
+.rank-report-mobile-table[data-hidden-optional="0"] td[data-col="ticker"],
+.rank-report-mobile-table[data-hidden-optional="1"] th[data-col="ticker"],
+.rank-report-mobile-table[data-hidden-optional="1"] td[data-col="ticker"] {
+  width: 1%;
+  max-width: none;
+  min-width: 7.5rem;
+  white-space: nowrap;
+}
+.rank-report-mobile-table[data-hidden-optional="0"] td[data-col="ticker"] .rank-ticker-name,
+.rank-report-mobile-table[data-hidden-optional="1"] td[data-col="ticker"] .rank-ticker-name {
+  display: block;
+  white-space: nowrap;
+  word-break: normal;
+  -webkit-line-clamp: unset;
+}
+.rank-report-mobile-table th[data-col="expand"],
+.rank-report-mobile-table td[data-col="expand"] {
+  position: sticky;
+  right: 0;
+  z-index: 3;
+  width: 1%;
+  text-align: right;
+  padding-left: 0;
+  padding-right: 4px;
+  white-space: nowrap;
+  vertical-align: middle;
+  background: #fff;
+}
+.rank-report-mobile-table thead th[data-col="expand"] {
+  z-index: 4;
+  background: #f9fafb;
+}
+.rank-report-mobile-table tbody tr.rank-data-row td[data-col="expand"] {
+  background: #fff !important;
+}
+.rank-report-mobile-table tbody tr.rank-data-row-alt td[data-col="expand"] {
+  background: #fafaf9 !important;
+}
+/* ▼ 前面那一欄（寬時是買進日、最窄時是本金）多 12px 右內距，數字不貼按鈕 */
+.rank-report-mobile-table th:nth-last-child(2),
+.rank-report-mobile-table td:nth-last-child(2) {
+  padding-right: 12px;
+}
+/* ▼ 鈕 32→28px、去邊框改純箭頭（圓形 hover 底），視覺變輕；桌機表沒有這欄 */
+.rank-report-mobile-table .rank-row-expand-btn {
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #78716c;
+  font-size: 11px;
+}
+.rank-report-mobile-table .rank-row-expand-btn:hover,
+.rank-report-mobile-table .rank-row-expand-btn[aria-expanded="true"] {
+  background: #f0efed;
+  color: #1c1917;
+}
+.rank-report-mobile-table .rank-capital-amount {
+  font-size: 14px;
+}
+.rank-report-mobile-table .rank-capital-lots {
+  font-size: 11px;
+}
+.rank-report-mobile-table[data-capital-shrink="1"] th[data-col="capital"],
+.rank-report-mobile-table[data-capital-shrink="1"] .rank-capital-amount {
+  font-size: 12px !important;
+}
+.rank-report-mobile-table[data-capital-shrink="1"] .rank-capital-lots {
+  font-size: 10px !important;
+}
+.rank-mobile-follow-row[data-expanded="true"] {
+  display: table-row;
+}
+.rank-report-mobile-table tr.rank-mobile-follow-row td {
+  padding-top: 6px;
+  padding-bottom: 8px;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  vertical-align: top;
+}
+.rank-report-mobile-table tr.rank-mobile-follow-row td[data-col="ticker"] .rank-follow-stack {
+  align-items: flex-start;
+}
+.rank-report-mobile-table tr.rank-mobile-follow-row td[data-col="capital"] .rank-follow-stack,
+.rank-report-mobile-table tr.rank-mobile-follow-row td[data-col="cashDiv"] .rank-follow-stack {
+  align-items: flex-end;
+}
+.rank-report-mobile-table tr.rank-mobile-follow-row td[data-col="freq"] .rank-follow-stack,
+.rank-report-mobile-table tr.rank-mobile-follow-row td[data-col="lastBuy"] .rank-follow-stack {
+  align-items: center;
+}
+.rank-mobile-board {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  min-width: 0;
+}
+.rank-mobile-top-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+.rank-top-card {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  border: 1px solid #eceae6;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(28, 25, 23, 0.04);
+  overflow: hidden;
+}
+.rank-top-card[data-place="1"] {
+  border-color: #ead9b0;
+  background: #fffdf8;
+}
+.rank-top-card[data-place="2"] {
+  background: #fff;
+}
+.rank-top-card[data-place="3"] {
+  border-color: #efe4da;
+  background: #fffcf9;
+}
+.rank-top-card-head {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: 12px;
+  padding: 10px 14px 8px;
+}
+.rank-top-medal {
+  width: 36px;
+  height: 36px;
+  margin-top: 1px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+}
+.rank-top-card[data-place="1"] .rank-top-medal {
+  background: #f4e7c3;
+  color: #8a6a1f;
+}
+.rank-top-card[data-place="2"] .rank-top-medal {
+  background: #eeeae6;
+  color: #44403c;
+}
+.rank-top-card[data-place="3"] .rank-top-medal {
+  background: #f3e6dc;
+  color: #7c4a28;
+}
+.rank-top-id {
+  min-width: 0;
+}
+.rank-top-id-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  min-width: 0;
+}
+.rank-top-code {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: #1c1917;
+  line-height: 1.2;
+}
+.rank-top-name {
+  display: block;
+  margin-top: 1px;
+  font-size: 15px;
+  line-height: 1.25;
+  color: #57534e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rank-top-delta {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+.rank-top-delta-up {
+  color: #166534;
+  background: #eaf6ef;
+}
+.rank-top-delta-down {
+  color: #9a3412;
+  background: #fef2e8;
+}
+.rank-top-delta-flat {
+  color: #57534e;
+  background: #f5f5f4;
+}
+.rank-top-prev {
+  flex: 0 0 auto;
+  font-size: 14px;
+  color: #78716c;
+}
+.rank-top-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1px;
+  line-height: 1.2;
+  text-align: left;
+  white-space: nowrap;
+}
+.rank-top-hero-label {
+  width: 100%;
+  font-size: 15px;
+  line-height: 1.25;
+  color: #57534e;
+  text-align: left;
+}
+.rank-top-hero-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  width: 100%;
+}
+.rank-top-hero-num {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1c1917;
+  letter-spacing: -0.3px;
+}
+.rank-top-hero-sub {
+  margin-left: 8px;
+  padding-left: 8px;
+  border-left: 1px solid #e7e5e4;
+  font-size: 15px;
+  font-weight: 600;
+  color: #57534e;
+  font-variant-numeric: tabular-nums;
+}
+.rank-top-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 12px 10px;
+  padding-top: 8px;
+  border-top: 1px solid #f0eeec;
+}
+.rank-top-group {
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+.rank-top-group-div {
+  background: #f6f4fb;
+}
+.rank-top-group-fee {
+  background: #f3f8f5;
+}
+.rank-top-group-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px 8px;
+}
+.rank-top-field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  text-align: center;
+}
+.rank-top-field-label {
+  font-size: 14px;
+  line-height: 1.25;
+  color: #57534e;
+  white-space: nowrap;
+  text-align: center;
+}
+.rank-top-field-value {
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.3;
+  color: #1c1917;
+  white-space: nowrap;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.rank-top-field-net {
+  color: #16803d;
+}
+.rank-tablet-expand-row {
+  display: none;
+}
+.rank-tablet-expand-row[data-expanded="true"] {
+  display: table-row;
+}
+.rank-report-table-scroll tr.rank-tablet-expand-row > td {
+  position: static !important;
+  left: auto !important;
+  z-index: auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  padding: 0 !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left !important;
+  white-space: normal !important;
+  overflow: hidden;
+  vertical-align: top;
+}
+.rank-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px 8px;
+  background: #fff;
+  overflow: hidden;
+  text-align: left;
+}
+.rank-detail-band {
+  border-radius: 8px;
+  padding: 5px 8px 4px;
+  text-align: left;
+}
+.rank-detail-band-core {
+  background: #fbf3e4;
+  color: #9a6b12;
+}
+.rank-detail-band-div {
+  background: #f3f0fb;
+  color: #6d5aa8;
+}
+.rank-detail-band-fee {
+  background: #eaf6ef;
+  color: #2f8a5b;
+}
+.rank-detail-band-rank {
+  background: #eef4fc;
+  color: #3d6eaf;
+}
+.rank-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.rank-detail-mark {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: inherit;
+}
+.rank-detail-title {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: inherit;
+  white-space: nowrap;
+}
+.rank-detail-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.7fr);
+  align-items: center;
+  min-width: 0;
+}
+.rank-detail-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.rank-detail-core-value {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #1c1917;
+  font-variant-numeric: tabular-nums;
+}
+.rank-detail-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  margin-left: 8px;
+  padding-left: 8px;
+  border-left: 1px solid rgba(154, 107, 18, 0.22);
+}
+.rank-detail-side-value {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #1c1917;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.rank-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  margin-top: 2px;
+}
+.rank-detail-cell {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+  padding: 3px 8px 3px 0;
+}
+.rank-detail-cell:nth-child(even) {
+  padding: 3px 0 3px 8px;
+  border-left: 1px solid rgba(28, 25, 23, 0.08);
+}
+.rank-detail-cell:nth-child(n + 3) {
+  border-top: 1px solid rgba(28, 25, 23, 0.08);
+}
+.rank-detail-label {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.25;
+  color: #78716c;
+  white-space: nowrap;
+}
+.rank-detail-num {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #1c1917;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+.rank-detail-num-net {
+  color: #16803d;
+}
+.rank-detail-num-empty {
+  color: #a8a29e;
+  font-weight: 600;
+}
+.rank-report-table-shell[data-rank-layout="mobile"] .rank-report-mobile-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+@media (max-width: 960px) {
+  [data-rank-title-row] {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  [data-rank-title-row] [data-period-picker] {
+    width: 100%;
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+@media (max-width: 768px) {
+  [data-rank-title-row] [data-rank-h1] {
+    font-size: clamp(1.75rem, 6.2vw, 2.125rem) !important;
+    line-height: 1.42 !important;
+  }
+  .finance-dashboard-container .first-level-tabs .tab-btn {
+    padding: 7px 14px;
+    font-size: 13px;
+  }
+  .first-row-wrapper {
+    margin-bottom: 16px;
+  }
+}
+/* 分頁標籤：桌機顯示全稱，手機（<600）顯示短標 */
+.first-level-tabs .tab-label-short {
+  display: none;
+}
+@media (max-width: 599px) {
+  .first-level-tabs .tab-label-full {
+    display: none;
+  }
+  .first-level-tabs .tab-label-short {
+    display: inline;
+  }
+  /* 手機：segmented control — 四格等分填滿一行，不滑、不切字 */
+  .finance-dashboard-container .first-level-tabs {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    padding: 4px;
+    gap: 4px;
+    overflow: hidden;
+  }
+  .finance-dashboard-container .first-level-tabs .tab-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 8px 6px;
+    font-size: 13px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* 等分後第一格文字置中，第二排改貼左框線（specificity 高於下方 768 規則） */
+  .finance-dashboard-container .second-row-wrapper {
+    padding-left: 4px;
+  }
+}
+@media (max-width: 768px) {
+  .second-row-wrapper {
+    margin-bottom: 10px;
+    padding-left: 13px;
+  }
+  .rank-report-conclusion .conclusion-title {
+    font-size: 1.4375rem;
+  }
+  .rank-report-conclusion .conclusion-body {
+    font-size: 1.0625rem;
+    line-height: 1.7;
+  }
+}
+/*
+ * 非手機：不開拉條。欄位是固定寬積木。
+ * 容器寬度放不下下一欄時，整欄 display:none，不在右緣留半個字。
+ * 手機表不走這段。
+ */
+.rank-report-table-shell[data-rank-layout="desktop"] {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+.rank-desk-stack {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+}
+.rank-section-locked {
+  position: relative;
+  min-height: 280px;
+  margin-top: 8px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fafaf9;
+}
+.rank-section-locked-ghost {
+  padding: 28px 20px 36px;
+  filter: blur(7px);
+  pointer-events: none;
+  user-select: none;
+}
+.rank-section-locked-ghost span {
+  display: block;
+  height: 14px;
+  margin: 14px 0;
+  border-radius: 7px;
+  background: #e7e5e4;
+}
+.rank-section-locked-card {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform: translate(-50%, -50%);
+  width: min(440px, calc(100% - 32px));
+  padding: 22px 20px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #e7e5e4;
+  box-shadow: 0 8px 28px rgba(28, 25, 23, 0.08);
+  text-align: center;
+}
+.rank-section-locked-card h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1c1917;
+}
+.rank-section-locked-card p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #44403c;
+}
+.rank-quick4-panel {
+  margin: 14px 0 4px;
+  padding: 12px 14px;
+  border: 1px solid #e7e5e4;
+  border-radius: 16px;
+  background: #fff;
+}
+.rank-quick4-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.rank-quick4-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+  color: #57534e;
+}
+.rank-quick4-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.rank-split-note {
+  margin: 22px 0;
+  font-size: 16px;
+  line-height: 1.8;
+  letter-spacing: 0.03em;
+  color: #44403c;
+}
+.rank-desk-fit {
+  container-type: inline-size;
+  container-name: rank-desk;
+}
+@container rank-desk (max-width: 1145px) { .col-lastBuy { display: none !important; } }
+@container rank-desk (max-width: 1025px) { .col-freq { display: none !important; } }
+@container rank-desk (max-width: 945px) { .col-delta { display: none !important; } }
+@container rank-desk (max-width: 865px) { .col-prevRank { display: none !important; } }
+@container rank-desk (max-width: 775px) { .col-net { display: none !important; } }
+@container rank-desk (max-width: 685px) { .col-fee { display: none !important; } }
+@container rank-desk (max-width: 605px) { .col-nhi { display: none !important; } }
+@container rank-desk (max-width: 525px) { .col-wireFee { display: none !important; } }
+@container rank-desk (max-width: 445px) { .col-capital { display: none !important; } }
+@container rank-desk (max-width: 321px) { .col-cashDiv { display: none !important; } }
+@container rank-desk (max-width: 257px) { .col-stockDiv { display: none !important; } }
+@container rank-desk (max-width: 193px) { .col-ticker { display: none !important; } }
+/* 桌機代號欄鎖 140px，文字只跟內容一樣寬。手機表不在 .rank-desk-fit 裡。 */
+.rank-desk-fit th.col-ticker,
+.rank-desk-fit td.col-ticker {
+  text-align: left !important;
+  width: 140px !important;
+  min-width: 140px !important;
+  max-width: 140px !important;
+  box-sizing: border-box !important;
+}
+.rank-desk-fit .rank-ticker-stack {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  width: max-content !important;
+  max-width: 100% !important;
+}
+.rank-desk-fit .rank-ticker-code,
+.rank-desk-fit .rank-ticker-name {
+  text-align: left !important;
+  width: max-content !important;
+  display: block !important;
+}
+.rank-report-table-shell[data-rank-layout="desktop"] .rank-report-table-scroll {
+  display: block;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden;
+}
+.rank-report-table-shell[data-rank-layout="desktop"] .rank-report-data-table {
+  width: max-content !important;
+  min-width: 100% !important;
+  max-width: none !important;
+}
+.rank-report-table-shell[data-rank-layout="desktop"] .rank-report-data-table th,
+.rank-report-table-shell[data-rank-layout="desktop"] .rank-report-data-table td {
+  white-space: nowrap !important;
+  overflow: visible;
+  text-overflow: clip;
+  max-width: none;
+}

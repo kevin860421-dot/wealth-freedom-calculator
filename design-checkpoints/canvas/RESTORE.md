@@ -1,5 +1,14 @@
 # Canvas 樣板還原
 
+部落格預覽（手機第四名上方也有月領列、股利股息在有空時留在表上、月領與箭頭間距 12px）：
+
+Git tag：`checkpoint/blog-rank-mobile-row-2026-09-28`
+
+```powershell
+cd "d:\吳鎧全的資料\73_Wealth Freedom Calculator"
+git checkout checkpoint/blog-rank-mobile-row-2026-09-28 -- "app/blog/after-tax-rank-canvas-table.tsx" "app/blog/after-tax-rank-canvas.css" "app/blog/blog-after-tax-rank-table.tsx" "app/blog/2026-08-after-tax-dividend-rank/page.tsx" "lib/blog/after-tax-rank.ts"
+```
+
 Cursor 預覽用路徑：
 
 `%USERPROFILE%\.cursor\projects\d-73-Wealth-Freedom-Calculator\canvases\after-tax-dividend-report-template.canvas.tsx`
