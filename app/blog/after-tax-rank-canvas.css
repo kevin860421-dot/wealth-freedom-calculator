@@ -1320,6 +1320,31 @@
 .rank-mobile-board .rank-split-note {
   margin-bottom: 48px;
 }
+
+/* 這頁是白底。全站 color-scheme: dark 會把系統拉條畫成黑色，這裡改成淺灰自訂拉條。 */
+html:has(.finance-dashboard-container) {
+  color-scheme: light;
+  scrollbar-width: thin;
+  scrollbar-color: #d6d3d1 #f5f5f4;
+}
+html:has(.finance-dashboard-container)::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+html:has(.finance-dashboard-container)::-webkit-scrollbar-track {
+  background: #f5f5f4;
+}
+html:has(.finance-dashboard-container)::-webkit-scrollbar-thumb {
+  background: #d6d3d1;
+  border: 2px solid #f5f5f4;
+  border-radius: 999px;
+}
+html:has(.finance-dashboard-container)::-webkit-scrollbar-thumb:hover {
+  background: #a8a29e;
+}
+html:has(.finance-dashboard-container)::-webkit-scrollbar-corner {
+  background: #f5f5f4;
+}
 .rank-desk-fit {
   container-type: inline-size;
   container-name: rank-desk;
