@@ -11,6 +11,7 @@ import {
   isBlogPostPublished,
   type BlogPostRegistryEntry,
 } from "../posts/registry";
+import { AFTER_TAX_RANK_LATEST_SLUG } from "@/lib/blog/after-tax-rank-series";
 import styles from "./report.module.css";
 
 export const dynamic = "force-dynamic";
@@ -110,9 +111,14 @@ function Published() {
     <article className={styles.page}>
       <div className={styles.wrap}>
         {articleJsonLd()}
-        <Link href="/blog" className={styles.back}>
-          ← 部落格列表
-        </Link>
+        <p className={styles.backRow}>
+          <Link href="/blog" className={styles.back}>
+            ← 部落格列表
+          </Link>
+          <Link href={blogPostPath(AFTER_TAX_RANK_LATEST_SLUG)} className={styles.back}>
+            固定入口：月領1萬要多少本金
+          </Link>
+        </p>
         <p className={styles.kicker}>稅後實領月報 · 第 1 期 · 不插入小計算機文排程</p>
         <BlogAfterTaxRankChrome
           headline={H1}

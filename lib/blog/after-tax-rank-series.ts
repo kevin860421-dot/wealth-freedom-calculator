@@ -8,6 +8,17 @@ export function afterTaxRankSlug(year: number, month: number): string {
   return `${year}-${String(month).padStart(2, "0")}-after-tax-dividend-rank`;
 }
 
+/** 不帶月份的固定入口。內容改連到最新一期，網址本身不換。 */
+export const AFTER_TAX_RANK_LATEST_SLUG = "after-tax-dividend-rank";
+
+/** 稅後實領月報系列路由（吃錢彈窗不顯示）。含固定入口與各期紀錄。 */
+const AFTER_TAX_RANK_BLOG_PATH_RE =
+  /^\/blog\/(?:\d{4}-\d{2}-)?after-tax-dividend-rank\/?$/;
+
+export function isAfterTaxRankBlogPath(pathname: string): boolean {
+  return AFTER_TAX_RANK_BLOG_PATH_RE.test(pathname);
+}
+
 /** 附榜分頁：以最近一期入帳配息回推排行（`month` 保留供系列期別 API 相容）。 */
 export function afterTaxLastBasisTabLabel(_month: number): string {
   return "近一個月排行";
@@ -40,7 +51,11 @@ export type AfterTaxRankIssue = {
   asOf: string;
 };
 
-/** 已有快照、可以打開的期數。未列在這裡的月份只存在於本系列範圍，尚未發布。 */
+/**
+ * 已有快照、可以打開的期數。每一期一條網址，下一期不改寫上一期。
+ * 未列在這裡的月份只存在於本系列範圍，尚未發布。
+ * 固定入口 `/blog/after-tax-dividend-rank` 讀這份清單裡已公開的最新一期。
+ */
 export const AFTER_TAX_RANK_ISSUES: AfterTaxRankIssue[] = [
   {
     year: 2026,

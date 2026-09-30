@@ -1,0 +1,49 @@
+.page {
+  min-height: 100vh;
+  background: #fff;
+  color: #1c1917;
+}
+
+.wrap {
+  box-sizing: border-box;
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 2.25rem 16px 4rem;
+  font-size: 1.0625rem;
+  line-height: 1.72;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 1.25rem;
+  font-size: 0.875rem;
+  color: #1d4ed8;
+}
+
+.kicker {
+  margin: 0 0 0.85rem;
+  font-size: 0.875rem;
+  color: #57534e;
+}
+
+.title {
+  margin: 0 0 1rem;
+  font-size: 1.75rem;
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+.body {
+  margin: 0 0 1rem;
+}
+
+.issueLink {
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.note {
+  margin: 1.5rem 0 0;
+  font-size: 0.875rem;
+  color: #57534e;
+}

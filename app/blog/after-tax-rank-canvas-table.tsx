@@ -1,6 +1,6 @@
 'use client';
 
-import { cloneElement, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { cloneElement, useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import "./after-tax-rank-canvas.css";
 
 type Freq = "月" | "季" | "半年" | "年";
@@ -419,6 +419,98 @@ function renderRankMediumExpandRow(
   );
 }
 
+function RankTopName({ name }: { name: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const fit = () => {
+      let size = 15;
+      el.style.fontSize = "15px";
+      while (size > 9 && el.scrollWidth > el.clientWidth + 1) {
+        size -= 1;
+        el.style.fontSize = `${size}px`;
+      }
+    };
+    fit();
+    const parent = el.parentElement;
+    if (!parent) return;
+    const observer = new ResizeObserver(fit);
+    observer.observe(parent);
+    return () => observer.disconnect();
+  }, [name]);
+  return (
+    <span ref={ref} className="rank-top-name">
+      {name}
+    </span>
+  );
+}
+
+function RankTopHero({
+  label,
+  amount,
+  lots,
+}: {
+  label: string;
+  amount: number;
+  lots: string;
+}) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const fit = () => {
+      const labelEl = root.querySelector<HTMLElement>(".rank-top-hero-label");
+      const lineEl = root.querySelector<HTMLElement>(".rank-top-hero-line");
+      const numEl = root.querySelector<HTMLElement>(".rank-top-hero-num");
+      const subEl = root.querySelector<HTMLElement>(".rank-top-hero-sub");
+      if (!labelEl || !lineEl || !numEl || !subEl) return;
+      labelEl.style.fontSize = "";
+      numEl.style.fontSize = "";
+      subEl.style.fontSize = "";
+      const box = Math.max(0, lineEl.clientWidth - 2);
+      if (box <= 0) return;
+      const used = (el: HTMLElement) => {
+        const style = getComputedStyle(el);
+        return el.scrollWidth + parseFloat(style.marginLeft) + parseFloat(style.marginRight);
+      };
+      const fitOne = (el: HTMLElement, base: number, width: number) => {
+        if (width <= 0 || el.scrollWidth <= width + 1) {
+          el.style.fontSize = "";
+          return;
+        }
+        const next = Math.max(12, base * (width / el.scrollWidth));
+        el.style.fontSize = `${next}px`;
+      };
+      fitOne(labelEl, 15, labelEl.clientWidth);
+      const need = used(numEl) + used(subEl);
+      if (need <= box + 1) return;
+      const ratio = box / need;
+      numEl.style.fontSize = `${Math.max(12, 22 * ratio)}px`;
+      subEl.style.fontSize = `${Math.max(12, 15 * ratio)}px`;
+      const needAfter = used(numEl) + used(subEl);
+      if (needAfter > box + 1) {
+        const again = box / needAfter;
+        numEl.style.fontSize = `${Math.max(12, parseFloat(numEl.style.fontSize) * again)}px`;
+        subEl.style.fontSize = `${Math.max(12, parseFloat(subEl.style.fontSize) * again)}px`;
+      }
+    };
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(root);
+    return () => observer.disconnect();
+  }, [label, amount, lots]);
+  return (
+    <div ref={rootRef} className="rank-top-hero">
+      <span className="rank-top-hero-label">{label}</span>
+      <span className="rank-top-hero-line">
+        <MoneyYuan amount={amount} className="rank-top-hero-num" />
+        <span className="rank-top-hero-sub">{lots} 張</span>
+      </span>
+    </div>
+  );
+}
+
 function RankMobileTopCard({ row, capitalLabel }: { row: Derived; capitalLabel: string }) {
   const place = row.rank <= 1 ? "1" : row.rank === 2 ? "2" : "3";
   const deltaDir = row.prevRank === 0 ? "flat" : row.delta > 0 ? "up" : row.delta < 0 ? "down" : "flat";
@@ -463,15 +555,9 @@ function RankMobileTopCard({ row, capitalLabel }: { row: Derived; capitalLabel: 
             <span className={`rank-top-delta rank-top-delta-${deltaDir}`}>{deltaText}</span>
             {prevText ? <span className="rank-top-prev">{prevText}</span> : null}
           </div>
-          <span className="rank-top-name">{row.name}</span>
+          <RankTopName name={row.name} />
         </div>
-        <div className="rank-top-hero">
-          <span className="rank-top-hero-label">{capitalLabel}</span>
-          <span className="rank-top-hero-line">
-            <MoneyYuan amount={row.capital} className="rank-top-hero-num" />
-            <span className="rank-top-hero-sub">{lotsLabel(row.lots)} 張</span>
-          </span>
-        </div>
+        <RankTopHero label={capitalLabel} amount={row.capital} lots={lotsLabel(row.lots)} />
       </div>
       <div className="rank-top-card-body">
         {group("div", payout)}
@@ -838,7 +924,9 @@ function RankReportResponsiveTable({
       ) : (
       <div className="rank-mobile-board">
         <div className="rank-mobile-top-cards">
-          {rows.slice(0, 3).map((row) => RankMobileTopCard({ row, capitalLabel }))}
+          {rows.slice(0, 3).map((row) => (
+            <RankMobileTopCard key={row.ticker} row={row} capitalLabel={capitalLabel} />
+          ))}
         </div>
         {rows.length > 3 ? <RankSplitNote rows={rows} /> : null}
         {rows.length > 3 ? aboveRank4 : null}

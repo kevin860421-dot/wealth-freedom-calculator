@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { QuickStepperSliderField } from "@/app/components/quick-stepper-slider";
+import { EtfFilterAutocomplete } from "@/app/components/etf-filter-autocomplete";
 import { INVEST_ANNUAL_PCT } from "@/app/quick-3/logic";
 import {
   MONEY_MAX,
@@ -12,7 +13,12 @@ import {
   commitYearsFromRaw,
 } from "@/app/quick-4/logic";
 import { TICKER_PRESETS } from "@/app/ticker-presets";
-import { AFTER_TAX_RANK_2026_08, AFTER_TAX_RANK_2026_08_ETF } from "./posts/after-tax-rank-2026-08";
+import {
+  AFTER_TAX_RANK_2026_08,
+  AFTER_TAX_RANK_2026_08_ETF,
+  AFTER_TAX_RANK_2026_08_ETF_AUDITED,
+  AFTER_TAX_RANK_2026_08_STOCK,
+} from "./posts/after-tax-rank-2026-08";
 import {
   AFTER_TAX_DEFAULT_MONTHLY_NET,
   AFTER_TAX_RANK_NHI_THRESHOLD,
@@ -50,8 +56,8 @@ type SectionId = (typeof SECTION_TABS)[number]["id"];
 
 const SECTION_OPEN: Record<SectionId, boolean> = {
   "total-rank": true,
-  "etf-focus-pk": false,
-  "stock-rent": false,
+  "etf-focus-pk": true,
+  "stock-rent": true,
   "ex-div-preview": false,
 };
 
@@ -190,6 +196,7 @@ function MonthlyTargetField({
 
 function RankInvestPanel({
   ticker,
+  codeLabel,
   capital,
   monthlyTarget,
   monthlyText,
@@ -197,13 +204,16 @@ function RankInvestPanel({
   commitMonthlyText,
 }: {
   ticker: string;
+  codeLabel: string;
   capital: number;
   monthlyTarget: number;
   monthlyText: string;
   onMonthlyText: (value: string) => void;
   commitMonthlyText: (raw: string) => void;
 }) {
-  const annualPct = TICKER_PRESETS.find((preset) => preset.id === ticker)?.annualReturn ?? INVEST_ANNUAL_PCT;
+  const [activeTicker, setActiveTicker] = useState(ticker);
+  const [codeText, setCodeText] = useState(ticker);
+  const annualPct = TICKER_PRESETS.find((preset) => preset.id === activeTicker)?.annualReturn ?? INVEST_ANNUAL_PCT;
   const linkDriver = useRef<"target" | "invest" | "years">("target");
   const [monthlyInvest, setMonthlyInvest] = useState(5_000);
   const [monthlyInvestText, setMonthlyInvestText] = useState("5,000");
@@ -290,10 +300,32 @@ function RankInvestPanel({
   };
 
   return (
-    <div className="quick4-blog-paper rank-invest-card">
+    <>
+      <p className="rank-invest-preface">
+        如果現在存{activeTicker}，要月領{monthlyPhrase(monthlyTarget)}，我每個月要投資多少？
+      </p>
+      <div className="quick4-blog-paper rank-invest-card">
       <label className="rank-invest-code">
-        <span>ETF 代碼</span>
-        <input readOnly value={ticker ?? ""} onChange={() => {}} aria-label="ETF 代碼" />
+        <span>{codeLabel}</span>
+        <EtfFilterAutocomplete
+          variant="paper"
+          value={codeText}
+          placeholder={codeLabel === "個股代碼" ? "例：2330、台積電" : "例：0050、元大"}
+          title={codeLabel}
+          onChange={(raw) => {
+            setCodeText(raw);
+            const code = raw.replace(/\s/g, "");
+            const exact = TICKER_PRESETS.find((preset) => preset.id === code);
+            if (!exact) return;
+            linkDriver.current = "target";
+            setActiveTicker(exact.id);
+          }}
+          onSelectEtf={(id) => {
+            linkDriver.current = "target";
+            setCodeText(id);
+            setActiveTicker(id);
+          }}
+        />
       </label>
       <QuickStepperSliderField
         label={
@@ -374,6 +406,7 @@ function RankInvestPanel({
         若每月投入 {formatRankMoney(monthlyInvest)} 元、存 {years} 年，約累積 {formatRankMoney(piled)} 元。月領所需本金是 {formatRankMoney(capital)} 元。
       </p>
     </div>
+    </>
   );
 }
 
@@ -437,10 +470,12 @@ export function BlogAfterTaxRankTable() {
   const [section, setSection] = useState<SectionId>("total-rank");
   const [monthlyText, setMonthlyText] = useState(String(AFTER_TAX_DEFAULT_MONTHLY_NET));
   const [monthlyTarget, setMonthlyTarget] = useState(AFTER_TAX_DEFAULT_MONTHLY_NET);
-  const ranked = useMemo(
-    () => deriveAfterTaxRank(AFTER_TAX_RANK_2026_08_ETF, basis),
-    [basis],
-  );
+  const snapshot = useMemo(() => {
+    if (section === "stock-rent") return AFTER_TAX_RANK_2026_08_STOCK;
+    if (section === "etf-focus-pk") return AFTER_TAX_RANK_2026_08_ETF_AUDITED;
+    return AFTER_TAX_RANK_2026_08_ETF;
+  }, [section]);
+  const ranked = useMemo(() => deriveAfterTaxRank(snapshot, basis), [snapshot, basis]);
   const rows = useMemo(
     () =>
       withMonthlyTarget(ranked.slice(0, AFTER_TAX_RANK_TOTAL_TOP_N), basis, monthlyTarget).map(
@@ -485,6 +520,10 @@ export function BlogAfterTaxRankTable() {
   return (
     <div className="finance-dashboard-container">
       <div className="rank-report-conclusion">
+        <p className="conclusion-body rank-report-lead">
+          大家好～又過了一個月，我們來看看上個月誰是股王。這邊的月領，都是用近一期的數據，平均成一個月的利息來算。另外近
+          12 個月是以每期現金配息的中位數來算，所以排名會略有不同。僅供參考，實際以自己實際情況為主。接著就進入本期的重點。
+        </p>
         <h2 className="conclusion-title">本期結論</h2>
         <p className="conclusion-body">
           {lead
@@ -495,7 +534,9 @@ export function BlogAfterTaxRankTable() {
           {nhiHits > 0
             ? `有 ${nhiHits} 檔在「持有達月領一萬張數」時，${meta.lastPayoutInflowLabel}超過二代健保 ${formatRankMoney(AFTER_TAX_RANK_NHI_THRESHOLD)} 元門檻。`
             : `本期在達標張數下，${meta.lastPayoutInflowLabel}都未過二代健保門檻。`}
-          00919 在 8/31 公告 1.10 元，除息日 9/16，未列入本期上一期。
+          {section === "stock-rent"
+            ? "個股股價與配息用標的預設，排序與總排行同一套本金公式。"
+            : "00919 在 8/31 公告 1.10 元，除息日 9/16，未列入本期上一期。"}
         </p>
       </div>
       <div className="first-row-wrapper">
@@ -546,21 +587,24 @@ export function BlogAfterTaxRankTable() {
               }
             />
           </div>
-          <p className="rank-split-note">資料截止 {meta.asOf}。收盤 {meta.asOf}；除息 {meta.asOf}。</p>
+          <p className="rank-split-note">
+            {section === "stock-rent"
+              ? "個股由標的預設自動產生，再用同一套本金公式排序。股價與配息是參考值，尚未以本期 e添富覆核。"
+              : section === "etf-focus-pk"
+                ? `資料截止 ${meta.asOf}。這一頁只列本期已覆核的 ETF，排序公式與總排行相同。`
+                : `資料截止 ${meta.asOf}。收盤 ${meta.asOf}；除息 ${meta.asOf}。`}
+          </p>
           {scaledLead ? (
-            <>
-              <p className="rank-invest-preface">
-                如果現在存{scaledLead.ticker}，要月領{monthlyPhrase(monthlyTarget)}，我每個月要投資多少？
-              </p>
-              <RankInvestPanel
-                ticker={scaledLead.ticker}
-                capital={scaledLead.capital}
-                monthlyTarget={monthlyTarget}
-                monthlyText={monthlyText}
-                onMonthlyText={onMonthlyText}
-                commitMonthlyText={commitMonthlyText}
-              />
-            </>
+            <RankInvestPanel
+              key={section}
+              ticker={scaledLead.ticker}
+              codeLabel={section === "stock-rent" ? "個股代碼" : "ETF 代碼"}
+              capital={scaledLead.capital}
+              monthlyTarget={monthlyTarget}
+              monthlyText={monthlyText}
+              onMonthlyText={onMonthlyText}
+              commitMonthlyText={commitMonthlyText}
+            />
           ) : null}
           {/* 第四台先隱藏 */}
         </>

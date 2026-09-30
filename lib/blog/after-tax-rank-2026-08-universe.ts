@@ -37,18 +37,29 @@ function presetToSnapshotRow(
   };
 }
 
-export function buildAfterTaxRank202608EtfUniverse(): AfterTaxRankSnapshotRow[] {
+function buildAfterTaxRank202608ByKind(kind: "ETF" | "股票"): AfterTaxRankSnapshotRow[] {
   const auditedByTicker = new Map(
     AFTER_TAX_RANK_2026_08_ETF_AUDITED.map((row) => [row.ticker, row]),
   );
   const out: AfterTaxRankSnapshotRow[] = [];
   for (const preset of TICKER_PRESETS) {
-    if (tickerAssetKind(preset.label) !== "ETF") continue;
+    if (tickerAssetKind(preset.label) !== kind) continue;
     const audited = auditedByTicker.get(preset.id);
-    out.push(audited ?? presetToSnapshotRow(preset));
+    const row = audited ?? presetToSnapshotRow(preset);
+    if (kind === "股票" && (row.price <= 0 || (row.lastCashPerUnit <= 0 && row.ttmCashPerUnit <= 0))) {
+      continue;
+    }
+    out.push(row);
   }
   return out;
 }
 
+export function buildAfterTaxRank202608EtfUniverse(): AfterTaxRankSnapshotRow[] {
+  return buildAfterTaxRank202608ByKind("ETF");
+}
+
 /** 2026-08 月報 ETF 母體（含已覆核標的 + 其餘 ETF 試算預設）。 */
 export const AFTER_TAX_RANK_2026_08_ETF = buildAfterTaxRank202608EtfUniverse();
+
+/** 2026-08 個股母體。同一套快照列產生器，股價與配息沿用標的預設，尚未以 e添富覆核。 */
+export const AFTER_TAX_RANK_2026_08_STOCK = buildAfterTaxRank202608ByKind("股票");

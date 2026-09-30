@@ -258,6 +258,9 @@
   line-height: 1.72;
   color: #292524;
 }
+.rank-report-conclusion .rank-report-lead {
+  margin: 0 0 16px;
+}
 .rank-report-table-scroll {
   --rank-sticky-w: 3.25rem;
   width: 100% !important;
@@ -780,7 +783,7 @@
 }
 .rank-top-card-head {
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) auto;
+  grid-template-columns: 36px minmax(6.5rem, 1fr) minmax(11rem, 1.45fr);
   align-items: start;
   column-gap: 12px;
   padding: 10px 14px 8px;
@@ -810,12 +813,16 @@
   color: #7c4a28;
 }
 .rank-top-id {
+  position: relative;
+  z-index: 1;
   min-width: 0;
+  container-type: inline-size;
+  container-name: rank-top-id;
 }
 .rank-top-id-line {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px 8px;
   min-width: 0;
 }
@@ -834,15 +841,15 @@
   color: #57534e;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 .rank-top-delta {
   flex: 0 0 auto;
   border-radius: 999px;
-  padding: 2px 8px;
-  font-size: 14px;
+  padding: 1px 6px;
+  font-size: 12px;
   font-weight: 650;
-  line-height: 1.35;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 .rank-top-delta-up {
   color: #166534;
@@ -866,12 +873,20 @@
   flex-direction: column;
   align-items: stretch;
   gap: 1px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   line-height: 1.2;
   text-align: left;
   white-space: nowrap;
+  container-type: inline-size;
+  container-name: rank-top-hero;
 }
 .rank-top-hero-label {
+  display: block;
   width: 100%;
+  max-width: 100%;
+  overflow: hidden;
   font-size: 15px;
   line-height: 1.25;
   color: #57534e;
@@ -882,16 +897,21 @@
   align-items: baseline;
   justify-content: flex-start;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 .rank-top-hero-num {
+  flex: 0 0 auto;
   font-size: 22px;
   font-weight: 700;
   color: #1c1917;
   letter-spacing: -0.3px;
 }
 .rank-top-hero-sub {
-  margin-left: 8px;
-  padding-left: 8px;
+  flex: 0 0 auto;
+  margin-left: 6px;
+  padding-left: 6px;
   border-left: 1px solid #e7e5e4;
   font-size: 15px;
   font-weight: 600;
@@ -1255,7 +1275,7 @@
   gap: 12px;
   margin: 0 0 22px;
   padding: 12px;
-  border: 1px solid #e7e5e4;
+  border: 1px solid transparent;
   border-radius: 14px;
   background: #fff;
 }
@@ -1265,16 +1285,6 @@
   font-size: 15px;
   font-weight: 800;
   color: #1c1917;
-}
-.rank-invest-code input {
-  height: 44px;
-  border: 1px solid #d6d3d1;
-  border-radius: 12px;
-  background: #fff;
-  color: #1c1917;
-  font-size: 20px;
-  font-weight: 900;
-  padding: 0 12px;
 }
 .rank-invest-fields {
   display: grid;

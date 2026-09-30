@@ -13,6 +13,8 @@ type EtfFilterAutocompleteProps = {
   title?: string;
   height?: number;
   inputStyle?: CSSProperties;
+  /** 白底頁面用。結構與深色版相同，只換顏色。 */
+  variant?: "paper";
 };
 
 type DropdownPos = { top: number; left: number; width: number };
@@ -25,6 +27,7 @@ export function EtfFilterAutocomplete({
   title,
   height = 44,
   inputStyle,
+  variant,
 }: EtfFilterAutocompleteProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -75,7 +78,7 @@ export function EtfFilterAutocomplete({
   );
 
   return (
-    <div className={styles.wrap} ref={wrapRef}>
+    <div className={`${styles.wrap}${variant === "paper" ? ` ${styles.paper}` : ""}`} ref={wrapRef}>
       <input
         ref={inputRef}
         type="text"

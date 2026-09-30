@@ -6,7 +6,10 @@ import {
 } from "@/lib/blog/after-tax-rank-series";
 
 export { AFTER_TAX_RANK_2026_08_ETF_AUDITED } from "./after-tax-rank-2026-08-audited";
-export { AFTER_TAX_RANK_2026_08_ETF } from "@/lib/blog/after-tax-rank-2026-08-universe";
+export {
+  AFTER_TAX_RANK_2026_08_ETF,
+  AFTER_TAX_RANK_2026_08_STOCK,
+} from "@/lib/blog/after-tax-rank-2026-08-universe";
 
 const RANK_MONTH = afterTaxRankPeriodMonth("2026-08");
 
