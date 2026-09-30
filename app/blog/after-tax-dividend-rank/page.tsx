@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArticlePublishStamp } from "../article-publish-stamp";
 import { BlogScheduledPlaceholder } from "../blog-scheduled-placeholder";
 import { AFTER_TAX_RANK_2026_08_ETF } from "../posts/after-tax-rank-2026-08";
 import {
@@ -157,7 +156,6 @@ export default function AfterTaxRankLatestPage() {
         <p className={styles.note}>
           {period}的網址會留著。下一期換成新網址，這一頁改連到新的那期。
         </p>
-        <ArticlePublishStamp publishAtIso={latest.entry.publishAtIso} />
       </div>
     </article>
   );

@@ -131,6 +131,18 @@
   line-height: 1.72;
 }
 
+.article :global(.rank-split-bridge) {
+  margin: 36px 0;
+}
+
+@media (min-width: 769px) {
+  .article :global(.rank-invest-preface) {
+    max-width: 40rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
 .article a {
   color: #1d4ed8;
 }

@@ -61,12 +61,20 @@ const SECTION_OPEN: Record<SectionId, boolean> = {
   "ex-div-preview": false,
 };
 
+/** 搶先除息這格是 9/22 09:30，不是 8/22。到點就開，不看「現在是幾月」。 */
+const EX_DIV_RELEASE_ISO = "2026-09-22T09:30:00+08:00";
+
 const SECTION_RELEASE: Record<SectionId, string> = {
   "total-rank": "2026/8/1 09:30",
   "etf-focus-pk": "2026/8/8 09:30",
   "stock-rent": "2026/8/15 09:30",
-  "ex-div-preview": "2026/8/22 09:30",
+  "ex-div-preview": "2026/9/22 09:30",
 };
+
+function sectionIsOpen(id: SectionId, now: Date): boolean {
+  if (id !== "ex-div-preview") return SECTION_OPEN[id];
+  return now.getTime() >= new Date(EX_DIV_RELEASE_ISO).getTime();
+}
 
 function evaluateMonthly(raw: string): number | null {
   const src = raw
@@ -491,7 +499,7 @@ export function BlogAfterTaxRankTable() {
     return toCanvasRow(withMonthlyTarget([top], basis, monthlyTarget)[0]);
   }, [ranked, basis, monthlyTarget]);
   const nhiHits = ranked.filter((row) => row.nhi > 0).length;
-  const sectionOpen = SECTION_OPEN[section];
+  const sectionOpen = sectionIsOpen(section, new Date());
   const capitalLabel = capitalColumnLabel(monthlyTarget);
 
   function onMonthlyText(next: string) {
@@ -557,7 +565,18 @@ export function BlogAfterTaxRankTable() {
           ))}
         </div>
       </div>
-      {sectionOpen ? (
+      {sectionOpen && section === "ex-div-preview" ? (
+        <div className="rank-report-conclusion">
+          <h2 className="conclusion-title">9月已公告的最後買進日</h2>
+          <p className="conclusion-body">
+            這一格的公開時間是 2026/9/22 09:30。只列 8/31 截止日前已公告、除息日落在 9 月的。之後才公告的不補進這篇。
+          </p>
+          <p className="conclusion-body">
+            00919（群益台灣精選高息）在 8/31 公告每單位 1.10 元。除息日 9/16，最後買進日 9/15，發放日 10/15。來源：中央社
+            2026/8/31。
+          </p>
+        </div>
+      ) : sectionOpen ? (
         <>
           <BasisAndMonthlyRow
             basis={basis}

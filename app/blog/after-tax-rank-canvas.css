@@ -1279,6 +1279,14 @@
   border-radius: 14px;
   background: #fff;
 }
+@media (min-width: 769px) {
+  .rank-invest-preface,
+  .rank-invest-card {
+    max-width: 40rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
 .rank-invest-code {
   display: grid;
   gap: 6px;

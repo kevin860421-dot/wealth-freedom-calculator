@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArticlePublishStamp } from "../article-publish-stamp";
 import { BlogScheduledPlaceholder } from "../blog-scheduled-placeholder";
 import { BlogAfterTaxRankTable } from "../blog-after-tax-rank-table";
 import { BlogAfterTaxRankChrome } from "./rank-chrome";
@@ -137,7 +136,6 @@ function Published() {
           </div>
         </div>
         </BlogAfterTaxRankChrome>
-        <ArticlePublishStamp publishAtIso={entry.publishAtIso} />
       </div>
     </article>
   );

@@ -572,14 +572,14 @@ function RankSplitNote({ rows }: { rows: Derived[] }) {
   if (top.length === 0 || rows.length <= 3) return null;
   if (top[0].ticker === "00929") {
     return (
-      <p className="rank-split-note">
+      <p className="rank-split-note rank-split-bridge">
         這一期 00929 復華台灣科技優息排最前面，是因為 6 月 29 日換股之後，8 月仍配 0.38 元。當時買進鴻海、廣達、緯創，以及中華電、台灣大、遠傳，並賣出台積電、聯發科。
       </p>
     );
   }
   const lead = top.map((row) => `${row.ticker} ${row.name}`).join("、");
   return (
-    <p className="rank-split-note">這一期第 1 名到第 3 名是 {lead}。</p>
+    <p className="rank-split-note rank-split-bridge">這一期第 1 名到第 3 名是 {lead}。</p>
   );
 }
 
