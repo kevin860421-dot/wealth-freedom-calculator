@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { WF_BLOG_CALCULATOR_CTA_ID } from "../blog-calculator-cta";
 import { ArticlePublishStamp } from "../article-publish-stamp";
 import { BlogScheduledPlaceholder } from "../blog-scheduled-placeholder";
 import { BlogAfterTaxRankTable } from "../blog-after-tax-rank-table";
@@ -124,46 +123,6 @@ function Published() {
         >
         <div className={styles.article}>
           <BlogAfterTaxRankTable />
-
-          <h2>這張表在解釋什麼？</h2>
-          <p>
-            月配單期看起來小、季配單期看起來大。主榜取截止日前已除息各期金額的中位數（有完整近一年樣本者優先；未滿
-            12 個月的列在表內註記，避免假第一）。
-          </p>
-          <p>
-            二代健保看「持有達月領一萬張數」時，{meta.lastPayoutInflowLabel}
-            有沒有超過 2 萬。沒過就是 0。
-          </p>
-
-          <h2>月領一萬要多少本金？</h2>
-          <p>
-            公式鎖死：先依頻率把「股息」換算成每張年現金配息（稅前），再用 120,000 除出達月領 1
-            萬毛額目標的張數；本金＝張數×1,000×收盤價。排行依本金由低到高（越少越前）。主榜以近 12
-            個月每期配息中位數為常態股息；缺逐期資料時回退上一期或均分期數。健保欄仍用
-            {meta.lastPayoutInflowLabel}試算。
-          </p>
-          <Link
-            id={WF_BLOG_CALCULATOR_CTA_ID}
-            href="/"
-            className={styles.cta}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            用財富自由計算機改成你的稅與張數（另開分頁）→
-          </Link>
-
-          <h2>為什麼不用單期年化來排第一？</h2>
-          <p>
-            把一季配息乘 4，肥單會變成假之王。主榜用各期配息中位數，不讓單次極端值拉歪排行。
-          </p>
-          <h2>配息月份是除息日嗎？</h2>
-          <p>
-            不是。投信寫的配息月份常是評價月。這張表的最後買進日、除息日以 e添富清單為準。
-          </p>
-          <h2>二代健保什麼時候會扣？</h2>
-          <p>
-            單筆股利所得給付超過 2 萬，補充保費示意 2.11%。達標張數下單筆沒過門檻，本表顯示 0。
-          </p>
 
           <div className={styles.disclaimer}>
             <p>

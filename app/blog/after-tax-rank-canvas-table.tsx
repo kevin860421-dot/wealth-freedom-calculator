@@ -481,99 +481,6 @@ function RankMobileTopCard({ row, capitalLabel }: { row: Derived; capitalLabel: 
   );
 }
 
-function payoutsPerYear(freq: Freq): number {
-  if (freq === "月") return 12;
-  if (freq === "季") return 4;
-  if (freq === "半年") return 2;
-  return 1;
-}
-
-function dividendMonthsForFreq(freq: Freq): number[] {
-  if (freq === "月") return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-  if (freq === "季") return [3, 6, 9, 12];
-  if (freq === "半年") return [6, 12];
-  return [6];
-}
-
-function quick4BuyFee(amount: number): number {
-  if (amount <= 0) return 0;
-  return Math.max(20, Math.round(amount * 0.001425));
-}
-
-/** 與第 4 台相同口徑：20% 級距、54C 全計、8.5% 抵減、單筆 2 萬才扣二代健保。 */
-function quick4AfterTaxNet(gross: number, periodsPerYear: number): number {
-  if (gross <= 0) return 0;
-  if (gross < 20000) return gross;
-  const credit = Math.min(gross * 0.085, 80000 / Math.max(1, periodsPerYear));
-  const tax = Math.max(0, gross * 0.2 - credit);
-  const nhi2 = gross * 0.0211;
-  return Math.max(0, gross - tax - nhi2);
-}
-
-function projectQuick4(row: Derived, basis: RankBasis, monthly: number, years: number) {
-  const annualCash =
-    basis === "ttm" && row.ttmCashPerUnit > 0
-      ? row.ttmCashPerUnit
-      : row.lastCashPerUnit * payoutsPerYear(row.freq);
-  const annualPct = row.price > 0 ? (annualCash / row.price) * 100 : 0;
-  const months = dividendMonthsForFreq(row.freq);
-  const annualRate = Math.min(99, Math.max(0, annualPct)) / 100;
-  const add = Math.max(0, monthly - quick4BuyFee(monthly));
-  let balance = 0;
-  let lastDividendMonth = -1;
-  const totalMonths = Math.max(1, Math.round(years) * 12);
-  let lastNet = 0;
-  for (let monthIndex = 0; monthIndex < totalMonths; monthIndex++) {
-    const calMonth = (monthIndex % 12) + 1;
-    balance += add;
-    if (months.includes(calMonth)) {
-      const since = lastDividendMonth < 0 ? monthIndex + 1 : monthIndex - lastDividendMonth;
-      const gross = balance * annualRate * (since / 12);
-      lastNet = quick4AfterTaxNet(gross, months.length);
-      lastDividendMonth = monthIndex;
-    }
-  }
-  const periodGross = balance * annualRate * (12 / months.length / 12);
-  let afterTaxAnnual = 0;
-  for (let i = 0; i < months.length; i++) afterTaxAnnual += quick4AfterTaxNet(periodGross, months.length);
-  return {
-    balanceEnd: Math.round(balance),
-    lastNet: Math.round(lastNet),
-    avgMonthly: Math.round(afterTaxAnnual / 12),
-  };
-}
-
-function RankQuick4Panel({ row, basis }: { row: Derived; basis: RankBasis }) {
-  const [monthlyText, setMonthlyText] = useState("20000");
-  const [yearsText, setYearsText] = useState("20");
-  const monthly = Math.max(0, Math.round(Number(monthlyText.replace(/,/g, "")) || 0));
-  const years = Math.min(40, Math.max(1, Math.round(Number(yearsText) || 1)));
-  const result = projectQuick4(row, basis, monthly, years);
-  return (
-    <div className="rank-quick4-panel" data-quick4-code={row.ticker}>
-      <div className="rank-quick4-fields">
-        <label>
-          <span>代號</span>
-          <input value={row.ticker} readOnly />
-        </label>
-        <label>
-          <span>每月投入</span>
-          <input value={monthlyText} onChange={(event) => setMonthlyText(event.currentTarget.value)} />
-        </label>
-        <label>
-          <span>年數</span>
-          <input value={yearsText} onChange={(event) => setYearsText(event.currentTarget.value)} />
-        </label>
-      </div>
-      <div className="rank-quick4-stats">
-        <div><strong>{money(result.balanceEnd)}</strong><span>期末資產（元）</span></div>
-        <div><strong>{money(result.avgMonthly)}</strong><span>平均每月稅後（元）</span></div>
-        <div><strong>{money(result.lastNet)}</strong><span>最後一期稅後（元）</span></div>
-      </div>
-    </div>
-  );
-}
-
 function RankSplitNote({ rows }: { rows: Derived[] }) {
   const top = rows.slice(0, 3);
   if (top.length === 0 || rows.length <= 3) return null;
@@ -700,11 +607,20 @@ function RankReportResponsiveTable({
       const tickerW = tickerTh.getBoundingClientRect().width;
       const capitalThForGap = mobileTable.querySelector<HTMLElement>('thead th[data-col="capital"]');
       let nameRight = tickerTh.getBoundingClientRect().left;
-      mobileTable.querySelectorAll<HTMLElement>(".rank-ticker-stack").forEach((el) => {
-        nameRight = Math.max(nameRight, el.getBoundingClientRect().right);
+      mobileTable.querySelectorAll<HTMLElement>(".rank-ticker-code, .rank-ticker-name").forEach((el) => {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        nameRight = Math.max(nameRight, range.getBoundingClientRect().right);
+        range.detach();
       });
-      const openGap = capitalThForGap
-        ? capitalThForGap.getBoundingClientRect().left - nameRight
+      const nextAfterName =
+        mobileTable.querySelector<HTMLElement>('thead th[data-col="stockDiv"]') ||
+        mobileTable.querySelector<HTMLElement>('thead th[data-col="cashDiv"]') ||
+        mobileTable.querySelector<HTMLElement>('thead th[data-col="freq"]') ||
+        mobileTable.querySelector<HTMLElement>('thead th[data-col="lastBuy"]') ||
+        capitalThForGap;
+      const openGap = nextAfterName
+        ? nextAfterName.getBoundingClientRect().left - nameRight
         : 0;
       const tickerBudget = Math.min(tickerNaturalW, RANK_MOBILE_TICKER_MIN_PX);
       const tightW = contentW - tickerNaturalW + tickerBudget;
@@ -732,15 +648,20 @@ function RankReportResponsiveTable({
       }
       setCapitalShrink(capitalTextOverflow);
       setHiddenCount((prev) => {
-        const pairW =
-          (optionalWidthRef.current.cashDiv ?? RANK_MOBILE_OPTIONAL_FALLBACK_PX.cashDiv ?? 56) +
-          (optionalWidthRef.current.stockDiv ?? RANK_MOBILE_OPTIONAL_FALLBACK_PX.stockDiv ?? 48);
         const widthForOverflow = prev >= 2 ? tightW : contentW;
         const contentOverflow = shellW > 0 && widthForOverflow > shellW + 1;
+        const nextHide = RANK_MOBILE_OPTIONAL_ORDER[prev];
+        let nextHideW =
+          (nextHide && optionalWidthRef.current[nextHide]) ??
+          (nextHide && RANK_MOBILE_OPTIONAL_FALLBACK_PX[nextHide]) ??
+          56;
+        if (nextHide === "cashDiv") {
+          nextHideW += optionalWidthRef.current.stockDiv ?? RANK_MOBILE_OPTIONAL_FALLBACK_PX.stockDiv ?? 48;
+        }
         if (
           (contentOverflow || tickerW < RANK_MOBILE_TICKER_MIN_PX) &&
           prev < RANK_MOBILE_OPTIONAL_ORDER.length &&
-          !(prev >= 2 && openGap >= pairW)
+          openGap < nextHideW
         ) {
           return prev + 1;
         }
@@ -752,7 +673,7 @@ function RankReportResponsiveTable({
             colW += optionalWidthRef.current.stockDiv ?? RANK_MOBILE_OPTIONAL_FALLBACK_PX.stockDiv ?? 48;
           }
           const base = next === "cashDiv" ? tightW : contentW;
-          const holeFits = next === "cashDiv" && openGap >= colW + RANK_MOBILE_RESTORE_GAP_PX;
+          const holeFits = openGap >= colW + RANK_MOBILE_RESTORE_GAP_PX;
           if (holeFits || (shellW > 0 && base + colW + RANK_MOBILE_RESTORE_GAP_PX <= shellW)) {
             return prev - 1;
           }
@@ -988,4 +909,4 @@ function lightText(color: string) {
   return { color, fontSize: 17, lineHeight: 1.7 };
 }
 
-export { RankReportResponsiveTable, RankQuick4Panel, RankSplitNote };
+export { RankReportResponsiveTable, RankSplitNote };

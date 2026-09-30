@@ -2,14 +2,12 @@
 
 import { GameFiProvider } from "@/lib/gamefi/context/gamefi-context";
 import { GameFiActionListener } from "@/components/gamefi/gamefi-action-listener";
-import { GachaSummonModal } from "@/components/gamefi/gacha-summon-modal";
 
-/** 全域 GameFi 外掛掛載點（不侵入計算機核心） */
+/** 抽卡尚未完成，正式版先不掛。 */
 export function GameFiGlobalMount() {
   return (
     <GameFiProvider>
       <GameFiActionListener />
-      <GachaSummonModal />
     </GameFiProvider>
   );
 }

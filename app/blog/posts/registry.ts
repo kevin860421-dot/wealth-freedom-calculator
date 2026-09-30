@@ -48,8 +48,7 @@ export const BLOG_POST_REGISTRY: BlogPostRegistryEntry[] = [
   // ─────────────────────────────────────────────────────────
   {
     slug: "2026-08-after-tax-dividend-rank",
-    // 內容未完成，先不要公開。要上線時再改回真正的公開時間。
-    publishAtIso: "2099-12-31T20:00:00+08:00",
+    publishAtIso: "2026-09-30T20:00:00+08:00",
     listTitle: "稅後實領月報（1）｜2026年8月配息排行：月領一萬要多少",
     listDescription:
       "截止2026/08/31。用證交所收盤與e添富已除息金額，試算扣稅與二代健保後平均月領一萬所需本金。",

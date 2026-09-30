@@ -195,3 +195,58 @@
   color: #64748b;
   font-variant-numeric: tabular-nums;
 }
+
+:global(.quick4-blog-paper) .stepperRow {
+  gap: 4px;
+}
+
+:global(.quick4-blog-paper) .stepBtn {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  font-size: 0;
+  line-height: 0;
+  overflow: hidden;
+  color: transparent;
+  border-color: #d6d3d1;
+  background: #fff;
+}
+
+:global(.quick4-blog-paper) .stepBtn::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 10px;
+  height: 2px;
+  border-radius: 1px;
+  background: #1c1917;
+  transform: translate(-50%, -50%);
+}
+
+:global(.quick4-blog-paper) .stepBtn[aria-label$="增加"]::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2px;
+  height: 10px;
+  border-radius: 1px;
+  background: #1c1917;
+  transform: translate(-50%, -50%);
+}
+
+:global(.quick4-blog-paper) .inputRow {
+  border-color: #d6d3d1;
+  background: #fff;
+}
+
+:global(.quick4-blog-paper) .inputField {
+  color: #1c1917;
+  --step-num-max: 22;
+}
+
+:global(.quick4-blog-paper) .scaleRow {
+  color: #57534e;
+}

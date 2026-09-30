@@ -1,6 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { QuickStepperSliderField } from "@/app/components/quick-stepper-slider";
+import { INVEST_ANNUAL_PCT } from "@/app/quick-3/logic";
+import {
+  MONEY_MAX,
+  MONEY_MIN,
+  YEARS_MAX,
+  YEARS_MIN,
+  commitMoneyFromRaw,
+  commitYearsFromRaw,
+} from "@/app/quick-4/logic";
+import { TICKER_PRESETS } from "@/app/ticker-presets";
 import { AFTER_TAX_RANK_2026_08, AFTER_TAX_RANK_2026_08_ETF } from "./posts/after-tax-rank-2026-08";
 import {
   AFTER_TAX_DEFAULT_MONTHLY_NET,
@@ -15,11 +26,16 @@ import {
   afterTaxTtmBasisTabAriaLabel,
 } from "@/lib/blog/after-tax-rank-series";
 import {
-  RankQuick4Panel,
   RankReportResponsiveTable,
   type CanvasRankBasis,
   type CanvasRankRow,
 } from "./after-tax-rank-canvas-table";
+import {
+  clampNum,
+  futureValueMonthlyContribution,
+  monthsToReachTarget,
+  requiredMonthlyToReachTarget,
+} from "@/lib/quick-calculator-math";
 
 type Basis = CanvasRankBasis;
 
@@ -137,6 +153,230 @@ function toCanvasRow(row: ReturnType<typeof deriveAfterTaxRank>[number]): Canvas
   };
 }
 
+function monthlyPhrase(monthlyNet: number): string {
+  return capitalColumnLabel(monthlyNet).replace(/^月領/, "").replace(/本金$/, "");
+}
+
+function MonthlyTargetField({
+  monthlyText,
+  onMonthlyText,
+  commitMonthlyText,
+}: {
+  monthlyText: string;
+  onMonthlyText: (value: string) => void;
+  commitMonthlyText: (raw: string) => void;
+}) {
+  return (
+    <label className="rank-monthly-target">
+      <span>月領</span>
+      <input
+        className="rank-monthly-target-input"
+        value={monthlyText ?? ""}
+        onChange={(event) => onMonthlyText(event.currentTarget.value)}
+        onBlur={(event) => commitMonthlyText(event.currentTarget.value)}
+        onKeyDown={(event) => {
+          if (event.key !== "Enter") return;
+          event.preventDefault();
+          commitMonthlyText(event.currentTarget.value);
+        }}
+        inputMode="text"
+        spellCheck={false}
+        aria-label="月領目標，單位元，可輸入四則運算"
+      />
+      <span>本金</span>
+    </label>
+  );
+}
+
+function RankInvestPanel({
+  ticker,
+  capital,
+  monthlyTarget,
+  monthlyText,
+  onMonthlyText,
+  commitMonthlyText,
+}: {
+  ticker: string;
+  capital: number;
+  monthlyTarget: number;
+  monthlyText: string;
+  onMonthlyText: (value: string) => void;
+  commitMonthlyText: (raw: string) => void;
+}) {
+  const annualPct = TICKER_PRESETS.find((preset) => preset.id === ticker)?.annualReturn ?? INVEST_ANNUAL_PCT;
+  const linkDriver = useRef<"target" | "invest" | "years">("target");
+  const [monthlyInvest, setMonthlyInvest] = useState(5_000);
+  const [monthlyInvestText, setMonthlyInvestText] = useState("5,000");
+  const [years, setYears] = useState(10);
+  const [yearsText, setYearsText] = useState("10");
+  const piled = useMemo(
+    () => Math.round(futureValueMonthlyContribution(monthlyInvest, annualPct, years)),
+    [annualPct, monthlyInvest, years],
+  );
+
+  const monthlyFor = (nextCapital: number, nextYears: number) => {
+    const months = Math.max(1, Math.round(nextYears * 12));
+    const raw = requiredMonthlyToReachTarget(nextCapital, annualPct, months);
+    return Math.round(clampNum(raw, MONEY_MIN, MONEY_MAX) / 100) * 100;
+  };
+
+  const yearsFor = (monthly: number, nextCapital: number) => {
+    if (monthly <= 0 || nextCapital <= 0) return YEARS_MIN;
+    const months = monthsToReachTarget(nextCapital, monthly, annualPct, YEARS_MAX * 12);
+    if (months == null) return YEARS_MAX;
+    return Math.round(clampNum(Math.ceil(months / 12), YEARS_MIN, YEARS_MAX));
+  };
+
+  useEffect(() => {
+    if (linkDriver.current === "invest") return;
+    const next = monthlyFor(capital, years);
+    setMonthlyInvest(next);
+    setMonthlyInvestText(formatRankMoney(next));
+  }, [annualPct, capital, years]);
+
+  const followYears = (monthly: number) => {
+    const next = yearsFor(monthly, capital);
+    setYears(next);
+    setYearsText(String(next));
+  };
+
+  const onMonthlyInvestText = (raw: string) => {
+    setMonthlyInvestText(raw);
+    const plain = raw.replace(/[,，\s]/g, "");
+    if (!/^\d+$/.test(plain)) return;
+    setMonthlyInvest(Math.round(clampNum(Number(plain), MONEY_MIN, MONEY_MAX)));
+  };
+
+  const commitMonthlyInvest = (raw?: string) => {
+    linkDriver.current = "invest";
+    const next = commitMoneyFromRaw(raw ?? monthlyInvestText, monthlyInvest);
+    setMonthlyInvest(next);
+    setMonthlyInvestText(formatRankMoney(next));
+    followYears(next);
+  };
+
+  const bumpMonthlyInvest = (delta: number) => {
+    linkDriver.current = "invest";
+    const next = Math.round(clampNum(monthlyInvest + delta, MONEY_MIN, MONEY_MAX) / 100) * 100;
+    setMonthlyInvest(next);
+    setMonthlyInvestText(formatRankMoney(next));
+    followYears(next);
+  };
+
+  const applyYears = (next: number) => {
+    linkDriver.current = "years";
+    const y = Math.round(clampNum(next, YEARS_MIN, YEARS_MAX));
+    setYears(y);
+    setYearsText(String(y));
+  };
+
+  const onYearsText = (raw: string) => {
+    setYearsText(raw);
+    const plain = raw.replace(/[,，\s]/g, "");
+    if (!/^\d+$/.test(plain)) return;
+    applyYears(Number(plain));
+  };
+
+  const commitYears = (raw?: string) => {
+    applyYears(commitYearsFromRaw(raw ?? yearsText, years));
+  };
+
+  const bumpYears = (delta: number) => {
+    applyYears(years + delta);
+  };
+
+  const markTarget = () => {
+    linkDriver.current = "target";
+  };
+
+  return (
+    <div className="quick4-blog-paper rank-invest-card">
+      <label className="rank-invest-code">
+        <span>ETF 代碼</span>
+        <input readOnly value={ticker ?? ""} onChange={() => {}} aria-label="ETF 代碼" />
+      </label>
+      <QuickStepperSliderField
+        label={
+          <span style={{ display: "flex", width: "100%", justifyContent: "space-between" }}>
+            <span>月領</span>
+            <span>本金</span>
+          </span>
+        }
+        labelStyle={{ fontSize: 15, fontWeight: 800 }}
+        text={monthlyText}
+        value={clampNum(monthlyTarget, 1000, 500_000)}
+        min={1000}
+        max={500_000}
+        step={100}
+        bumpStep={1000}
+        ariaLabel="月領目標，單位元，可輸入四則運算"
+        increaseRight
+        onTextChange={(value) => {
+          markTarget();
+          onMonthlyText(value);
+        }}
+        onCommit={(raw) => {
+          markTarget();
+          commitMonthlyText(raw ?? monthlyText);
+        }}
+        onBump={(delta) => {
+          markTarget();
+          const next = Math.round(clampNum(monthlyTarget + delta, 1000, 500_000));
+          commitMonthlyText(String(next));
+        }}
+        onChange={(value) => {
+          markTarget();
+          const next = Math.round(clampNum(value, 1000, 500_000));
+          commitMonthlyText(String(next));
+        }}
+      />
+      <div className="rank-invest-fields">
+        <QuickStepperSliderField
+          label="每月投入"
+          text={monthlyInvestText}
+          value={clampNum(monthlyInvest, MONEY_MIN, MONEY_MAX)}
+          min={MONEY_MIN}
+          max={MONEY_MAX}
+          step={100}
+          bumpStep={1000}
+          ariaLabel="每月投入"
+          increaseRight
+          onTextChange={onMonthlyInvestText}
+          onCommit={commitMonthlyInvest}
+          onBump={bumpMonthlyInvest}
+          onChange={(value) => {
+            linkDriver.current = "invest";
+            const next = Math.round(clampNum(value, MONEY_MIN, MONEY_MAX) / 100) * 100;
+            setMonthlyInvest(next);
+            setMonthlyInvestText(formatRankMoney(next));
+            followYears(next);
+          }}
+        />
+        <QuickStepperSliderField
+          label="預計幾年"
+          text={yearsText}
+          value={clampNum(years, YEARS_MIN, YEARS_MAX)}
+          min={YEARS_MIN}
+          max={YEARS_MAX}
+          step={1}
+          bumpStep={1}
+          ariaLabel="預計幾年"
+          increaseRight
+          onTextChange={onYearsText}
+          onCommit={commitYears}
+          onBump={bumpYears}
+          onChange={(value) => {
+            applyYears(value);
+          }}
+        />
+      </div>
+      <p className="rank-invest-note">
+        若每月投入 {formatRankMoney(monthlyInvest)} 元、存 {years} 年，約累積 {formatRankMoney(piled)} 元。月領所需本金是 {formatRankMoney(capital)} 元。
+      </p>
+    </div>
+  );
+}
+
 function BasisAndMonthlyRow({
   basis,
   setBasis,
@@ -183,24 +423,11 @@ function BasisAndMonthlyRow({
           {ttmLabel}
         </button>
       </div>
-      <label className="rank-monthly-target">
-        <span>月領</span>
-        <input
-          className="rank-monthly-target-input"
-          value={monthlyText}
-          onChange={(event) => onMonthlyText(event.currentTarget.value)}
-          onBlur={(event) => commitMonthlyText(event.currentTarget.value)}
-          onKeyDown={(event) => {
-            if (event.key !== "Enter") return;
-            event.preventDefault();
-            commitMonthlyText(event.currentTarget.value);
-          }}
-          inputMode="text"
-          spellCheck={false}
-          aria-label="月領目標，單位元，可輸入四則運算"
-        />
-        <span>本金</span>
-      </label>
+      <MonthlyTargetField
+        monthlyText={monthlyText}
+        onMonthlyText={onMonthlyText}
+        commitMonthlyText={commitMonthlyText}
+      />
     </div>
   );
 }
@@ -223,6 +450,11 @@ export function BlogAfterTaxRankTable() {
   );
   const meta = AFTER_TAX_RANK_2026_08;
   const lead = ranked[0] ? toCanvasRow(ranked[0]) : undefined;
+  const scaledLead = useMemo(() => {
+    const top = ranked[0];
+    if (!top) return undefined;
+    return toCanvasRow(withMonthlyTarget([top], basis, monthlyTarget)[0]);
+  }, [ranked, basis, monthlyTarget]);
   const nhiHits = ranked.filter((row) => row.nhi > 0).length;
   const sectionOpen = SECTION_OPEN[section];
   const capitalLabel = capitalColumnLabel(monthlyTarget);
@@ -315,7 +547,22 @@ export function BlogAfterTaxRankTable() {
             />
           </div>
           <p className="rank-split-note">資料截止 {meta.asOf}。收盤 {meta.asOf}；除息 {meta.asOf}。</p>
-          {lead ? <RankQuick4Panel row={lead} basis={basis} /> : null}
+          {scaledLead ? (
+            <>
+              <p className="rank-invest-preface">
+                如果現在存{scaledLead.ticker}，要月領{monthlyPhrase(monthlyTarget)}，我每個月要投資多少？
+              </p>
+              <RankInvestPanel
+                ticker={scaledLead.ticker}
+                capital={scaledLead.capital}
+                monthlyTarget={monthlyTarget}
+                monthlyText={monthlyText}
+                onMonthlyText={onMonthlyText}
+                commitMonthlyText={commitMonthlyText}
+              />
+            </>
+          ) : null}
+          {/* 第四台先隱藏 */}
         </>
       ) : (
         <div className="rank-section-locked" role="status">

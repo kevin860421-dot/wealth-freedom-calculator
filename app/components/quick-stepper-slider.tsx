@@ -15,10 +15,12 @@ export { amountFromInvertedRange, clampRangeAmount, invertedFillPct, invertedRan
 function fitInputTextToWidth(input: HTMLInputElement, minPx: number, maxPx: number) {
   const width = input.clientWidth;
   if (width <= 0) return;
-  input.style.fontSize = `${maxPx}px`;
+  const cssMax = parseFloat(getComputedStyle(input).getPropertyValue("--step-num-max"));
+  const ceiling = Number.isFinite(cssMax) && cssMax > minPx ? cssMax : maxPx;
+  input.style.fontSize = `${ceiling}px`;
   if (input.scrollWidth <= width) return;
   let lo = minPx;
-  let hi = maxPx;
+  let hi = ceiling;
   for (let i = 0; i < 24; i += 1) {
     const mid = (lo + hi) / 2;
     input.style.fontSize = `${mid}px`;
@@ -59,7 +61,7 @@ function useStepperInputShrinkFit(text: string, tall: boolean) {
 type StepperRowProps = {
   text: string;
   onTextChange: (v: string) => void;
-  onCommit: () => void;
+  onCommit: (raw?: string) => void;
   onBump: (delta: number) => void;
   bumpStep: number;
   ariaLabel: string;
@@ -67,9 +69,11 @@ type StepperRowProps = {
   tall?: boolean;
   inputSuffix?: ReactNode;
   onEnter?: () => void;
+  /** 右加左減。未設時維持舊的左加右減。 */
+  increaseRight?: boolean;
 };
 
-/** + 左、輸入中、− 右 */
+/** 未設 increaseRight：+ 左、− 右。increaseRight：− 左、+ 右。 */
 export function QuickStepperRow({
   text,
   onTextChange,
@@ -81,28 +85,37 @@ export function QuickStepperRow({
   tall = false,
   inputSuffix,
   onEnter,
+  increaseRight = false,
 }: StepperRowProps) {
   const { inputRef, maxPx } = useStepperInputShrinkFit(text, tall);
+  const decreaseButton = (
+    <button type="button" className={styles.stepBtn} aria-label={`${ariaLabel} 減少`} onClick={() => onBump(-bumpStep)}>
+      −
+    </button>
+  );
+  const increaseButton = (
+    <button type="button" className={styles.stepBtn} aria-label={`${ariaLabel} 增加`} onClick={() => onBump(bumpStep)}>
+      +
+    </button>
+  );
 
   return (
     <div className={styles.stepperRow}>
-      <button type="button" className={styles.stepBtn} aria-label={`${ariaLabel} 增加`} onClick={() => onBump(bumpStep)}>
-        +
-      </button>
+      {increaseRight ? decreaseButton : increaseButton}
       <div className={styles.inputRow}>
         <input
           ref={inputRef}
           type="text"
           inputMode={inputMode}
-          value={text}
+          value={text ?? ""}
           aria-label={ariaLabel}
           onChange={(e) => onTextChange(e.target.value)}
-          onBlur={onCommit}
+          onBlur={(e) => onCommit(e.currentTarget.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
               onEnter?.();
-              onCommit();
+              onCommit(e.currentTarget.value);
               (e.currentTarget as HTMLInputElement).blur();
             }
           }}
@@ -112,9 +125,7 @@ export function QuickStepperRow({
         />
         {inputSuffix}
       </div>
-      <button type="button" className={styles.stepBtn} aria-label={`${ariaLabel} 減少`} onClick={() => onBump(-bumpStep)}>
-        −
-      </button>
+      {increaseRight ? increaseButton : decreaseButton}
     </div>
   );
 }
@@ -130,9 +141,11 @@ type InvertedSliderProps = {
   scaleLeft?: string | number;
   scaleRight?: string | number;
   style?: CSSProperties;
+  /** 左小右大。未設時維持左大右小。 */
+  increaseRight?: boolean;
 };
 
-/** 左大右小拉條 */
+/** 預設左大右小。increaseRight 時左小右大。 */
 export function QuickInvertedSlider({
   value,
   min,
@@ -144,10 +157,15 @@ export function QuickInvertedSlider({
   scaleLeft,
   scaleRight,
   style,
+  increaseRight = false,
 }: InvertedSliderProps) {
   const amount = clampRangeAmount(value, min, max);
-  const display = invertedRangeDisplay(amount, min, max);
-  const fillPct = invertedFillPct(amount, min, max);
+  const display = increaseRight ? amount : invertedRangeDisplay(amount, min, max);
+  const fillPct = increaseRight
+    ? max <= min
+      ? "0%"
+      : `${((amount - min) / (max - min)) * 100}%`
+    : invertedFillPct(amount, min, max);
   const rangeCls = tone === "cyan" ? `${styles.range} ${styles.rangeCyan}` : styles.range;
 
   return (
@@ -158,21 +176,21 @@ export function QuickInvertedSlider({
         min={min}
         max={max}
         step={step}
-        value={display}
+        value={Number.isFinite(display) ? display : min}
         aria-label={ariaLabel}
         style={{ "--fill-pct": fillPct } as CSSProperties}
         onChange={(e) => {
           const raw = Number(e.target.value);
           if (!Number.isFinite(raw)) return;
-          const next = amountFromInvertedRange(raw, min, max);
+          const next = increaseRight ? clampRangeAmount(raw, min, max) : amountFromInvertedRange(raw, min, max);
           if (next === amount) return;
           onChange(next);
         }}
       />
       {scaleLeft != null || scaleRight != null ? (
         <div className={styles.scaleRow}>
-          <span>{scaleLeft ?? max}</span>
-          <span>{scaleRight ?? min}</span>
+          <span>{scaleLeft ?? (increaseRight ? min : max)}</span>
+          <span>{scaleRight ?? (increaseRight ? max : min)}</span>
         </div>
       ) : null}
     </div>
@@ -192,7 +210,7 @@ export function QuickStepperSliderField({
   hideSlider,
   ...rest
 }: FieldProps) {
-  const { text, onTextChange, onCommit, onBump, bumpStep, ariaLabel, inputMode, tall, inputSuffix, onEnter } = rest;
+  const { text, onTextChange, onCommit, onBump, bumpStep, ariaLabel, inputMode, tall, inputSuffix, onEnter, increaseRight } = rest;
   const { value, min, max, step, onChange, tone, scaleLeft, scaleRight, style } = rest;
 
   return (
@@ -211,6 +229,7 @@ export function QuickStepperSliderField({
         tall={tall}
         inputSuffix={inputSuffix}
         onEnter={onEnter}
+        increaseRight={increaseRight}
       />
       {hideSlider ? null : (
         <QuickInvertedSlider
@@ -218,6 +237,7 @@ export function QuickStepperSliderField({
           min={min}
           max={max}
           step={step}
+          increaseRight={increaseRight}
           onChange={onChange}
           ariaLabel={`${ariaLabel} 拉條`}
           tone={tone}

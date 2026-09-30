@@ -558,7 +558,7 @@
  * 手機表 = 同一張桌機表（同 class：rank-report-table-scroll / rank-report-data-table），
  * 表頭灰、斑馬紋、邊線、sticky 全部沿用；這裡只覆寫「欄寬與裁切」。
  * 欄寬策略：排行／本金／買進日／▼ 貼內容（width:1% + nowrap）。
- * 窄表時代號欄吸收剩餘寬；容器 ≥480px 且欄都還在時，代號改貼名稱，剩餘寬分給股息／頻率／買進日。
+ * 代號欄吸收剩餘寬。名稱右邊空得出頻率或買進日，就把欄放回來；月領字級維持 14／11，只有字真的溢出才縮一階。
  */
 .rank-report-mobile-table th,
 .rank-report-mobile-table td {
@@ -582,16 +582,6 @@
   --rank-sticky-w: 2.5rem;
   container-type: inline-size;
   container-name: rank-mobile;
-}
-/* 最窄、月領被擠到時直接小一階。稍寬容器放得下就回到下面的 14 / 11。 */
-@container rank-mobile (max-width: 460px) {
-  .rank-report-mobile-table th[data-col="capital"],
-  .rank-report-mobile-table .rank-capital-amount {
-    font-size: 12px !important;
-  }
-  .rank-report-mobile-table .rank-capital-lots {
-    font-size: 10px !important;
-  }
 }
 .rank-report-mobile-table th[data-col="rank"],
 .rank-report-mobile-table td[data-col="rank"] {
@@ -674,23 +664,6 @@
   vertical-align: middle;
   padding-left: 8px;
   padding-right: 8px;
-}
-/* 股息、股利還在表上時，代號不要撐開，這兩欄才不會被推到月領右邊。 */
-.rank-report-mobile-table[data-hidden-optional="0"] th[data-col="ticker"],
-.rank-report-mobile-table[data-hidden-optional="0"] td[data-col="ticker"],
-.rank-report-mobile-table[data-hidden-optional="1"] th[data-col="ticker"],
-.rank-report-mobile-table[data-hidden-optional="1"] td[data-col="ticker"] {
-  width: 1%;
-  max-width: none;
-  min-width: 7.5rem;
-  white-space: nowrap;
-}
-.rank-report-mobile-table[data-hidden-optional="0"] td[data-col="ticker"] .rank-ticker-name,
-.rank-report-mobile-table[data-hidden-optional="1"] td[data-col="ticker"] .rank-ticker-name {
-  display: block;
-  white-space: nowrap;
-  word-break: normal;
-  -webkit-line-clamp: unset;
 }
 .rank-report-mobile-table th[data-col="expand"],
 .rank-report-mobile-table td[data-col="expand"] {
@@ -1270,30 +1243,61 @@
   line-height: 1.7;
   color: #44403c;
 }
-.rank-quick4-panel {
-  margin: 14px 0 4px;
-  padding: 12px 14px;
+.rank-invest-preface {
+  margin: 0 0 14px;
+  font-size: 18px;
+  line-height: 1.7;
+  font-weight: 800;
+  color: #1c1917;
+}
+.rank-invest-card {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 22px;
+  padding: 12px;
   border: 1px solid #e7e5e4;
-  border-radius: 16px;
+  border-radius: 14px;
   background: #fff;
 }
-.rank-quick4-fields {
+.rank-invest-code {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #1c1917;
 }
-.rank-quick4-fields label {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.rank-invest-code input {
+  height: 44px;
+  border: 1px solid #d6d3d1;
+  border-radius: 12px;
+  background: #fff;
+  color: #1c1917;
+  font-size: 20px;
+  font-weight: 900;
+  padding: 0 12px;
+}
+.rank-invest-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  min-width: 0;
+}
+.rank-invest-answer {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #292524;
+}
+.rank-invest-answer strong {
+  font-size: 28px;
+  font-weight: 900;
+  color: #1c1917;
+}
+.rank-invest-note {
+  margin: 0;
   font-size: 14px;
+  line-height: 1.6;
   color: #57534e;
-}
-.rank-quick4-stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 12px;
 }
 .rank-split-note {
   margin: 22px 0;
@@ -1360,3 +1364,4 @@
   text-overflow: clip;
   max-width: none;
 }
+
