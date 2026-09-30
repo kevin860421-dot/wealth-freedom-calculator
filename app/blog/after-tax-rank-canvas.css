@@ -1316,6 +1316,10 @@
   letter-spacing: 0.03em;
   color: #44403c;
 }
+.rank-desk-stack .rank-split-note,
+.rank-mobile-board .rank-split-note {
+  margin-bottom: 48px;
+}
 .rank-desk-fit {
   container-type: inline-size;
   container-name: rank-desk;
