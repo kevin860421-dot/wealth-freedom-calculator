@@ -75,7 +75,6 @@ export function generateMetadata(): Metadata {
   }
   const latest = latestPublishedIssue(new Date());
   const description = descriptionFor(latest);
-  const modified = latest?.entry.publishAtIso ?? entry.publishAtIso;
   return {
     title: `${H1}｜稅後實領月報最新一期｜財富自由計算機`,
     description,
@@ -87,7 +86,6 @@ export function generateMetadata(): Metadata {
       url: ARTICLE_PATH,
       locale: "zh_TW",
       siteName: "財富自由計算機",
-      modifiedTime: modified,
     },
     twitter: {
       card: "summary_large_image",
