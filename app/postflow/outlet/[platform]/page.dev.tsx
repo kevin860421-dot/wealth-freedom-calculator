@@ -85,6 +85,7 @@ function OutletBody({ text }: { text: string }) {
 }
 
 export default async function BlogOutletPage({ params, searchParams }: PageProps) {
+  if (process.env.NODE_ENV !== "development") notFound();
   const { platform } = await params;
   if (!isBlogOutletKey(platform)) notFound();
   const query = await searchParams;

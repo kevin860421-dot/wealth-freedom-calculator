@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo, type ReactNode } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
   ArrowLeft, Save, Send, Link2, Copy, Check, Tag, Calendar,
@@ -8,7 +8,6 @@ import {
   LayoutDashboard, Library, CalendarClock, Settings, Zap, Eye, EyeOff, Sparkles,
   FileText, ClipboardPaste, Bold, Heading2, Heading3, List, Eraser,
 } from "lucide-react";
-import { BLOG_OUTLETS, isBlogOutletKey } from "../outlet/platforms";
 import { ShareAssetModal } from "../components/share-asset-modal";
 import type { ShareAssetKind } from "../share-assets";
 import { BLOGGER_CH1_HTML, BLOGGER_CH1_TEMPLATE_REVISION } from "./blogger-ch1-html";
@@ -21,6 +20,16 @@ import {
   type HtmlBodyEditorHandle,
 } from "./html-body-editor";
 import { normalizeBloggerPaste } from "./blogger-paste";
+
+/** 編譯期常數。正式 build 這段是 if (false)，require 與按鈕模組不會進產物。 */
+const devOutlet: {
+  DevOutletFrame: (props: { outlet: string | null }) => ReactNode;
+  DevOutletButtons: (props: {
+    outlet: string | null;
+    onOutlet: (key: string | null) => void;
+  }) => ReactNode;
+} | null =
+  process.env.NODE_ENV === "development" ? require("./major-blog-preview-bar") : null;
 
 /* ═══════════════════════════════════════════════════════════
    DESIGN TOKENS  — Clean light theme
@@ -884,6 +893,8 @@ function WritingHub({ article, onChange, refWidth, onRefResize, onSave, saved, o
   const [shareModalKind, setShareModalKind] = useState<ShareAssetKind | null>(null);
   const contentTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const mainHtmlEditorRef = useRef<HtmlBodyEditorHandle | null>(null);
+  const OutletFrame = devOutlet?.DevOutletFrame;
+  const OutletButtons = devOutlet?.DevOutletButtons;
 
   const set = useCallback((p: Partial<Article>) => onChange({ ...article, ...p }), [article, onChange]);
 
@@ -1404,13 +1415,8 @@ function WritingHub({ article, onChange, refWidth, onRefResize, onSave, saved, o
                       }}
                     />
                   )
-                ) : outlet && isBlogOutletKey(outlet) ? (
-                  <iframe
-                    key={outlet}
-                    title="各大部落格隔離預覽"
-                    src={`/postflow/outlet/${outlet}`}
-                    className="min-h-0 w-full flex-1 border-0 bg-white"
-                  />
+                ) : OutletFrame && outlet ? (
+                  <OutletFrame outlet={outlet} />
                 ) : refDraft.trim() ? (
                   <div className="min-h-0 min-w-0 flex-1 overflow-y-auto pr-4">
                     {/* eslint-disable-next-line react/no-danger -- 範例預覽同左欄 Blogger 渲染 */}
@@ -1433,28 +1439,9 @@ function WritingHub({ article, onChange, refWidth, onRefResize, onSave, saved, o
               <span className="text-[10px]" style={{ color: DH4 }}>
                 {refTab === "edit" ? "編輯中 · 儲存後與左欄一併寫入主文章資料" : "預覽 · 與左欄母版內容可獨立"}
               </span>
-              {refTab === "preview" && (
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {BLOG_OUTLETS.map((item) => {
-                    const active = outlet === item.key;
-                    return (
-                      <button
-                        key={item.key}
-                        type="button"
-                        onClick={() => onOutlet(active ? null : item.key)}
-                        className="rounded-md px-2.5 py-1 text-[12px] font-semibold"
-                        style={{
-                          color: active ? "#fff" : DH2,
-                          background: active ? item.color : HUB_BG_REF,
-                          border: `1px solid ${active ? item.color : MOR_TAB_OFF_BR}`,
-                        }}
-                      >
-                        {item.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+              {refTab === "preview" && OutletButtons ? (
+                <OutletButtons outlet={outlet} onOutlet={onOutlet} />
+              ) : null}
             </div>
           </div>
         )}
