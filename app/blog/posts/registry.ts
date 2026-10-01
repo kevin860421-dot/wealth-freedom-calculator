@@ -796,6 +796,7 @@ export function formatPublishLabel(publishAtIso: string): string {
   const d = new Date(publishAtIso);
   if (Number.isNaN(d.getTime())) return publishAtIso;
   return d.toLocaleString("zh-TW", {
+    timeZone: "Asia/Taipei",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
