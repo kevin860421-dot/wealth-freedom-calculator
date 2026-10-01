@@ -29,9 +29,12 @@ export function useStats(): StatsContextValue {
 export function StatsProvider({
   initialStats,
   children,
+  trackPageview = true,
 }: {
   initialStats: PublicStats;
   children: ReactNode;
+  /** 隔離預覽不計入全站瀏覽與停留。預設 true，正式頁不變。 */
+  trackPageview?: boolean;
 }) {
   const [stats, setStats] = useState<PublicStats>(initialStats);
 
@@ -46,6 +49,7 @@ export function StatsProvider({
 
   /** 工作階段瀏覽：每 session 計一次 */
   useEffect(() => {
+    if (!trackPageview) return;
     if (typeof window === "undefined") return;
     if (sessionStorage.getItem(PV_KEY) === "1") return;
     sessionStorage.setItem(PV_KEY, "1");
@@ -61,10 +65,11 @@ export function StatsProvider({
         /* ignore */
       }
     })();
-  }, []);
+  }, [trackPageview]);
 
   /** 有效互動：同一 session 僅計一次；條件為（任滿足其一）停留約 16 秒、下載 Excel、曾編輯表單輸入 */
   useEffect(() => {
+    if (!trackPageview) return;
     if (typeof window === "undefined") return;
 
     const markEngage = () => {
@@ -115,7 +120,7 @@ export function StatsProvider({
       window.removeEventListener("calc-engagement", onCustom);
       document.removeEventListener("input", onFirstInput, true);
     };
-  }, []);
+  }, [trackPageview]);
 
   const value: StatsContextValue = { stats, refresh };
 

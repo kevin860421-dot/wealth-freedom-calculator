@@ -8,6 +8,7 @@ import {
   LayoutDashboard, Library, CalendarClock, Settings, Zap, Eye, EyeOff, Sparkles,
   FileText, ClipboardPaste, Bold, Heading2, Heading3, List, Eraser,
 } from "lucide-react";
+import { BLOG_OUTLETS, isBlogOutletKey } from "../outlet/platforms";
 import { ShareAssetModal } from "../components/share-asset-modal";
 import type { ShareAssetKind } from "../share-assets";
 import { BLOGGER_CH1_HTML, BLOGGER_CH1_TEMPLATE_REVISION } from "./blogger-ch1-html";
@@ -859,11 +860,13 @@ function Sidebar({ articles, selId, onSel, width, onResize }: {
 /* ═══════════════════════════════════════════════════════════
    WRITING HUB  (Blogger-studio — 65 : 52 split)
 ═══════════════════════════════════════════════════════════ */
-function WritingHub({ article, onChange, refWidth, onRefResize, onSave, saved }: {
+function WritingHub({ article, onChange, refWidth, onRefResize, onSave, saved, outlet, onOutlet }: {
   article: Article; onChange: (a: Article) => void;
   refWidth: number; onRefResize: (w: number) => void;
   onSave: () => void;
   saved: boolean;
+  outlet: string | null;
+  onOutlet: (key: string | null) => void;
 }) {
   const [tab,       setTab]      = useState<"edit" | "preview" | "html">("edit");
   const [urlOpen,   setUrlOpen]  = useState(false);
@@ -1401,6 +1404,13 @@ function WritingHub({ article, onChange, refWidth, onRefResize, onSave, saved }:
                       }}
                     />
                   )
+                ) : outlet && isBlogOutletKey(outlet) ? (
+                  <iframe
+                    key={outlet}
+                    title="各大部落格隔離預覽"
+                    src={`/postflow/outlet/${outlet}`}
+                    className="min-h-0 w-full flex-1 border-0 bg-white"
+                  />
                 ) : refDraft.trim() ? (
                   <div className="min-h-0 min-w-0 flex-1 overflow-y-auto pr-4">
                     {/* eslint-disable-next-line react/no-danger -- 範例預覽同左欄 Blogger 渲染 */}
@@ -1419,10 +1429,32 @@ function WritingHub({ article, onChange, refWidth, onRefResize, onSave, saved }:
               </div>
             </div>
 
-            <div className="shrink-0" style={{ padding: "8px 28px", borderTop: `1px solid ${HUB_DIV}`, background: HUB_BG_REF }}>
+            <div className="shrink-0" style={{ padding: "8px 16px 10px", borderTop: `1px solid ${HUB_DIV}`, background: HUB_BG_REF }}>
               <span className="text-[10px]" style={{ color: DH4 }}>
                 {refTab === "edit" ? "編輯中 · 儲存後與左欄一併寫入主文章資料" : "預覽 · 與左欄母版內容可獨立"}
               </span>
+              {refTab === "preview" && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {BLOG_OUTLETS.map((item) => {
+                    const active = outlet === item.key;
+                    return (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={() => onOutlet(active ? null : item.key)}
+                        className="rounded-md px-2.5 py-1 text-[12px] font-semibold"
+                        style={{
+                          color: active ? "#fff" : DH2,
+                          background: active ? item.color : HUB_BG_REF,
+                          border: `1px solid ${active ? item.color : MOR_TAB_OFF_BR}`,
+                        }}
+                      >
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -2300,7 +2332,15 @@ export default function LibraryPage() {
 
         <div className="relative flex min-h-0 w-full flex-1 flex-row items-stretch overflow-hidden overflow-x-hidden">
           <WritingHub article={article} onChange={handleChange} refWidth={refWidth} onRefResize={setRefWidth}
-            onSave={handleSave} saved={saved} />
+            onSave={handleSave} saved={saved}
+            outlet={searchParams?.get("outlet") ?? null}
+            onOutlet={(key) => {
+              const next = new URLSearchParams(searchParams?.toString() ?? "");
+              if (key) next.set("outlet", key);
+              else next.delete("outlet");
+              const qs = next.toString();
+              router.replace(qs ? `/postflow/library?${qs}` : "/postflow/library");
+            }} />
 
           <RightPanel article={article} onChange={handleChange} width={rightWidth} onResize={setRightWidth} />
         </div>

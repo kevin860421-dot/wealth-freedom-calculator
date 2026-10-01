@@ -45,6 +45,7 @@ export type BlogPostRegistryEntry = {
 export const BLOG_POST_REGISTRY: BlogPostRegistryEntry[] = [
   // ─────────────────────────────────────────────────────────
   // 稅後實領月報：獨立系列，不插入 mini-blog，也不挪動下面試算筆記的 publishAtIso
+  // 新的一期一律台北 09:30。下面 9/30 20:00 是已公開的 8 月文與總覽，不要照抄。
   // ─────────────────────────────────────────────────────────
   {
     slug: "2026-10-after-tax-dividend-rank",

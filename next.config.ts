@@ -17,6 +17,23 @@ const nextConfig: NextConfig = {
    * @see https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats
    */
   outputFileTracingRoot: path.resolve(process.cwd()),
+  allowedDevOrigins: ["127.0.0.1", "localhost"],
+  async headers() {
+    return [
+      {
+        source: "/postflow/outlet/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+          { key: "Cache-Control", value: "private, no-store" },
+        ],
+      },
+    ];
+  },
+  outputFileTracingIncludes: {
+    "/postflow/outlet/[platform]": [
+      "./02_The Wealth Freedom Computer (Article)/articles/*.md",
+    ],
+  },
 };
 
 export default nextConfig;

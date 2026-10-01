@@ -12,6 +12,7 @@ export function GET() {
     "Disallow: /quick-11/excel-preview",
     "Disallow: /quick-11/exit-modal-preview",
     "Disallow: /quick-11/sim-reset",
+    "Disallow: /postflow/outlet",
     "",
     `Sitemap: ${origin}/sitemap.xml`,
     "",

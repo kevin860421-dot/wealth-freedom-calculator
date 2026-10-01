@@ -6,6 +6,7 @@ import Script from "next/script";
 import { getSiteOrigin } from "@/lib/site-origin";
 import "./desktop-mobile-isolation.css";
 import "./globals.css";
+import { headers } from "next/headers";
 import { getPublicStatsSnapshot } from "@/lib/stats-store";
 import { PwaServiceWorkerRegister } from "./pwa-service-worker-register";
 import { StatsProvider } from "./stats-provider";
@@ -74,7 +75,17 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const initialStats = getPublicStatsSnapshot();
+  const isolatedOutlet = (await headers()).get("x-blog-outlet") === "1";
+  const initialStats = isolatedOutlet
+    ? {
+        monthKey: "",
+        monthPageViews: 0,
+        monthEngagement: 0,
+        totalPageViews: 0,
+        totalEngagement: 0,
+        updatedAt: "",
+      }
+    : getPublicStatsSnapshot();
 
   return (
     <html lang="zh-TW" suppressHydrationWarning>
@@ -82,33 +93,37 @@ export default async function RootLayout({
         <Script id="strip-injected-attrs" strategy="beforeInteractive">
           {`(function(){try{function strip(n){if(!n||n.nodeType!==1)return;if(n.removeAttribute)n.removeAttribute("data-cursor-ref");}var o=new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var m=ms[i];if(m.type==="attributes"&&m.attributeName==="data-cursor-ref")strip(m.target);var nodes=m.addedNodes;if(!nodes)continue;for(var j=0;j<nodes.length;j++){var n=nodes[j];strip(n);if(n.querySelectorAll){var els=n.querySelectorAll("[data-cursor-ref]");for(var k=0;k<els.length;k++)strip(els[k]);}}}});o.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:["data-cursor-ref"]});}catch(e){}})();`}
         </Script>
-        <Script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=G-BG3PNZVNJW"
-          strategy="afterInteractive"
-        />
-        <Script id="ga4-gtag" strategy="afterInteractive">
-          {`
+        {isolatedOutlet ? null : (
+          <>
+            <Script
+              async
+              src="https://www.googletagmanager.com/gtag/js?id=G-BG3PNZVNJW"
+              strategy="afterInteractive"
+            />
+            <Script id="ga4-gtag" strategy="afterInteractive">
+              {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', 'G-BG3PNZVNJW');
           `}
-        </Script>
+            </Script>
+          </>
+        )}
       </head>
       <body
         suppressHydrationWarning
         className={`${notoSansTc.variable} ${geistSans.variable} ${geistMono.variable}`}
         style={{ position: "relative" }}
       >
-        <VisitStatsSeoSnippet stats={initialStats} />
-        <PwaServiceWorkerRegister />
-        <StatsProvider initialStats={initialStats}>
+        {isolatedOutlet ? null : <VisitStatsSeoSnippet stats={initialStats} />}
+        {isolatedOutlet ? null : <PwaServiceWorkerRegister />}
+        <StatsProvider initialStats={initialStats} trackPageview={!isolatedOutlet}>
           {children}
-          <GameFiGlobalMount />
+          {isolatedOutlet ? null : <GameFiGlobalMount />}
         </StatsProvider>
-        <Analytics />
-        <ClarityAnalytics />
+        {isolatedOutlet ? null : <Analytics />}
+        {isolatedOutlet ? null : <ClarityAnalytics />}
       </body>
     </html>
   );
