@@ -530,7 +530,7 @@ export function BlogAfterTaxRankTable() {
       <div className="rank-report-conclusion">
         <p className="conclusion-body rank-report-lead">
           大家好～又過了一個月，我們來看看上個月誰是股王。這邊的月領，都是用近一期的數據，平均成一個月的利息來算。另外近
-          12 個月是以每期現金配息的中位數來算，所以排名會略有不同。僅供參考，實際以自己實際情況為主。接著就進入本期的重點。
+          12 個月是以每期現金配息的中位數來算，所以排名會略有不同。僅供參考，實際以自己實際情況為主。不知道您的股票有沒有入榜，讓我們來看看。接著就進入本期的重點。
         </p>
         <h2 className="conclusion-title">本期結論</h2>
         <p className="conclusion-body">
