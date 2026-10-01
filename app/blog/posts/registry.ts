@@ -47,6 +47,15 @@ export const BLOG_POST_REGISTRY: BlogPostRegistryEntry[] = [
   // 稅後實領月報：獨立系列，不插入 mini-blog，也不挪動下面試算筆記的 publishAtIso
   // ─────────────────────────────────────────────────────────
   {
+    slug: "2026-10-after-tax-dividend-rank",
+    publishAtIso: "2026-11-01T09:30:00+08:00",
+    listTitle: "稅後實領月報｜2026年10月配息排行：月領一萬要多少",
+    listDescription:
+      "10月榜待截止日後，沿用同一套稅後實領欄位試算月領一萬要多少本金。數字未結算前不公開。",
+    featureHomeHero: false,
+    featureHomeFooter: false,
+  },
+  {
     slug: "after-tax-dividend-rank",
     publishAtIso: "2026-09-30T20:00:00+08:00",
     listTitle: "月領一萬要多少本金｜稅後實領月報最新一期",
