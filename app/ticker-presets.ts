@@ -465,7 +465,7 @@ export const TICKER_PRESETS: TickerPreset[] = [
     },
     {
       id: "00932",
-      label: "宏大台灣ESG永續高息（00932）- ETF - 月配 - 參考",
+      label: "兆豐永續高息等權（00932）- ETF - 月配 - 參考",
       annualReturn: 10,
       frequency: "month" as TickerFrequency,
       price: 14,

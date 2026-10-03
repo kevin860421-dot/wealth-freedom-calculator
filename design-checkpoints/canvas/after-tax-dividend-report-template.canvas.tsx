@@ -838,7 +838,7 @@ const ETF_SNAPSHOT: SnapshotRow[] = [
   },
   {
     "ticker": "00932",
-    "name": "宏大台灣ESG永續高息",
+    "name": "兆豐永續高息等權",
     "price": 14,
     "lastCashPerUnit": 0.11,
     "stockDivPerUnit": 0,
