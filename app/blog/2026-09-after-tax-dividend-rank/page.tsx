@@ -3,7 +3,12 @@ import Link from "next/link";
 import { BlogScheduledPlaceholder } from "../blog-scheduled-placeholder";
 import { BlogAfterTaxRankTable } from "../blog-after-tax-rank-table";
 import { BlogAfterTaxRankChrome } from "../2026-08-after-tax-dividend-rank/rank-chrome";
-import { AFTER_TAX_RANK_2026_08_ETF_AUDITED } from "../posts/after-tax-rank-2026-08-audited";
+import { AfterTaxRankDevOutlet } from "../after-tax-rank-dev-outlet";
+import {
+  AFTER_TAX_RANK_2026_08_ETF,
+  AFTER_TAX_RANK_2026_08_ETF_AUDITED,
+  AFTER_TAX_RANK_2026_08_STOCK,
+} from "../posts/after-tax-rank-2026-08";
 import { AFTER_TAX_RANK_2026_09_ETF } from "../posts/after-tax-rank-2026-09";
 import {
   blogPostPath,
@@ -61,7 +66,12 @@ const SEPTEMBER_ISSUE = {
     "stock-rent": "2026-10-15T09:30:00+08:00",
     "ex-div-preview": "2026-10-22T09:30:00+08:00",
   },
-  comparisonNote: "這一期不跟上期比名次。",
+  comparisonNote: "上期排行是2026年8月的名次。",
+  prior: {
+    etf: AFTER_TAX_RANK_2026_08_ETF,
+    etfAudited: AFTER_TAX_RANK_2026_08_ETF_AUDITED,
+    stock: AFTER_TAX_RANK_2026_08_STOCK,
+  },
   asideNote: "00919 這一期上一期是 9/16 除息 1.10 元，最後買進日 9/15，發放日 10/15。",
   augustExDivCopy: false as const,
 };
@@ -129,6 +139,7 @@ export default function AfterTaxDividendRank202609Page() {
                 免責聲明：報表為情境試算，非投資建議、非報稅結論。實際配息、稅、二代健保以投信公告、國稅局與健保署為準。含息總報酬可能與配息率方向不同。
               </p>
             </div>
+            <AfterTaxRankDevOutlet />
           </div>
         </BlogAfterTaxRankChrome>
       </div>

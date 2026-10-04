@@ -94,6 +94,12 @@ type RankIssueInput = {
   comparisonNote?: string;
   asideNote?: string;
   augustExDivCopy?: boolean;
+  /** 有上一期時才填。八月是第一期，不傳，畫面上維持「首期無」。 */
+  prior?: {
+    etf: AfterTaxRankSnapshotRow[];
+    etfAudited: AfterTaxRankSnapshotRow[];
+    stock: AfterTaxRankSnapshotRow[];
+  };
 };
 
 function sectionIsOpen(
@@ -193,7 +199,10 @@ function evaluateMonthly(raw: string): number | null {
   }
 }
 
-function toCanvasRow(row: ReturnType<typeof deriveAfterTaxRank>[number]): CanvasRankRow {
+function toCanvasRow(
+  row: ReturnType<typeof deriveAfterTaxRank>[number],
+  prevRank = 0,
+): CanvasRankRow {
   return {
     ticker: row.ticker,
     name: row.name,
@@ -210,8 +219,8 @@ function toCanvasRow(row: ReturnType<typeof deriveAfterTaxRank>[number]): Canvas
     fee: row.fee,
     net: row.net,
     rank: row.rank,
-    prevRank: 0,
-    delta: 0,
+    prevRank,
+    delta: prevRank > 0 ? prevRank - row.rank : 0,
     lastBuy: row.lastBuy,
     exDate: row.exDate,
     payDate: row.payDate,
@@ -540,13 +549,24 @@ export function BlogAfterTaxRankTable({ issue }: { issue?: RankIssueInput } = {}
     return issue?.etf ?? AFTER_TAX_RANK_2026_08_ETF;
   }, [section, issue]);
   const ranked = useMemo(() => deriveAfterTaxRank(snapshot, basis), [snapshot, basis]);
-  const rows = useMemo(
-    () =>
-      withMonthlyTarget(ranked.slice(0, AFTER_TAX_RANK_TOTAL_TOP_N), basis, monthlyTarget).map(
-        toCanvasRow,
-      ),
-    [ranked, basis, monthlyTarget],
-  );
+  const rows = useMemo(() => {
+    const priorRows = !issue?.prior
+      ? null
+      : section === "stock-rent"
+        ? issue.prior.stock
+        : section === "etf-focus-pk"
+          ? issue.prior.etfAudited
+          : issue.prior.etf;
+    const priorRank = new Map<string, number>();
+    if (priorRows && priorRows.length > 0) {
+      for (const row of deriveAfterTaxRank(priorRows, basis)) {
+        priorRank.set(row.ticker, row.rank);
+      }
+    }
+    return withMonthlyTarget(ranked.slice(0, AFTER_TAX_RANK_TOTAL_TOP_N), basis, monthlyTarget).map(
+      (row) => toCanvasRow(row, priorRank.get(row.ticker) ?? 0),
+    );
+  }, [ranked, basis, monthlyTarget, section, issue]);
   const lead = ranked[0] ? toCanvasRow(ranked[0]) : undefined;
   const scaledLead = useMemo(() => {
     const top = ranked[0];

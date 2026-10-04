@@ -4,6 +4,7 @@ export const BLOG_OUTLETS = [
   { key: "blog_vocus", label: "方格子", color: "#F59E0B" },
   { key: "blog_pixnet", label: "痞客邦", color: "#FF6600" },
   { key: "blog_medium", label: "Medium", color: "#525252" },
+  { key: "forum_mobile01", label: "Mobile01", color: "#EA580C" },
 ] as const;
 
 export type BlogOutletKey = (typeof BLOG_OUTLETS)[number]["key"];
