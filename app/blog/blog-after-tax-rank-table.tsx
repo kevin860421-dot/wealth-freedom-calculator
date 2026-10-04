@@ -26,6 +26,7 @@ import {
   deriveAfterTaxRank,
   formatRankMoney,
   withMonthlyTarget,
+  type AfterTaxRankSnapshotRow,
 } from "@/lib/blog/after-tax-rank";
 import {
   AFTER_TAX_RANK_TOTAL_TOP_N,
@@ -72,10 +73,23 @@ const SECTION_RELEASE: Record<SectionId, string> = {
 };
 
 type RankIssueInput = {
-  meta: typeof AFTER_TAX_RANK_2026_08;
-  etf: typeof AFTER_TAX_RANK_2026_08_ETF;
-  etfAudited: typeof AFTER_TAX_RANK_2026_08_ETF_AUDITED;
-  stock: typeof AFTER_TAX_RANK_2026_08_STOCK;
+  meta: {
+    periodId: string;
+    periodTitle: string;
+    rankingMonth: number;
+    lastBasisTabLabel: string;
+    ttmBasisTabLabel: string;
+    lastPayoutInflowLabel: string;
+    asOf: string;
+    author: string;
+    canonicalPath: string;
+    priceSource: string;
+    dividendSource: string;
+    ttmSource: string;
+  };
+  etf: AfterTaxRankSnapshotRow[];
+  etfAudited: AfterTaxRankSnapshotRow[];
+  stock: AfterTaxRankSnapshotRow[];
   sectionReleaseIso?: Partial<Record<SectionId, string>>;
   comparisonNote?: string;
   asideNote?: string;
