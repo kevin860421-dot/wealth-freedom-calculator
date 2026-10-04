@@ -1,3 +1,5 @@
+import { getBlogPostBySlug, isBlogPostPublished } from "@/app/blog/posts/registry";
+
 export const AFTER_TAX_RANK_SERIES_START = { year: 2026, month: 8 } as const;
 export const AFTER_TAX_RANK_SERIES_LENGTH = 30;
 
@@ -63,7 +65,20 @@ export const AFTER_TAX_RANK_ISSUES: AfterTaxRankIssue[] = [
     slug: afterTaxRankSlug(2026, 8),
     asOf: "2026-08-31",
   },
+  {
+    year: 2026,
+    month: 9,
+    slug: afterTaxRankSlug(2026, 9),
+    asOf: "2026-09-30",
+  },
 ];
+
+/** 月份選單只放行公開時間已到、且沒有被快照鎖住的總排行。 */
+function isRankMonthOpen(year: number, month: number): boolean {
+  const entry = getBlogPostBySlug(afterTaxRankSlug(year, month));
+  if (!entry || entry.holdForSnapshot) return false;
+  return isBlogPostPublished(entry.publishAtIso);
+}
 
 export function rankingMonthIndex(year: number, month: number): number {
   return year * 12 + month;
@@ -212,7 +227,7 @@ export function resolveAfterTaxRankPeriod(
     };
   }
   const issue = getAfterTaxRankIssue(year, month);
-  if (issue) {
+  if (issue && isRankMonthOpen(year, month)) {
     return { year, month, status: "ready", hint: "", issue };
   }
   if (current < start + AFTER_TAX_RANK_SERIES_LENGTH) {

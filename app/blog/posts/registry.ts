@@ -118,8 +118,7 @@ export const BLOG_POST_REGISTRY: BlogPostRegistryEntry[] = [
     publishAtIso: "2026-10-01T09:30:00+08:00",
     listTitle: "稅後實領月報｜2026年9月配息排行：月領一萬要多少",
     listDescription:
-      "9月榜待截止日後，沿用同一套稅後實領欄位試算月領一萬要多少本金。數字未結算前不公開。",
-    holdForSnapshot: true,
+      "截止2026/09/30。用證交所收盤，配息沿用8月已核對序列並補上9月除息，試算月領一萬要多少本金。",
     featureHomeHero: false,
     featureHomeFooter: false,
   },

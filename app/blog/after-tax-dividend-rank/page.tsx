@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BlogScheduledPlaceholder } from "../blog-scheduled-placeholder";
 import { AFTER_TAX_RANK_2026_08_ETF } from "../posts/after-tax-rank-2026-08";
+import { AFTER_TAX_RANK_2026_09_ETF } from "../posts/after-tax-rank-2026-09";
 import {
   blogPostPath,
   getBlogPostBySlug,
@@ -47,10 +48,14 @@ function latestPublishedIssue(now: Date): LatestIssue | null {
 }
 
 function leadForIssue(issue: AfterTaxRankIssue) {
-  if (issue.year !== 2026 || issue.month !== 8) return null;
-  const top = deriveAfterTaxRank(AFTER_TAX_RANK_2026_08_ETF, "ttm")[0];
-  if (!top) return null;
-  return top;
+  const rows =
+    issue.year === 2026 && issue.month === 9
+      ? AFTER_TAX_RANK_2026_09_ETF
+      : issue.year === 2026 && issue.month === 8
+        ? AFTER_TAX_RANK_2026_08_ETF
+        : null;
+  if (!rows) return null;
+  return deriveAfterTaxRank(rows, "ttm")[0] ?? null;
 }
 
 function descriptionFor(latest: LatestIssue | null): string {

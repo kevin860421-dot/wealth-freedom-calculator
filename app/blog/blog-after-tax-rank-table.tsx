@@ -71,9 +71,46 @@ const SECTION_RELEASE: Record<SectionId, string> = {
   "ex-div-preview": "2026/9/22 09:30",
 };
 
-function sectionIsOpen(id: SectionId, now: Date): boolean {
+type RankIssueInput = {
+  meta: typeof AFTER_TAX_RANK_2026_08;
+  etf: typeof AFTER_TAX_RANK_2026_08_ETF;
+  etfAudited: typeof AFTER_TAX_RANK_2026_08_ETF_AUDITED;
+  stock: typeof AFTER_TAX_RANK_2026_08_STOCK;
+  sectionReleaseIso?: Partial<Record<SectionId, string>>;
+  comparisonNote?: string;
+  asideNote?: string;
+  augustExDivCopy?: boolean;
+};
+
+function sectionIsOpen(
+  id: SectionId,
+  now: Date,
+  releaseIso?: Partial<Record<SectionId, string>>,
+): boolean {
+  const iso = releaseIso?.[id];
+  if (iso) return now.getTime() >= new Date(iso).getTime();
   if (id !== "ex-div-preview") return SECTION_OPEN[id];
   return now.getTime() >= new Date(EX_DIV_RELEASE_ISO).getTime();
+}
+
+function sectionReleaseLabel(
+  id: SectionId,
+  releaseIso?: Partial<Record<SectionId, string>>,
+): string {
+  const iso = releaseIso?.[id];
+  if (!iso) return SECTION_RELEASE[id];
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Taipei",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(iso));
+  const pick = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? "";
+  return `${pick("year")}/${pick("month")}/${pick("day")} ${pick("hour")}:${pick("minute")}`;
 }
 
 function evaluateMonthly(raw: string): number | null {
@@ -473,16 +510,21 @@ function BasisAndMonthlyRow({
   );
 }
 
-export function BlogAfterTaxRankTable() {
+export function BlogAfterTaxRankTable({ issue }: { issue?: RankIssueInput } = {}) {
   const [basis, setBasis] = useState<Basis>("ttm");
   const [section, setSection] = useState<SectionId>("total-rank");
   const [monthlyText, setMonthlyText] = useState(String(AFTER_TAX_DEFAULT_MONTHLY_NET));
   const [monthlyTarget, setMonthlyTarget] = useState(AFTER_TAX_DEFAULT_MONTHLY_NET);
+  const meta = issue?.meta ?? AFTER_TAX_RANK_2026_08;
+  const comparisonNote = issue?.comparisonNote ?? "本系列第一期，沒有上期名次可比較。";
+  const asideNote =
+    issue?.asideNote ?? "00919 在 8/31 公告 1.10 元，除息日 9/16，未列入本期上一期。";
+  const augustExDivCopy = issue?.augustExDivCopy !== false;
   const snapshot = useMemo(() => {
-    if (section === "stock-rent") return AFTER_TAX_RANK_2026_08_STOCK;
-    if (section === "etf-focus-pk") return AFTER_TAX_RANK_2026_08_ETF_AUDITED;
-    return AFTER_TAX_RANK_2026_08_ETF;
-  }, [section]);
+    if (section === "stock-rent") return issue?.stock ?? AFTER_TAX_RANK_2026_08_STOCK;
+    if (section === "etf-focus-pk") return issue?.etfAudited ?? AFTER_TAX_RANK_2026_08_ETF_AUDITED;
+    return issue?.etf ?? AFTER_TAX_RANK_2026_08_ETF;
+  }, [section, issue]);
   const ranked = useMemo(() => deriveAfterTaxRank(snapshot, basis), [snapshot, basis]);
   const rows = useMemo(
     () =>
@@ -491,7 +533,6 @@ export function BlogAfterTaxRankTable() {
       ),
     [ranked, basis, monthlyTarget],
   );
-  const meta = AFTER_TAX_RANK_2026_08;
   const lead = ranked[0] ? toCanvasRow(ranked[0]) : undefined;
   const scaledLead = useMemo(() => {
     const top = ranked[0];
@@ -499,7 +540,7 @@ export function BlogAfterTaxRankTable() {
     return toCanvasRow(withMonthlyTarget([top], basis, monthlyTarget)[0]);
   }, [ranked, basis, monthlyTarget]);
   const nhiHits = ranked.filter((row) => row.nhi > 0).length;
-  const sectionOpen = sectionIsOpen(section, new Date());
+  const sectionOpen = sectionIsOpen(section, new Date(), issue?.sectionReleaseIso);
   const capitalLabel = capitalColumnLabel(monthlyTarget);
 
   function onMonthlyText(next: string) {
@@ -535,7 +576,7 @@ export function BlogAfterTaxRankTable() {
         <h2 className="conclusion-title">本期結論</h2>
         <p className="conclusion-body">
           {lead
-            ? `這期第一名是 ${lead.ticker}（${lead.name}）。依該期實領目標逆推，達平均月領 1 萬約需本金 ${formatRankMoney(lead.capital)} 元、${lead.lots.toFixed(1)} 張。本系列第一期，沒有上期名次可比較。`
+            ? `這期第一名是 ${lead.ticker}（${lead.name}）。依該期實領目標逆推，達平均月領 1 萬約需本金 ${formatRankMoney(lead.capital)} 元、${lead.lots.toFixed(1)} 張。${comparisonNote}`
             : "本期快照尚無排行資料。"}
         </p>
         <p className="conclusion-body">
@@ -544,7 +585,7 @@ export function BlogAfterTaxRankTable() {
             : `本期在達標張數下，${meta.lastPayoutInflowLabel}都未過二代健保門檻。`}
           {section === "stock-rent"
             ? "個股股價與配息用標的預設，排序與總排行同一套本金公式。"
-            : "00919 在 8/31 公告 1.10 元，除息日 9/16，未列入本期上一期。"}
+            : asideNote}
         </p>
       </div>
       <div className="first-row-wrapper">
@@ -566,6 +607,7 @@ export function BlogAfterTaxRankTable() {
         </div>
       </div>
       {sectionOpen && section === "ex-div-preview" ? (
+        augustExDivCopy ? (
         <div className="rank-report-conclusion">
           <h2 className="conclusion-title">9月已公告的最後買進日</h2>
           <p className="conclusion-body">
@@ -576,6 +618,14 @@ export function BlogAfterTaxRankTable() {
             2026/8/31。
           </p>
         </div>
+        ) : (
+        <div className="rank-report-conclusion">
+          <h2 className="conclusion-title">下月已公告的最後買進日</h2>
+          <p className="conclusion-body">
+            這一格只列截止日前已公告的除息日與最後買進日。
+          </p>
+        </div>
+        )
       ) : sectionOpen ? (
         <>
           <BasisAndMonthlyRow
@@ -632,7 +682,7 @@ export function BlogAfterTaxRankTable() {
           <div className="rank-section-locked-card">
             <h2>文章準備中</h2>
             <p>
-              本篇預計於 <strong>{SECTION_RELEASE[section]}</strong> 公開，敬請期待。
+              本篇預計於 <strong>{sectionReleaseLabel(section, issue?.sectionReleaseIso)}</strong> 公開，敬請期待。
             </p>
             <p>時間到之後重新整理頁面即可閱讀全文。</p>
           </div>
