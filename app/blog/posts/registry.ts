@@ -40,6 +40,8 @@ export type BlogPostRegistryEntry = {
   /** 達公開時間後，是否顯示在首頁頁尾「·」旁連結 */
   featureHomeFooter?: boolean;
   homeFooterLabel?: string;
+  /** 快照還沒有。時間到了也不進列表、sitemap，直接開網址只顯示準備中。 */
+  holdForSnapshot?: boolean;
 };
 
 export const BLOG_POST_REGISTRY: BlogPostRegistryEntry[] = [
@@ -48,11 +50,76 @@ export const BLOG_POST_REGISTRY: BlogPostRegistryEntry[] = [
   // 新的一期一律台北 09:30。下面 9/30 20:00 是已公開的 8 月文與總覽，不要照抄。
   // ─────────────────────────────────────────────────────────
   {
+    slug: "2026-10-ex-div-last-buy",
+    publishAtIso: "2026-11-22T09:30:00+08:00",
+    listTitle: "稅後實領月報｜2026年10月搶先除息：最後買進日",
+    listDescription: "10月搶先除息只列截止日前已公告的最後買進日。數字未結算前不公開。",
+    holdForSnapshot: true,
+    featureHomeHero: false,
+    featureHomeFooter: false,
+  },
+  {
+    slug: "2026-10-stock-rent-supplement",
+    publishAtIso: "2026-11-15T09:30:00+08:00",
+    listTitle: "稅後實領月報｜2026年10月個股排行：月領一萬要多少",
+    listDescription: "10月個股排行待截止日後，沿用同一套稅後實領欄位。數字未結算前不公開。",
+    holdForSnapshot: true,
+    featureHomeHero: false,
+    featureHomeFooter: false,
+  },
+  {
+    slug: "2026-10-etf-focus-pk",
+    publishAtIso: "2026-11-08T09:30:00+08:00",
+    listTitle: "稅後實領月報｜2026年10月ETF排行：月領一萬要多少",
+    listDescription: "10月ETF排行待截止日後，沿用同一套稅後實領欄位。數字未結算前不公開。",
+    holdForSnapshot: true,
+    featureHomeHero: false,
+    featureHomeFooter: false,
+  },
+  {
     slug: "2026-10-after-tax-dividend-rank",
     publishAtIso: "2026-11-01T09:30:00+08:00",
     listTitle: "稅後實領月報｜2026年10月配息排行：月領一萬要多少",
     listDescription:
       "10月榜待截止日後，沿用同一套稅後實領欄位試算月領一萬要多少本金。數字未結算前不公開。",
+    holdForSnapshot: true,
+    featureHomeHero: false,
+    featureHomeFooter: false,
+  },
+  {
+    slug: "2026-09-ex-div-last-buy",
+    publishAtIso: "2026-10-22T09:30:00+08:00",
+    listTitle: "稅後實領月報｜2026年9月搶先除息：最後買進日",
+    listDescription: "9月搶先除息只列截止日前已公告的最後買進日。數字未結算前不公開。",
+    holdForSnapshot: true,
+    featureHomeHero: false,
+    featureHomeFooter: false,
+  },
+  {
+    slug: "2026-09-stock-rent-supplement",
+    publishAtIso: "2026-10-15T09:30:00+08:00",
+    listTitle: "稅後實領月報｜2026年9月個股排行：月領一萬要多少",
+    listDescription: "9月個股排行待截止日後，沿用同一套稅後實領欄位。數字未結算前不公開。",
+    holdForSnapshot: true,
+    featureHomeHero: false,
+    featureHomeFooter: false,
+  },
+  {
+    slug: "2026-09-etf-focus-pk",
+    publishAtIso: "2026-10-08T09:30:00+08:00",
+    listTitle: "稅後實領月報｜2026年9月ETF排行：月領一萬要多少",
+    listDescription: "9月ETF排行待截止日後，沿用同一套稅後實領欄位。數字未結算前不公開。",
+    holdForSnapshot: true,
+    featureHomeHero: false,
+    featureHomeFooter: false,
+  },
+  {
+    slug: "2026-09-after-tax-dividend-rank",
+    publishAtIso: "2026-10-01T09:30:00+08:00",
+    listTitle: "稅後實領月報｜2026年9月配息排行：月領一萬要多少",
+    listDescription:
+      "9月榜待截止日後，沿用同一套稅後實領欄位試算月領一萬要多少本金。數字未結算前不公開。",
+    holdForSnapshot: true,
     featureHomeHero: false,
     featureHomeFooter: false,
   },
@@ -814,7 +881,7 @@ export function getBlogPostBySlug(slug: string): BlogPostRegistryEntry | undefin
 
 /** 已達公開時間的文章（順序同 registry，新文建議放在陣列前段） */
 export function getPublishedBlogPosts(now: Date = new Date()): BlogPostRegistryEntry[] {
-  return BLOG_POST_REGISTRY.filter((p) => isBlogPostPublished(p.publishAtIso, now));
+  return BLOG_POST_REGISTRY.filter((p) => !p.holdForSnapshot && isBlogPostPublished(p.publishAtIso, now));
 }
 
 export function getHomeHeroBlogPosts(now: Date = new Date()): BlogPostRegistryEntry[] {
