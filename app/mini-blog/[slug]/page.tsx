@@ -20,6 +20,17 @@ import { Exdiv2026Picker } from "../exdiv-2026-picker";
 import { QUICK11_SUCCESS_BLOG_PATH, QUICK11_SUCCESS_BLOG_TITLE } from "@/lib/quick11-marketing";
 import { absoluteUrl, getSiteOrigin } from "@/lib/site-origin";
 
+const OG_IMAGE_BY_SLUG: Record<string, { path: string; alt: string }> = {
+  "quick4-dividend-ex-month-calendar-guide": {
+    path: "/og/ex-month-2026.png",
+    alt: "2026 除息月份：0056 是 1、4、7、10 月，00878 是 2、5、8、11 月，00919 是 3、6、9、12 月",
+  },
+  "quick4-00935-dividend-simulator": {
+    path: "/og/00935-months.png",
+    alt: "00935 配息月份：評價月 2 月、8 月，2026 除息日 3/17 與 9/16",
+  },
+};
+
 const RELATED_NEXT_STEPS: Record<string, { href: string; label: string }[]> = {
   "quick4-00935-dividend-simulator": [
     { href: "/mini-blog/quick4-2026-official-ex-dividend-calendar", label: "2026 已公告除息日：00935 是 3/17、9/16" },
@@ -56,6 +67,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       robots: { index: false, follow: false },
     };
   }
+  const ogImage = OG_IMAGE_BY_SLUG[post.slug];
   return {
     title: post.seoTitle,
     description: post.metaDescription,
@@ -68,6 +80,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: `/mini-blog/${post.slug}`,
       locale: "zh_TW",
       siteName: "財富自由計算機",
+      images: ogImage
+        ? [
+            {
+              url: absoluteUrl(ogImage.path),
+              width: 1200,
+              height: 630,
+              alt: ogImage.alt,
+            },
+          ]
+        : undefined,
     },
   };
 }

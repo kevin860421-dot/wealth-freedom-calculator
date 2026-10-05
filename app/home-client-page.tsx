@@ -12,6 +12,7 @@ import { serializeHeavySimPayload, type HeavySimPayload } from "../lib/home-simu
 import { useDebouncedValue } from "../lib/use-debounced-value";
 import { useHomeHeavySimulation } from "../lib/use-home-heavy-simulation";
 import { OPEN_LOAD_TARGET_MODAL_EVENT } from "../lib/watchlist-modal-events";
+import { trackDownloadExcel } from "@/lib/gtag-events";
 import {
   TICKER_PRESETS,
   buildTickerDividendMonthsMap,
@@ -2364,6 +2365,7 @@ export default function Home() {
   ]);
 
   const downloadTableExcel = useCallback(() => {
+    trackDownloadExcel();
     void (async () => {
       const XLSX = await import("xlsx");
       const matrix = buildAccumulatedSheetExcelMatrix();

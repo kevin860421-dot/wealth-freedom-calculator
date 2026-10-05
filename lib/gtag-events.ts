@@ -2,6 +2,13 @@
 
 import { getQuickGaFromPage } from "@/lib/quick-ga-from-page";
 
+export function trackDownloadExcel() {
+  if (typeof window === "undefined") return;
+  const gtag = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag;
+  if (typeof gtag !== "function") return;
+  gtag("event", "download_excel");
+}
+
 export function trackClickMainCalculator(quickId: number) {
   if (typeof window === "undefined") return;
   const gtag = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag;

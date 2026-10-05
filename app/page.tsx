@@ -12,6 +12,14 @@ export const metadata: Metadata = {
     description:
       "輸入目前本金、每月投入和退休後每月花費，算出幾歲達標。算完可下載 Excel，免註冊。",
     url: "https://wealth-freedom-calculator.vercel.app/",
+    images: [
+      {
+        url: "https://wealth-freedom-calculator.vercel.app/og/home-excel.png",
+        width: 1200,
+        height: 630,
+        alt: "退休計算機 Excel：輸入本金、每月投入和退休後每月花費，算出幾歲達標，可下載",
+      },
+    ],
   },
 };
 
