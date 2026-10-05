@@ -23,7 +23,7 @@ export function buildHomeJsonLd(origin = getSiteOrigin()) {
         "@id": `${origin}/#software-application`,
         name: "台灣台股 ETF 財富自由計算機",
         description:
-          "試算退休年期、台股 ETF 股利課稅、54C、二代健保補充保費與每期須扣除；支援 Excel 情境對照。",
+          "輸入本金、每月投入和退休後每月花費，算出幾歲達標。算完可下載 Excel。",
         image: absoluteUrl("/og-share.png", origin),
         applicationCategory: "FinanceApplication",
         operatingSystem: "All",
@@ -66,7 +66,7 @@ export function buildHomeJsonLd(origin = getSiteOrigin()) {
             name: "這台財富自由計算機可以導出試算表檔案嗎？",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "可以，本站提供免費線上即時試算，完全免下載任何 Excel 檔、免註冊即可使用，且支援一鍵匯出 Excel 功能，方便您保存不同情境的壓力測試假設。",
+              text: "可以。網頁直接試算，免註冊。算完可以一鍵匯出 Excel，把這一組假設存下來。",
             },
           },
         ],
